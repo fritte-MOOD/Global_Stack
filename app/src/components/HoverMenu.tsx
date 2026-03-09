@@ -15,6 +15,7 @@ import { useWindowManager, type WindowContent } from "./WindowManager";
 export type HoverMenuItem = {
   title: string;
   body: ReactNode;
+  windowWidth?: number;
 };
 
 type Pos = { x: number; y: number };
@@ -42,9 +43,11 @@ export function useHoverMenu() {
 export function HoverMenuProvider({
   items,
   children,
+  tooltipWidth = 256,
 }: {
   items: Record<string, HoverMenuItem>;
   children: ReactNode;
+  tooltipWidth?: number;
 }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const { toggleWindow, isWindowOpen } = useWindowManager();
@@ -67,7 +70,6 @@ export function HoverMenuProvider({
         const item = items[id];
         if (!item) return;
 
-        // clientX/Y = viewport coords, + scroll = document coords
         const pos = {
           x: e.clientX + window.scrollX + 16,
           y: e.clientY + window.scrollY + 12,
@@ -75,12 +77,8 @@ export function HoverMenuProvider({
 
         const content: WindowContent = {
           title: item.title,
-          body: (
-            <div className="text-xs text-brand-950 leading-relaxed">
-              {item.body}
-            </div>
-          ),
-          width: 280,
+          body: item.body,
+          width: item.windowWidth ?? 280,
         };
 
         toggleWindow(id, content, pos);
@@ -104,8 +102,9 @@ export function HoverMenuProvider({
 
         {hoveredItem && !isPinned(hoveredId!) && (
           <div
-            className="absolute z-40 w-64 rounded-lg border border-brand-200 bg-brand-50 px-4 py-3 shadow-lg shadow-brand-200/60 pointer-events-none"
+            className="absolute z-40 rounded-lg border border-brand-200 bg-brand-50 px-4 py-3 shadow-lg shadow-brand-200/60 pointer-events-none"
             style={{
+              width: tooltipWidth,
               left: flipX ? mousePos.x - 16 : mousePos.x + 16,
               top: mousePos.y + 12,
               transform: flipX ? "translateX(-100%)" : "none",

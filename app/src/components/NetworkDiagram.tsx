@@ -10,102 +10,109 @@ const b = (token: string) => `var(--color-brand-${token})`;
 const DevicePreview = () => (
   <div className="mt-3">
     {/* Laptop on top */}
-    <div className="mb-3">
-      <div className="border border-brand-700 rounded-md bg-brand-900 p-2" style={{ width: '220px', height: '130px' }}>
+    <div className="mb-4">
+      <div className="border border-brand-700 rounded-md bg-brand-50 p-3" style={{ width: '280px', height: '160px' }}>
         {/* Window bar */}
-        <div className="flex items-center gap-1 mb-2 bg-brand-800 rounded px-2 py-1">
-          <div className="w-2 h-2 rounded-full bg-brand-700"></div>
-          <div className="w-2 h-2 rounded-full bg-brand-700"></div>
-          <div className="w-2 h-2 rounded-full bg-brand-700"></div>
-          <span className="text-[8px] text-brand-200 ml-2">Global Stack Desktop</span>
+        <div className="flex items-center gap-1 mb-3 border border-brand-700 rounded px-2 py-1">
+          <div className="w-2 h-2 rounded-full border border-brand-700"></div>
+          <div className="w-2 h-2 rounded-full border border-brand-700"></div>
+          <div className="w-2 h-2 rounded-full border border-brand-700"></div>
+          <span className="text-[9px] text-brand-900 ml-2">Global Stack Desktop</span>
         </div>
         {/* Desktop icons */}
-        <div className="grid grid-cols-5 gap-2">
+        <div className="grid grid-cols-5 gap-3">
           <div className="flex flex-col items-center">
-            <div className="w-6 h-6 bg-brand-600 rounded flex items-center justify-center text-[8px]">📁</div>
-            <span className="text-[6px] text-brand-200 mt-0.5">Files</span>
+            <div className="w-8 h-8 bg-brand-600 rounded flex items-center justify-center text-[10px]">📁</div>
+            <span className="text-[7px] text-brand-900 mt-1">Files</span>
           </div>
           <div className="flex flex-col items-center">
-            <div className="w-6 h-6 bg-brand-600 rounded flex items-center justify-center text-[8px]">💬</div>
-            <span className="text-[6px] text-brand-200 mt-0.5">MOOD</span>
+            <div className="w-8 h-8 bg-brand-300 rounded flex items-center justify-center text-[10px]">⚖️</div>
+            <span className="text-[7px] text-brand-900 mt-1 font-semibold">MOOD</span>
           </div>
           <div className="flex flex-col items-center">
-            <div className="w-6 h-6 bg-brand-600 rounded flex items-center justify-center text-[8px]">🤖</div>
-            <span className="text-[6px] text-brand-200 mt-0.5">AI</span>
+            <div className="w-8 h-8 bg-brand-600 rounded flex items-center justify-center text-[10px]">🤖</div>
+            <span className="text-[7px] text-brand-900 mt-1">AI</span>
           </div>
           <div className="flex flex-col items-center">
-            <div className="w-6 h-6 bg-brand-600 rounded flex items-center justify-center text-[8px]">⚙️</div>
-            <span className="text-[6px] text-brand-200 mt-0.5">Settings</span>
+            <div className="w-8 h-8 bg-brand-700 rounded flex items-center justify-center text-[10px]">⚙️</div>
+            <span className="text-[7px] text-brand-900 mt-1">Settings</span>
           </div>
           <div className="flex flex-col items-center">
-            <div className="w-6 h-6 bg-brand-600 rounded flex items-center justify-center text-[8px]">🌐</div>
-            <span className="text-[6px] text-brand-200 mt-0.5">Browser</span>
+            <div className="w-8 h-8 bg-brand-600 rounded flex items-center justify-center text-[10px]">🌐</div>
+            <span className="text-[7px] text-brand-900 mt-1">Browser</span>
           </div>
         </div>
       </div>
-      <div className="w-[230px] h-2 bg-brand-700 rounded-b-md mx-auto"></div>
+      <div className="w-[290px] h-3 border border-brand-700 rounded-b-md mx-auto bg-brand-50"></div>
     </div>
     
     {/* Tablet and Phone side by side */}
-    <div className="flex gap-3">
+    <div className="flex gap-4 mb-4">
       {/* Tablet */}
-      <div className="border border-brand-700 rounded-lg bg-brand-900 p-2" style={{ width: '100px', height: '140px' }}>
-        <div className="text-[7px] text-brand-200 text-center mb-2">Global Stack</div>
-        <div className="grid grid-cols-3 gap-1">
-          <div className="bg-brand-700 rounded p-1 text-center">
-            <div className="text-[10px]">📁</div>
-            <div className="text-[5px] text-brand-200">Files</div>
+      <div className="border border-brand-700 rounded-lg bg-brand-50 p-3" style={{ width: '130px', height: '170px' }}>
+        <div className="text-[8px] text-brand-900 text-center mb-3 font-semibold">Global Stack</div>
+        <div className="grid grid-cols-3 gap-2">
+          <div className="text-center">
+            <div className="w-8 h-8 bg-brand-600 rounded flex items-center justify-center text-[12px] mb-1">📁</div>
+            <div className="text-[6px] text-brand-900">Files</div>
           </div>
-          <div className="bg-brand-700 rounded p-1 text-center">
-            <div className="text-[10px]">💬</div>
-            <div className="text-[5px] text-brand-200">MOOD</div>
+          <div className="text-center">
+            <div className="w-8 h-8 bg-brand-300 rounded flex items-center justify-center text-[12px] mb-1">⚖️</div>
+            <div className="text-[6px] text-brand-900 font-semibold">MOOD</div>
           </div>
-          <div className="bg-brand-700 rounded p-1 text-center">
-            <div className="text-[10px]">🤖</div>
-            <div className="text-[5px] text-brand-200">AI</div>
+          <div className="text-center">
+            <div className="w-8 h-8 bg-brand-600 rounded flex items-center justify-center text-[12px] mb-1">🤖</div>
+            <div className="text-[6px] text-brand-900">AI</div>
           </div>
-          <div className="bg-brand-700 rounded p-1 text-center">
-            <div className="text-[10px]">📷</div>
-            <div className="text-[5px] text-brand-200">Photos</div>
+          <div className="text-center">
+            <div className="w-8 h-8 bg-brand-700 rounded flex items-center justify-center text-[12px] mb-1">⚙️</div>
+            <div className="text-[6px] text-brand-900">Settings</div>
           </div>
-          <div className="bg-brand-700 rounded p-1 text-center">
-            <div className="text-[10px]">🎵</div>
-            <div className="text-[5px] text-brand-200">Music</div>
+          <div className="text-center">
+            <div className="w-8 h-8 bg-brand-600 rounded flex items-center justify-center text-[12px] mb-1">🌐</div>
+            <div className="text-[6px] text-brand-900">Browser</div>
           </div>
-          <div className="bg-brand-700 rounded p-1 text-center">
-            <div className="text-[10px]">⚙️</div>
-            <div className="text-[5px] text-brand-200">Settings</div>
+          <div className="text-center">
+            <div className="w-8 h-8 bg-brand-600 rounded flex items-center justify-center text-[12px] mb-1">📊</div>
+            <div className="text-[6px] text-brand-900">Stats</div>
           </div>
         </div>
-        <div className="flex justify-center mt-2">
-          <div className="w-6 h-6 border border-brand-700 rounded-full"></div>
+        <div className="flex justify-center mt-3">
+          <div className="w-8 h-8 border border-brand-700 rounded-full"></div>
         </div>
       </div>
       
       {/* Phone */}
-      <div className="border border-brand-700 rounded-xl bg-brand-900 p-1.5" style={{ width: '60px', height: '120px' }}>
-        <div className="w-8 h-1 bg-brand-700 rounded-full mx-auto mb-1"></div>
-        <div className="text-[6px] text-brand-200 text-center mb-1">Global Stack</div>
-        <div className="space-y-1">
-          <div className="bg-brand-700 rounded p-0.5 flex items-center gap-1">
-            <span className="text-[8px]">📁</span>
-            <span className="text-[5px] text-brand-200">Files</span>
+      <div className="border border-brand-700 rounded-xl bg-brand-50 p-2" style={{ width: '80px', height: '150px' }}>
+        <div className="w-10 h-1 bg-brand-700 rounded-full mx-auto mb-2"></div>
+        <div className="text-[7px] text-brand-900 text-center mb-2 font-semibold">Global Stack</div>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 bg-brand-600 rounded flex items-center justify-center text-[10px]">📁</div>
+            <span className="text-[6px] text-brand-900">Files</span>
           </div>
-          <div className="bg-brand-700 rounded p-0.5 flex items-center gap-1">
-            <span className="text-[8px]">💬</span>
-            <span className="text-[5px] text-brand-200">MOOD</span>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 bg-brand-300 rounded flex items-center justify-center text-[10px]">⚖️</div>
+            <span className="text-[6px] text-brand-900 font-semibold">MOOD</span>
           </div>
-          <div className="bg-brand-700 rounded p-0.5 flex items-center gap-1">
-            <span className="text-[8px]">🤖</span>
-            <span className="text-[5px] text-brand-200">AI</span>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 bg-brand-600 rounded flex items-center justify-center text-[10px]">🤖</div>
+            <span className="text-[6px] text-brand-900">AI</span>
           </div>
-          <div className="bg-brand-700 rounded p-0.5 flex items-center gap-1">
-            <span className="text-[8px]">⚙️</span>
-            <span className="text-[5px] text-brand-200">Settings</span>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 bg-brand-700 rounded flex items-center justify-center text-[10px]">⚙️</div>
+            <span className="text-[6px] text-brand-900">Settings</span>
           </div>
         </div>
-        <div className="w-6 h-1 bg-brand-700 rounded-full mx-auto mt-2"></div>
+        <div className="w-8 h-1 bg-brand-700 rounded-full mx-auto mt-3"></div>
       </div>
+    </div>
+    
+    {/* Explore Button */}
+    <div className="text-center">
+      <button className="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-brand-50 rounded-md text-sm font-medium transition-colors">
+        Explore Open OS Client
+      </button>
     </div>
   </div>
 );
@@ -118,12 +125,12 @@ const ITEMS: Record<string, HoverMenuItem> = {
     body: "Share one powerful computer as a large group to save resources and money. No need for everyone to buy their own high-end PC, AI subscription, and cloud storage.",
   },
   openos: {
-    title: "Open OS",
+    title: "OpenOS Server",
     body: (
       <>
         <p>A NixOS-based operating system managing all server resources. Reproducible, declarative, and fully configurable.</p>
         <Link href="/open-os" className="mt-2 inline-flex items-center gap-1 text-brand-700 hover:text-brand-900 font-medium">
-          Explore Open OS &rarr;
+          Explore OpenOS &rarr;
         </Link>
       </>
     ),
@@ -342,7 +349,7 @@ function DiagramSVG() {
           return (
             <g key={i}>
               <rect x={rackX + 8} y={moduleY} width={rackW - 16} height={moduleH} rx={3}
-                fill={b("100")} stroke={b("800")} strokeWidth={1}
+                fill={b("50")} stroke={b("800")} strokeWidth={1}
               />
               {/* LEDs */}
               <circle cx={rackX + 22} cy={moduleY + moduleH/2} r={3} fill={b("700")} />
@@ -375,7 +382,7 @@ function DiagramSVG() {
         />
         <text x={osX + osW/2} y={osY + 20} textAnchor="middle" fill={b("900")}
           style={{ fontSize: 13, fontWeight: 600, fontFamily: "var(--font-heading)" }}>
-          Open OS
+          OpenOS Server
         </text>
         <line x1={osX + 12} y1={osY + 28} x2={osX + osW - 12} y2={osY + 28} stroke={b("200")} strokeWidth={1} />
       </g>

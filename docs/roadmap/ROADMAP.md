@@ -284,3 +284,123 @@ Phase D — Integration
   M10  End-to-End Flow            ─┐
   M11  Polish & Alpha Release     ─┘  Ship
 ```
+
+---
+
+## UI/UX Design Guidelines
+
+### OpenOS Client Interface Specifications
+
+**Goal:** Consistent, OS-like experience across all devices that feels native and professional.
+
+#### Device Layout Standards
+
+**Laptop/Desktop:**
+```
+┌─────────────────────────────────────┐
+│ ○ ○ ○  OpenOS Desktop              │ ← Window title bar
+├─────────────────────────────────────┤
+│                                     │
+│  📁    💬    🤖    ⚙️    🌐      │ ← App icons grid
+│ Files  MOOD   AI  Settings Browser │   (5 columns)
+│                                     │
+│  📊    📝    🎵    📷    📧      │ ← Second row
+│ Stats  Notes Music Photos  Mail    │
+│                                     │
+│ [Taskbar with running apps]         │ ← Bottom taskbar
+└─────────────────────────────────────┘
+```
+
+**Tablet:**
+```
+┌─────────────────────────┐
+│      OpenOS            │ ← Header with status
+├─────────────────────────┤
+│                         │
+│  📁   💬   🤖         │ ← 3x3 app grid
+│ Files MOOD  AI         │   (larger icons)
+│                         │
+│  ⚙️   🌐   📊         │
+│Settings Browser Stats  │
+│                         │
+│  📝   🎵   📷         │
+│ Notes Music Photos     │
+│                         │
+│        ○               │ ← Home button
+└─────────────────────────┘
+```
+
+**Mobile/Phone:**
+```
+┌─────────────────┐
+│    ────────     │ ← Notch/status bar
+│   OpenOS        │
+├─────────────────┤
+│                 │
+│ 📁 Files        │ ← Vertical app list
+│ 💬 MOOD         │   (full width rows)
+│ 🤖 AI Assistant │
+│ ⚙️ Settings     │
+│ 🌐 Browser      │
+│ 📊 Statistics   │
+│ 📝 Notes        │
+│ 🎵 Music        │
+│ 📷 Photos       │
+│                 │
+│     ──────      │ ← Home indicator
+└─────────────────┘
+```
+
+#### Core App Design Requirements
+
+**Files (📁)**
+- Icon: Folder with documents visible
+- Color: `brand-600` (neutral blue-gray)
+- Function: File manager, cloud storage access
+
+**MOOD (💬)**
+- Icon: Speech bubbles with deliberation symbol (scales/voting)
+- Color: `brand-300` (orange accent) - **distinctive from other apps**
+- Function: Group decision-making, discussions, voting
+- **Special treatment:** Should stand out as the primary community feature
+
+**AI Assistant (🤖)**
+- Icon: Robot head or brain symbol
+- Color: `brand-600` 
+- Function: Local AI models, chat interface
+
+**Settings (⚙️)**
+- Icon: Gear/cog wheel
+- Color: `brand-700` (darker gray)
+- Function: System configuration, user preferences
+
+#### Visual Design Principles
+
+1. **OS-like Authenticity:**
+   - Desktop: Window management, taskbar, desktop metaphor
+   - Tablet: Home screen with app grid, status bar
+   - Mobile: Native app list, gestures, status indicators
+
+2. **MOOD App Prominence:**
+   - Use `brand-300` (orange) to make MOOD visually distinct
+   - Larger or more prominent placement where possible
+   - Special icon design that conveys "group decision-making"
+
+3. **Consistency Across Devices:**
+   - Same 4 core apps always present
+   - Consistent iconography and naming
+   - Responsive to device capabilities (touch vs mouse)
+
+4. **Professional Feel:**
+   - Clean, minimal interface
+   - Proper spacing and typography
+   - Smooth animations and transitions
+   - Real OS conventions (window controls, navigation patterns)
+
+#### Implementation Notes
+
+- All previews should feel like real operating systems, not web apps
+- Desktop version should have window chrome (title bars, minimize/maximize/close)
+- Tablet should feel like iPad/Android tablet home screen
+- Mobile should feel like native iOS/Android app drawer
+- MOOD app gets special visual treatment to emphasize community features
