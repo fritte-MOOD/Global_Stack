@@ -1,0 +1,28 @@
+/**
+ * Dark Theme — Legacy-Style mit Orange-Akzent
+ * Aktiv wenn <html> die Klasse "dark" hat.
+ * Orange als Hauptakzent (brand-300), subtile dunkle Töne.
+ */
+html.dark {
+  --color-brand-0: #1b1b1b;           /* Dark background for cards */
+  --color-brand-1: #eae9e9;           /* Light text */
+  --color-brand-25: #131415;          /* Page background - very dark */
+  --color-brand-50: #101010;          /* Navigation/Cards - dark */
+  --color-brand-100: #2a2a2a;         /* Hover states - subtle */
+  --color-brand-200: #0e0e0e;         /* Dark borders */
+  --color-brand-300: #fba762;         /* ORANGE accent (dark mode) */
+  --color-brand-400: #3d5c7a;         /* Secondary blue (muted) */
+  --color-brand-500: #d4a76a;         /* Warm accent background */
+  --color-brand-550: #202020;         /* Button hover - subtle */
+  --color-brand-600: #3d5c7a;         /* Icons - muted blue */
+  --color-brand-700: #e69451;         /* Links/Icons - orange accent */
+  --color-brand-800: #353535;         /* Border hover */
+  --color-brand-850: #c4c4c8;         /* Button hover - lighter */
+  --color-brand-900: #e69451;         /* Headings - ORANGE in dark mode */
+  --color-brand-901: #fba762;         /* Icon: MOOD (orange in dark mode) */
+  --color-brand-902: #5483a3;         /* Icon: / (blue in dark mode) */
+  --color-brand-950: #d8d8dc;         /* Body text - light gray */
+  --color-group-park-club-500: #8026d6;
+  --color-group-marin-quarter-500: #239124;
+  --color-group-rochefort-500: #ec2222;
+}

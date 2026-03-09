@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-heading: var(--font-heading);
+  --color-brand-0: var(--color-brand-0);
+  --color-brand-1: var(--color-brand-1);
+  --color-brand-25: var(--color-brand-25);
+  --color-brand-50: var(--color-brand-50);
+  --color-brand-100: var(--color-brand-100);
+  --color-brand-200: var(--color-brand-200);
+  --color-brand-300: var(--color-brand-300);
+  --color-brand-400: var(--color-brand-400);
+  --color-brand-500: var(--color-brand-500);
+  --color-brand-550: var(--color-brand-550);
+  --color-brand-600: var(--color-brand-600);
+  --color-brand-700: var(--color-brand-700);
+  --color-brand-800: var(--color-brand-800);
+  --color-brand-850: var(--color-brand-850);
+  --color-brand-900: var(--color-brand-900);
+  --color-brand-901: var(--color-brand-901);
+  --color-brand-902: var(--color-brand-902);
+  --color-brand-950: var(--color-brand-950);
+  --color-group-park-club-500: var(--color-group-park-club-500);
+  --color-group-marin-quarter-500: var(--color-group-marin-quarter-500);
+  --color-group-rochefort-500: var(--color-group-rochefort-500);
+}
+
+:root {
+  --color-brand-0: #ffffff;
+  --color-brand-1: #000000;
+  --color-brand-25: #fefeff;
+  --color-brand-50: #ffffff;
+  --color-brand-100: #e1ebf5;
+  --color-brand-200: #e6e6e6;
+  --color-brand-300: #fba762;
+  --color-brand-400: #8baecf;
+  --color-brand-500: #fde9d3;
+  --color-brand-550: #f3f4f6;
+  --color-brand-600: #5483a3;
+  --color-brand-700: #426a86;
+  --color-brand-800: #d1d5db;
+  --color-brand-850: #335269;
+  --color-brand-900: #273e4f;
+  --color-brand-901: #273e4f;
+  --color-brand-902: #fba762;
+  --color-brand-950: #3f3f46;
+  --color-group-park-club-500: #704c93;
+  --color-group-marin-quarter-500: #337835;
+  --color-group-rochefort-500: #d63f3f;
+}
+
+html.dark {
+  --color-brand-0: #1b1b1b;
+  --color-brand-1: #eae9e9;
+  --color-brand-25: #131415;
+  --color-brand-50: #101010;
+  --color-brand-100: #2a2a2a;
+  --color-brand-200: #0e0e0e;
+  --color-brand-300: #fba762;
+  --color-brand-400: #3d5c7a;
+  --color-brand-500: #d4a76a;
+  --color-brand-550: #202020;
+  --color-brand-600: #3d5c7a;
+  --color-brand-700: #e69451;
+  --color-brand-800: #353535;
+  --color-brand-850: #c4c4c8;
+  --color-brand-900: #e69451;
+  --color-brand-901: #fba762;
+  --color-brand-902: #5483a3;
+  --color-brand-950: #d8d8dc;
+  --color-group-park-club-500: #8026d6;
+  --color-group-marin-quarter-500: #239124;
+  --color-group-rochefort-500: #ec2222;
+}
+
+body {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
