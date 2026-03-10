@@ -6,10 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:deploy": "node scripts/deploy-db.js",
+    "db:seed": "npx tsx prisma/seed.ts",
+    "db:studio": "npx prisma studio"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.0",
     "@prisma/adapter-better-sqlite3": "^7.4.2",
+    "@prisma/adapter-libsql": "^7.4.2",
     "@prisma/client": "^7.4.2",
     "bcrypt": "^6.0.0",
     "better-sqlite3": "^12.6.2",
