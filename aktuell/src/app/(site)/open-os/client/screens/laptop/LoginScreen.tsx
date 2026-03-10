@@ -141,7 +141,7 @@ export default function LoginScreen({ onContinue }: { onContinue: () => void }) 
                   <button
                     key={server.id}
                     onClick={() => toggleServer(server.id)}
-                    className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 ${
+                    className={`w-full flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 cursor-pointer ${
                       isSelected
                         ? "bg-brand-50 border-brand-800 shadow-sm"
                         : "bg-brand-50 border-brand-200 hover:border-brand-800"
@@ -176,7 +176,7 @@ export default function LoginScreen({ onContinue }: { onContinue: () => void }) 
               disabled={selected.size === 0}
               className={`group relative z-10 flex items-center justify-center gap-2 w-full h-14 px-8 rounded-md text-base font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${
                 selected.size > 0
-                  ? "bg-brand-0 border border-brand-800 shadow-md shadow-brand-200 hover:shadow-xl hover:border-transparent hover:ring-2 hover:ring-brand-300 hover:ring-offset-2 hover:ring-offset-brand-25"
+                  ? "bg-brand-0 border border-brand-800 shadow-md shadow-brand-200 hover:shadow-xl hover:border-transparent hover:ring-2 hover:ring-brand-300 hover:ring-offset-2 hover:ring-offset-brand-25 cursor-pointer"
                   : "bg-brand-200 border border-brand-200 text-brand-950 cursor-not-allowed"
               }`}
             >
@@ -263,7 +263,7 @@ export default function LoginScreen({ onContinue }: { onContinue: () => void }) 
             {phase === "done" && (
               <button
                 onClick={onContinue}
-                className="group relative z-10 flex items-center justify-center gap-2 w-full h-14 px-8 rounded-md text-base font-medium whitespace-nowrap bg-brand-0 border border-brand-800 shadow-md shadow-brand-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-transparent hover:ring-2 hover:ring-brand-300 hover:ring-offset-2 hover:ring-offset-brand-25"
+                className="group relative z-10 flex items-center justify-center gap-2 w-full h-14 px-8 rounded-md text-base font-medium whitespace-nowrap bg-brand-0 border border-brand-800 shadow-md shadow-brand-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-transparent hover:ring-2 hover:ring-brand-300 hover:ring-offset-2 hover:ring-offset-brand-25 cursor-pointer"
               >
                 <span className="relative z-10 flex items-center gap-2 text-brand-900">
                   Continue

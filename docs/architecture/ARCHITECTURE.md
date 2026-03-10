@@ -17,13 +17,13 @@ This document describes **how the system is built**, organized by technical laye
 | **Framework** | Next.js 16 (App Router) | aktiv |
 | **Language** | TypeScript | aktiv |
 | **Styling** | Tailwind CSS 4 | aktiv |
-| **State** | React Context (WindowManager) | aktiv |
+| **State** | React Context (WindowManager, GroupFilter) | aktiv |
 | **Icons** | Lucide React | aktiv |
 | **ORM** | Prisma 7 | aktiv |
 | **Datenbank (lokal)** | SQLite via better-sqlite3 | aktiv |
 | **Datenbank (Demo)** | Turso (gehostetes SQLite) | geplant |
 | **Datenbank (Prod)** | PostgreSQL (VPS / Supabase) | geplant |
-| **Auth** | noch offen (NextAuth / custom) | geplant |
+| **Auth** | Custom (bcrypt + Session Cookie + Middleware) | aktiv |
 | **Deploy** | Vercel | geplant |
 
 ---
@@ -63,13 +63,21 @@ src/app/
 │       └── _actions/
 │           └── load-demo-data.ts       ← Server Action: Demo-Daten laden
 │
+├── _actions/
+│   ├── events.ts           ← Server Actions: loadEvents, createEvent, deleteEvent
+│   └── groups.ts           ← Server Action: loadGroups
+│
 └── workspace/              ← Route-Group: persistente App OHNE Navbar
-    ├── layout.tsx          ← Workspace-Layout (fullscreen)
-    ├── page.tsx            ← Dashboard: Communities + Templates
+    ├── layout.tsx          ← Workspace-Layout (fullscreen, Auth-Check)
+    ├── page.tsx            ← Desktop (Shared Desktop Component)
+    ├── login/page.tsx      ← Login (Username/Password + Demo-User)
+    ├── register/page.tsx   ← Registrierung
     ├── [slug]/
     │   └── page.tsx        ← Community-Detail-Seite
     └── _actions/
-        └── clone-template.ts           ← Server Action: Template kopieren
+        ├── auth.ts         ← Login/Register/Logout Server Actions
+        ├── clone-template.ts
+        └── load-user-data.ts ← Lädt User-spezifische Daten
 ```
 
 ### 2.2 Two User Flows
@@ -89,23 +97,43 @@ src/app/
 
 ### 2.3 Window Management System
 
-**Nur für Landing Page aktiv** — nicht in OpenOS Demo oder Workspace.
+**Genutzt auf Landing Page und im Desktop (Demo + Workspace).**
 
 ```
 components/window-manager/
 ├── logic/
 │   ├── WindowManagerProvider.tsx    ← React Context für offene Fenster
+│   ├── WindowManager.tsx            ← Fenster-Zustandsverwaltung (Position, Zentrierung)
 │   ├── DraggableWindow.tsx          ← Drag, Resize, Close Logik
-│   └── Tag.tsx                      ← Hover-Tooltip + Click-to-Window
+│   └── Tag.tsx                      ← Hover-Tooltip + Click-to-Window (optional Tooltip)
 └── windows/
-    ├── ProjectWindow.tsx            ← Projekt-Fenster (OpenOS, Mood)
+    ├── CalendarWindow.tsx           ← Kalender mit Event-Erstellung
+    ├── MessagesWindow.tsx           ← Nachrichten (gefiltert nach Gruppen)
+    ├── TasksWindow.tsx              ← Aufgaben (gefiltert nach Gruppen)
+    ├── DocumentsWindow.tsx          ← Dokumente (gefiltert nach Gruppen)
+    ├── DebateWindow.tsx             ← Deliberation Prozesse
+    ├── ProjectWindow.tsx            ← Projekt-Fenster (Landing Page)
+    ├── index.ts                     ← Barrel exports
     └── _TEMPLATE.tsx                ← Vorlage für neue Fenster
 ```
 
-**Verwendung:**
-```tsx
-<ProjectWindow name="OpenOS" />  // Hover-Tooltip + Click-Window
+### 2.4 Shared Desktop Component
+
+**Genutzt von OpenOS Demo (`/open-os/client`) und Workspace (`/workspace`).**
+
 ```
+components/desktop/
+├── Desktop.tsx              ← Hauptkomponente (Uhrzeit, Footer, Menüs, WindowManager)
+├── GroupFilterContext.tsx    ← React Context für aktive Gruppenfilter
+└── index.ts                 ← Barrel exports
+```
+
+**Features:**
+- Ring-Button (Hauptmenü), App-Menü, Gruppenswitcher im Footer
+- Portal-basierte Overlays (createPortal → document.body, garantiert z-index)
+- `mode="demo"` vs. `mode="workspace"` für Anpassungen
+- GroupFilterProvider verteilt ausgewählte Gruppen an alle App-Fenster
+- Dark Mode Toggle + Fullscreen in Settings
 
 ### 2.4 Device Mockups
 
@@ -269,9 +297,37 @@ const selectedGroupIds = selectedGroupId
 
 ---
 
-## 5. Styling & Theming
+## 5. Auth System
 
-### 5.1 Tailwind CSS 4
+### 5.1 Custom Auth
+
+Kein NextAuth — eigene leichtgewichtige Implementierung.
+
+**Ablauf:**
+1. User registriert sich mit Username + Password
+2. Password wird mit `bcrypt` gehasht
+3. Login prüft Credentials → erstellt Session in DB
+4. Session-Token wird als HTTP-Only Cookie gesetzt
+5. Middleware prüft Cookie bei allen `/workspace/*`-Routen
+
+**Demo-User:**
+- 3 vordefinierte Demo-Accounts (ParkClub, MarinQuarter, Rochefort)
+- Login ohne Passwort-Eingabe via Button-Klick
+
+**Dateien:**
+```
+src/lib/auth.ts                 ← getSession(), getUserFromCookie()
+src/middleware.ts               ← Route Protection (/workspace/*)
+src/app/workspace/_actions/auth.ts  ← login(), register(), logout()
+src/app/workspace/login/page.tsx    ← Login-UI mit Demo-User-Auswahl
+src/app/workspace/register/page.tsx ← Registrierungs-UI
+```
+
+---
+
+## 6. Styling & Theming
+
+### 6.1 Tailwind CSS 4
 
 ```css
 @import "tailwindcss";
@@ -290,7 +346,7 @@ const selectedGroupIds = selectedGroupId
 }
 ```
 
-### 5.2 Dark Mode
+### 6.2 Dark Mode
 
 **Aktivierung:** `html.dark` Klasse via `ThemeSync` Component.
 
@@ -299,7 +355,7 @@ const selectedGroupIds = selectedGroupId
 - Navbar-Slash in Light-Mode orange
 - Device-Frames: unterschiedliche Farben für Light/Dark
 
-### 5.3 CSS-Variablen
+### 6.3 CSS-Variablen
 
 **Device-Frames:**
 ```css
@@ -314,9 +370,9 @@ html.dark {
 
 ---
 
-## 6. Development Workflow
+## 7. Development Workflow
 
-### 6.1 Database Operations
+### 7.1 Database Operations
 
 ```bash
 # Schema ändern
@@ -332,7 +388,7 @@ npx tsx prisma/seed.ts
 npx prisma studio
 ```
 
-### 6.2 Build & Deploy
+### 7.2 Build & Deploy
 
 ```bash
 # Development
@@ -345,7 +401,7 @@ npm run build
 npx tsc --noEmit
 ```
 
-### 6.3 File Watching
+### 7.3 File Watching
 
 **Hot Reload funktioniert für:**
 - React Components
@@ -359,19 +415,19 @@ npx tsc --noEmit
 
 ---
 
-## 7. Next Steps
+## 8. Next Steps
 
-### 7.1 Immediate (M6)
+### 8.1 Immediate (M5/M6)
 - **Server View** für OpenOS implementieren
 - **Tablet/Mobile Screens** für Client View
-- **Auth System** (NextAuth vs. custom)
+- **User-Erstellung** via Admin-Dashboard
 
-### 7.2 Medium-term
+### 8.2 Medium-term
 - **Real-time Updates** (WebSockets / Server-Sent Events)
 - **File Uploads** (Avatars, Dokument-Attachments)
 - **Advanced Processes** (Deliberation Module)
 
-### 7.3 Production
+### 8.3 Production
 - **Database Migration** (SQLite → PostgreSQL)
 - **Hosting Setup** (Vercel + VPS/Supabase)
 - **Performance Optimization** (Caching, CDN)

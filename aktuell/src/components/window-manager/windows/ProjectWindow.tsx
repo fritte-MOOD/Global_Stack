@@ -133,12 +133,13 @@ export default function ProjectWindow({ name }: { name: string }) {
   return (
     <Tag
       id={`project-${name.toLowerCase()}`}
-      label={name}
-      tooltip={content}           /* ← on-hover Tooltip-Inhalt (= gleich) */
+      tooltip={content}
       window={windowContent}
-      tooltipWidth={data.windowWidth}  /* ← gleiche Breite wie Fenster */
+      tooltipWidth={data.windowWidth}
       className="font-semibold underline decoration-brand-300 underline-offset-2 transition-colors text-brand-900"
       activeClassName="text-brand-700"
-    />
+    >
+      {name}
+    </Tag>
   );
 }

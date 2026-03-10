@@ -26,7 +26,7 @@ export default function DeviceSwitcher({
           <button
             key={id}
             onClick={() => onChange(id)}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all cursor-pointer ${
               value === id
                 ? "bg-brand-50 text-brand-900 shadow-sm"
                 : "text-brand-950 hover:bg-brand-50/50"
@@ -40,7 +40,7 @@ export default function DeviceSwitcher({
       {onFullscreen && (
         <button
           onClick={onFullscreen}
-          className="p-1.5 rounded-md bg-brand-100/50 border border-brand-200 text-brand-950 hover:bg-brand-100 transition-all"
+          className="p-1.5 rounded-md bg-brand-100/50 border border-brand-200 text-brand-950 hover:bg-brand-100 transition-all cursor-pointer"
           aria-label="Fullscreen"
           title="Fullscreen"
         >

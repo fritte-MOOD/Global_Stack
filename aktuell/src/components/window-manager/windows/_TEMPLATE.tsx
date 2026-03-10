@@ -10,14 +10,21 @@
  *   6. id-Prefix in <Tag> anpassen (z.B. "user-" statt "template-")
  *
  * Nutzung auf Seiten:
- *   import TemplateWindow from "@/components/window-manager/windows/TemplateWindow";
- *   <p>Klick auf <TemplateWindow name="Beispiel" /> um mehr zu sehen.</p>
  *
- * WICHTIG: On-hover und on-click zeigen den GLEICHEN Inhalt.
+ *   Als Inline-Text:
+ *     <TemplateWindow name="Beispiel" />
+ *
+ *   Mit beliebigem Trigger-Element (Kachel, Bild, Box...):
+ *     <TemplateWindow name="Beispiel">
+ *       <div className="p-4 border rounded-lg">Klick mich!</div>
+ *     </TemplateWindow>
+ *
+ * On-hover und on-click zeigen den GLEICHEN Inhalt.
  * Der Tooltip sieht exakt aus wie das Fenster — gleiche Breite, gleiche
  * Stelle, mit Titelleiste. Beim Klick wird es draggable + hat X zum Schließen.
  */
 
+import type { ReactNode } from "react";
 import Tag from "../logic/Tag";
 import type { WindowContent } from "../logic/WindowManager";
 
@@ -26,10 +33,10 @@ import type { WindowContent } from "../logic/WindowManager";
  * ───────────────────────────────────────────── */
 
 type TemplateData = {
-  description: string;       // Passe diese Felder an deine Bedürfnisse an
-  windowWidth: number;       // Breite für Tooltip UND Fenster (immer gleich!)
-  // windowHeight?: number;  // optional: feste Höhe
-  resizable: boolean;        // Fenster resizebar?
+  description: string;
+  windowWidth: number;
+  // windowHeight?: number;
+  resizable: boolean;
 };
 
 const entries: Record<string, TemplateData> = {
@@ -38,12 +45,6 @@ const entries: Record<string, TemplateData> = {
     windowWidth: 320,
     resizable: false,
   },
-  // Weitere Einträge hier:
-  // "Noch Eins": {
-  //   description: "...",
-  //   windowWidth: 320,
-  //   resizable: false,
-  // },
 };
 
 /* ─────────────────────────────────────────────
@@ -57,9 +58,6 @@ const entries: Record<string, TemplateData> = {
  *    │  (on-hover = on-click)      │
  *    │                             │
  *    └─────────────────────────────┘
- *
- *    Alles was du hier reinschreibst, erscheint sowohl im
- *    Hover-Tooltip als auch im geklickten Fenster.
  * ───────────────────────────────────────────── */
 
 function TemplateContent({ name, data }: { name: string; data: TemplateData }) {
@@ -72,44 +70,38 @@ function TemplateContent({ name, data }: { name: string; data: TemplateData }) {
 }
 
 /* ─────────────────────────────────────────────
- * 3. HAUPT-COMPONENT — auf Seiten benutzen als:
- *    <TemplateWindow name="Beispiel" />
+ * 3. HAUPT-COMPONENT
  *
- *    Verbindet Daten + Inhalt + Tag:
+ *    Als Text:    <TemplateWindow name="Beispiel" />
+ *    Als Kachel:  <TemplateWindow name="Beispiel"><MyTile /></TemplateWindow>
  *
- *    ┌──────────────────────────────────────┐
- *    │  Tag (logic/Tag.tsx)                 │
- *    │  ├─ label:        "Beispiel"         │  ← im Fließtext sichtbar
- *    │  ├─ tooltip:      <TemplateContent>  │  ← on-hover (Tooltip)
- *    │  ├─ window.body:  <TemplateContent>  │  ← on-click (Fenster)
- *    │  └─ tooltipWidth: 320                │  ← gleiche Breite wie Fenster
- *    └──────────────────────────────────────┘
+ *    Ohne children → rendert den Namen als unterstrichenen Text.
+ *    Mit children  → rendert children als Trigger (Kachel, Box, Bild, ...).
  * ───────────────────────────────────────────── */
 
-export default function TemplateWindow({ name }: { name: string }) {
+export default function TemplateWindow({ name, children }: { name: string; children?: ReactNode }) {
   const data = entries[name];
   if (!data) return <span>{name}</span>;
 
-  /* Gleicher Inhalt für Tooltip und Fenster */
   const content = <TemplateContent name={name} data={data} />;
 
   const windowContent: WindowContent = {
     title: name,
-    body: content,              // ← on-click: Fenster-Inhalt
-    width: data.windowWidth,    // ← Fensterbreite
-    // height: data.windowHeight,
+    body: content,
+    width: data.windowWidth,
     resizable: data.resizable,
   };
 
   return (
     <Tag
       id={`template-${name.toLowerCase()}`}    /* ← Prefix anpassen! */
-      label={name}
-      tooltip={content}           /* ← on-hover: Tooltip-Inhalt (= gleich!) */
+      tooltip={content}
       window={windowContent}
-      tooltipWidth={data.windowWidth}  /* ← gleiche Breite wie Fenster! */
-      className="font-semibold underline decoration-brand-300 underline-offset-2 transition-colors text-brand-900"
-      activeClassName="text-brand-700"
-    />
+      tooltipWidth={data.windowWidth}
+      className={children ? "" : "font-semibold underline decoration-brand-300 underline-offset-2 transition-colors text-brand-900"}
+      activeClassName={children ? "" : "text-brand-700"}
+    >
+      {children ?? name}
+    </Tag>
   );
 }

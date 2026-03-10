@@ -11,6 +11,7 @@ const adapter = new PrismaBetterSqlite3({ url: "file:./dev.db" });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  await prisma.session.deleteMany();
   await prisma.process.deleteMany();
   await prisma.document.deleteMany();
   await prisma.task.deleteMany();
@@ -21,33 +22,39 @@ async function main() {
   await prisma.user.deleteMany();
 
   // ═══════════════════════════════════════════
-  // Users
+  // Users (Demo-User haben isDemo: true und kein Passwort)
   // ═══════════════════════════════════════════
 
   const alex = await prisma.user.create({
     data: {
+      username: "alex",
       name: "Alex Demo",
       nickname: "alex",
       email: "alex@demo.local",
       description: "Gründer und Admin. Interessiert an dezentraler Infrastruktur und Bürgerbeteiligung.",
+      isDemo: true,
     },
   });
 
   const maria = await prisma.user.create({
     data: {
+      username: "maria",
       name: "Maria Beispiel",
       nickname: "maria",
       email: "maria@demo.local",
       description: "Aktives Mitglied in mehreren Communities. Engagiert sich besonders im Jugendbereich.",
+      isDemo: true,
     },
   });
 
   const leon = await prisma.user.create({
     data: {
+      username: "leon",
       name: "Léon Dupont",
       nickname: "leon",
       email: "leon@demo.local",
       description: "Stadtrat in Rochefort. Setzt sich für digitale Bürgerbeteiligung ein.",
+      isDemo: true,
     },
   });
 
@@ -72,31 +79,31 @@ async function main() {
   // ═══════════════════════════════════════════
 
   const pcJugend = await prisma.group.create({
-    data: { slug: "park-club-jugend", name: "Jugendabteilung", subtitle: "U18 Training & Turniere", color: "#22c55e", icon: "Users", parentId: parkClub.id, visibility: "public" },
+    data: { slug: "park-club-jugend", name: "Jugendabteilung", subtitle: "U18 Training & Turniere", color: "#16a34a", icon: "Users", parentId: parkClub.id, visibility: "public" },
   });
 
   const pcVorstand = await prisma.group.create({
-    data: { slug: "park-club-vorstand", name: "Vorstand", subtitle: "Vereinsleitung", color: "#15803d", icon: "Shield", parentId: parkClub.id, visibility: "private" },
+    data: { slug: "park-club-vorstand", name: "Vorstand", subtitle: "Vereinsleitung", color: "#16a34a", icon: "Shield", parentId: parkClub.id, visibility: "private" },
   });
 
   const mqHausA = await prisma.group.create({
-    data: { slug: "marin-quarter-haus-a", name: "Haus A", subtitle: "Erdgeschoss bis 3. OG", color: "#3b82f6", icon: "Home", parentId: marinQuarter.id, visibility: "public" },
+    data: { slug: "marin-quarter-haus-a", name: "Haus A", subtitle: "Erdgeschoss bis 3. OG", color: "#2563eb", icon: "Home", parentId: marinQuarter.id, visibility: "public" },
   });
 
   const mqGarten = await prisma.group.create({
-    data: { slug: "marin-quarter-garten", name: "Gartenpflege", subtitle: "Gemeinschaftsgarten & Innenhof", color: "#16a34a", icon: "Flower2", parentId: marinQuarter.id, visibility: "public" },
+    data: { slug: "marin-quarter-garten", name: "Gartenpflege", subtitle: "Gemeinschaftsgarten & Innenhof", color: "#2563eb", icon: "Flower2", parentId: marinQuarter.id, visibility: "public" },
   });
 
   const rcStadtrat = await prisma.group.create({
-    data: { slug: "rochefort-stadtrat", name: "Conseil Municipal", subtitle: "Stadtrat & Verwaltung", color: "#7c3aed", icon: "Gavel", parentId: rochefort.id, visibility: "public" },
+    data: { slug: "rochefort-stadtrat", name: "Conseil Municipal", subtitle: "Stadtrat & Verwaltung", color: "#9333ea", icon: "Gavel", parentId: rochefort.id, visibility: "public" },
   });
 
   const rcFeuerwehr = await prisma.group.create({
-    data: { slug: "rochefort-feuerwehr", name: "Sapeurs-Pompiers", subtitle: "Freiwillige Feuerwehr", color: "#dc2626", icon: "Flame", parentId: rochefort.id, visibility: "private" },
+    data: { slug: "rochefort-feuerwehr", name: "Sapeurs-Pompiers", subtitle: "Freiwillige Feuerwehr", color: "#9333ea", icon: "Flame", parentId: rochefort.id, visibility: "private" },
   });
 
   const rcJugend = await prisma.group.create({
-    data: { slug: "rochefort-jugendparlament", name: "Parlement des Jeunes", subtitle: "Jugendparlament", color: "#a855f7", icon: "GraduationCap", parentId: rochefort.id, visibility: "hidden" },
+    data: { slug: "rochefort-jugendparlament", name: "Parlement des Jeunes", subtitle: "Jugendparlament", color: "#9333ea", icon: "GraduationCap", parentId: rochefort.id, visibility: "hidden" },
   });
 
   // ═══════════════════════════════════════════
@@ -107,24 +114,24 @@ async function main() {
     data: { slug: "template-sportverein", name: "Sportverein", subtitle: "Template", color: "#16a34a", icon: "Trophy", isTemplate: true, templateDescription: "Kompletter Sportverein mit Trainingsplan, Turnieren, Jugendabteilung und Vorstand." },
   });
   await prisma.group.createMany({ data: [
-    { slug: "tpl-sv-jugend", name: "Jugendabteilung", subtitle: "U18", color: "#22c55e", icon: "Users", parentId: tplSport.id, visibility: "public", isTemplate: true },
-    { slug: "tpl-sv-vorstand", name: "Vorstand", subtitle: "Vereinsleitung", color: "#15803d", icon: "Shield", parentId: tplSport.id, visibility: "private", isTemplate: true },
+    { slug: "tpl-sv-jugend", name: "Jugendabteilung", subtitle: "U18", color: "#16a34a", icon: "Users", parentId: tplSport.id, visibility: "public", isTemplate: true },
+    { slug: "tpl-sv-vorstand", name: "Vorstand", subtitle: "Vereinsleitung", color: "#16a34a", icon: "Shield", parentId: tplSport.id, visibility: "private", isTemplate: true },
   ]});
 
   const tplWG = await prisma.group.create({
     data: { slug: "template-wohngemeinschaft", name: "Wohngemeinschaft", subtitle: "Template", color: "#2563eb", icon: "Building2", isTemplate: true, templateDescription: "Hausverwaltung mit Hausordnung, Nebenkostenabrechnung, Gartenpflege." },
   });
   await prisma.group.createMany({ data: [
-    { slug: "tpl-wg-haus-a", name: "Haus A", subtitle: "Wohneinheit", color: "#3b82f6", icon: "Home", parentId: tplWG.id, visibility: "public", isTemplate: true },
-    { slug: "tpl-wg-garten", name: "Garten", subtitle: "Gemeinschaftsgarten", color: "#16a34a", icon: "Flower2", parentId: tplWG.id, visibility: "public", isTemplate: true },
+    { slug: "tpl-wg-haus-a", name: "Haus A", subtitle: "Wohneinheit", color: "#2563eb", icon: "Home", parentId: tplWG.id, visibility: "public", isTemplate: true },
+    { slug: "tpl-wg-garten", name: "Garten", subtitle: "Gemeinschaftsgarten", color: "#2563eb", icon: "Flower2", parentId: tplWG.id, visibility: "public", isTemplate: true },
   ]});
 
   const tplGemeinde = await prisma.group.create({
     data: { slug: "template-gemeinde", name: "Gemeinde", subtitle: "Template", color: "#9333ea", icon: "Landmark", isTemplate: true, templateDescription: "Kommunalverwaltung mit Stadtrat, Bürgerbeteiligung, Feuerwehr." },
   });
   await prisma.group.createMany({ data: [
-    { slug: "tpl-gm-stadtrat", name: "Stadtrat", subtitle: "Verwaltung", color: "#7c3aed", icon: "Gavel", parentId: tplGemeinde.id, visibility: "public", isTemplate: true },
-    { slug: "tpl-gm-feuerwehr", name: "Feuerwehr", subtitle: "Einsatzgruppe", color: "#dc2626", icon: "Flame", parentId: tplGemeinde.id, visibility: "private", isTemplate: true },
+    { slug: "tpl-gm-stadtrat", name: "Stadtrat", subtitle: "Verwaltung", color: "#9333ea", icon: "Gavel", parentId: tplGemeinde.id, visibility: "public", isTemplate: true },
+    { slug: "tpl-gm-feuerwehr", name: "Feuerwehr", subtitle: "Einsatzgruppe", color: "#9333ea", icon: "Flame", parentId: tplGemeinde.id, visibility: "private", isTemplate: true },
   ]});
 
   // ═══════════════════════════════════════════

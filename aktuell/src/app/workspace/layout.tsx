@@ -2,7 +2,7 @@
  * workspace/layout.tsx — Layout für die persistente App.
  *
  * Kein Geräte-Rahmen, keine Navbar — läuft als vollwertige Web-App.
- * Nutzer muss angemeldet sein (Auth wird später implementiert).
+ * Nutzer muss angemeldet sein (Middleware schützt die Routen).
  * Alle Daten kommen aus der Datenbank.
  */
 

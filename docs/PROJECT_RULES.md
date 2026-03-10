@@ -34,10 +34,11 @@ Diese Dokumentation muss **kontinuierlich aktualisiert** werden, wenn:
 | **Framework** | Next.js (App Router) | 16.1 |
 | **Language** | TypeScript | 5.x |
 | **Styling** | Tailwind CSS | 4.x |
-| **State** | React Context (WindowManager) | — |
+| **State** | React Context (WindowManager, GroupFilter) | — |
 | **Icons** | Lucide React | 0.577 |
 | **ORM** | Prisma | 7.4 |
 | **Datenbank** | SQLite (lokal via better-sqlite3) | — |
+| **Auth** | Custom (bcrypt + Session Cookie) | — |
 | **Deploy** | Vercel (geplant) | — |
 
 ---
@@ -47,11 +48,15 @@ Diese Dokumentation muss **kontinuierlich aktualisiert** werden, wenn:
 ```
 aktuell/
 ├── prisma/
-│   ├── schema.prisma          Datenmodell (8 Tabellen, Hierarchie + Templates)
-│   ├── seed.ts                Demo-Daten (3 Server, 7 Untergruppen, 3 Templates)
+│   ├── schema.prisma          Datenmodell (9 Tabellen inkl. Session)
+│   ├── seed.ts                Demo-Daten (3 Server, 7 Untergruppen, 3 User)
 │   └── prisma.config.ts       CLI-Konfiguration
 ├── src/
 │   ├── app/
+│   │   ├── _actions/          Globale Server Actions
+│   │   │   ├── events.ts      loadEvents, createEvent, deleteEvent
+│   │   │   └── groups.ts      loadGroups
+│   │   ├── api/               API Routes (falls vorhanden)
 │   │   ├── (site)/            Route Group: Öffentliche Seiten mit Navbar
 │   │   │   ├── (landing)/     Landing Page
 │   │   │   └── open-os/       OpenOS Demo
@@ -60,26 +65,33 @@ aktuell/
 │   │   │       │       ├── Desktop.tsx      App-Shell mit Navigation
 │   │   │       │       ├── LoginScreen.tsx  Server-Auswahl
 │   │   │       │       └── apps/            5 funktionale Apps
-│   │   │       │           ├── MessagesApp.tsx
-│   │   │       │           ├── CalendarApp.tsx
-│   │   │       │           ├── TasksApp.tsx
-│   │   │       │           ├── DocumentsApp.tsx
-│   │   │       │           └── DebateApp.tsx
 │   │   │       ├── server/    Server View (Coming Soon)
 │   │   │       └── _actions/  Server Actions für Demo-Daten
 │   │   │           └── load-demo-data.ts
 │   │   ├── workspace/         Route Group: Persistente App (fullscreen)
-│   │   │   ├── page.tsx       Dashboard: Communities + Templates
+│   │   │   ├── page.tsx       Desktop (Shared Desktop Component)
+│   │   │   ├── login/         Login-Seite (Username/Password + Demo-User)
+│   │   │   ├── register/      Registrierungs-Seite
 │   │   │   ├── [slug]/        Dynamische Community-Seiten
 │   │   │   └── _actions/      Server Actions
-│   │   │       └── clone-template.ts
-│   │   ├── layout.tsx         Root Layout (ohne Navbar)
-│   │   └── globals.css        Tailwind + CSS Variablen
+│   │   │       ├── auth.ts    Login, Register, Logout
+│   │   │       ├── clone-template.ts
+│   │   │       └── load-user-data.ts
+│   │   ├── layout.tsx         Root Layout
+│   │   └── globals.css        Tailwind + CSS Variablen (Light/Dark)
 │   ├── components/
+│   │   ├── desktop/           Shared Desktop-Komponente
+│   │   │   ├── Desktop.tsx    Hauptkomponente (Footer, Menüs, WindowManager)
+│   │   │   ├── GroupFilterContext.tsx  Globaler Gruppenfilter
+│   │   │   └── index.ts
 │   │   ├── ui/                UI-Komponenten (DeviceSwitcher, etc.)
-│   │   └── window-manager/    Fenster-System für Landing Page
-│   └── lib/
-│       └── db.ts              Prisma Client Singleton
+│   │   └── window-manager/    Fenster-System
+│   │       ├── logic/         WindowManager, DraggableWindow, Tag
+│   │       └── windows/       App-Fenster (Calendar, Messages, Tasks, ...)
+│   ├── lib/
+│   │   ├── db.ts              Prisma Client Singleton
+│   │   └── auth.ts            Auth-Hilfsfunktionen (getSession, getUserFromCookie)
+│   └── middleware.ts          Route Protection (/workspace/*)
 ├── dev.db                     SQLite Datenbank (lokal, .gitignore)
 ├── package.json               Dependencies
 └── next.config.ts             Next.js Konfiguration
@@ -100,8 +112,12 @@ aktuell/
 
 ```prisma
 model User {
-  id, email, name, nickname, avatarUrl, description
-  memberships[], messages[], tasks[], documents[], processes[]
+  id, email, name, nickname, avatarUrl, description, passwordHash, isDemo
+  memberships[], messages[], tasks[], documents[], processes[], sessions[]
+}
+
+model Session {
+  id, token, userId, expiresAt
 }
 
 model Group {
@@ -120,14 +136,6 @@ model Document { title, content, groupId, authorId }
 model Process { title, description, status, groupId, authorId }
 ```
 
-### Neue Felder (seit heute)
-
-- **Group.parentId**: Ermöglicht Server → Untergruppen Hierarchie
-- **Group.visibility**: `public`, `private`, `hidden` für Untergruppen-Sichtbarkeit
-- **Group.isTemplate**: Markiert kopierbare Vorlagen
-- **Group.templateDescription**: Beschreibung für Templates
-- **User.nickname, avatarUrl, description**: Erweiterte Profil-Felder
-
 ### Seed-Daten (aktuell)
 
 - **3 Top-Level Server**: ParkClub (Sport), MarinQuarter (Wohnen), Rochefort (Stadt)
@@ -138,28 +146,27 @@ model Process { title, description, status, groupId, authorId }
 
 ---
 
-## OpenOS Client Apps (neu implementiert)
+## Desktop & Apps
 
-### App-Shell (`Desktop.tsx`)
-- **Home-Screen**: Uhrzeit + App-Launcher (9-Punkt-Grid)
-- **App-Modus**: Top-Bar mit Home-Button, App-Name, Gruppen-Filter
-- **Daten-Loading**: Server Action lädt alle Demo-Daten beim Start
-- **Navigation**: Zurück-zum-Desktop, Gruppen-Switcher
+### Shared Desktop Component (`components/desktop/Desktop.tsx`)
+- **Genutzt von**: Demo (`/open-os/client`) und Workspace (`/workspace`)
+- **Mode-Prop**: `"demo"` vs. `"workspace"` für kontextspezifische Anpassungen
+- **Footer/Taskbar**: Ring-Menü (User/Settings/Server), App-Button (3x3 Grid), Gruppenswitcher
+- **Portal-Overlays**: Alle Menüs via `createPortal` → `document.body` (z-index garantiert)
+- **GroupFilterContext**: Verteilt ausgewählte Gruppen an alle App-Fenster
+- **Settings**: Dark Mode Toggle + Fullscreen (über Menü + App-Menü erreichbar)
 
-### Implementierte Apps (5/9)
+### Window-Apps (als DraggableWindow)
+1. **Calendar** — Events + persistente Event-Erstellung via eigenes zentriertes Fenster
+2. **Messages** — Nachrichten, gefiltert nach Gruppen
+3. **Tasks** — Open/Done Listen, gefiltert nach Gruppen
+4. **Documents** — Dokumentenliste mit Inline-Reader, gefiltert nach Gruppen
+5. **Debate** — Processes nach Status, gefiltert nach Gruppen
 
-1. **Messages** — Nachrichten gruppiert nach Community, mit Avataren
-2. **Calendar** — Events sortiert nach Datum, farbige Gruppen-Streifen  
-3. **Tasks** — Open/Done Listen, Assignee-Info, Gruppen-Zuordnung
-4. **Documents** — Dokumentenliste mit Inline-Reader
-5. **Debate** — Processes nach Status (Active/Draft/Other) mit Badges
-
-**Noch nicht implementiert**: Groups (teilweise), Wiki, Analytics, Settings
-
-### Demo-Daten Flow
-1. **LoginScreen**: User wählt Server (ParkClub, MarinQuarter, Rochefort)
-2. **Desktop**: Lädt via `loadDemoData()` alle Inhalte der gewählten Server
-3. **Apps**: Filtern Daten nach `groupIds` (alle oder spezifische Gruppe)
+### Demo-Apps (innerhalb OpenOS Laptop Screen)
+- Eigenständige App-Komponenten in `screens/laptop/apps/`
+- Laden Demo-Daten via `loadDemoData()` Server Action
+- Filtern nach spezifischen Gruppen via Dropdown
 
 ---
 
@@ -182,8 +189,8 @@ model Process { title, description, status, groupId, authorId }
 
 - **M1**: ✅ Landing Page (Next.js 16, Tailwind 4, Window Manager)
 - **M2**: ✅ OpenOS Demo Structure (Device Switcher, Login Flow)
-- **M3**: ✅ Client View Laptop (Desktop, Apps Grid, Fullscreen)
-- **M4**: ✅ Database & Persistence (Prisma, SQLite, Schema, Seed, Workspace Routes, Templates)
-- **M5**: ✅ **Demo Apps Implementation** (Messages, Calendar, Tasks, Documents, Debate)
+- **M3**: ✅ Demo Apps Implementation (Messages, Calendar, Tasks, Documents, Debate)
+- **M4**: ✅ Auth & Persistence (Prisma, SQLite, Auth, Session, Middleware, Templates)
+- **M4b**: ✅ **Desktop Redesign** (Shared Desktop, Footer-Menüs, Settings, Gruppenfilter)
 
-**Nächste Schritte**: Server View, Auth System, Tablet/Mobile Screens
+**Nächste Schritte**: Server View (M5), Tablet/Mobile Screens (M6)

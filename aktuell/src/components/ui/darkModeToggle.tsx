@@ -22,7 +22,7 @@ export const DarkModeToggle = () => {
   return (
     <button
       onClick={toggle}
-      className="p-2 rounded-full bg-brand-100 hover:bg-brand-200 transition-colors"
+      className="p-2 rounded-full bg-brand-100 hover:bg-brand-200 transition-colors cursor-pointer"
       aria-label="Toggle dark mode"
     >
       {isDark ? (

@@ -1,18 +1,20 @@
 # Global Stack — Documentation Index
 
 > **Stand: 10. März 2026**  
-> **Aktuelle Phase:** OpenOS Demo Apps Implementation ✅ abgeschlossen
+> **Aktuelle Phase:** Desktop Redesign & App Integration ✅ abgeschlossen
 
 ---
 
-## 📋 Quick Reference
+## Quick Reference
 
 | Bereich | Status | Nächste Schritte |
 |---------|--------|------------------|
 | **Landing Page** | ✅ Fertig | Window Manager optimieren |
 | **OpenOS Client Demo** | ✅ Fertig | Server View implementieren |
-| **Demo Apps** | ✅ **NEU** | Tablet/Mobile Screens |
-| **Database & Persistence** | ✅ Fertig | Auth System hinzufügen |
+| **Demo Apps** | ✅ Fertig | Tablet/Mobile Screens |
+| **Auth System** | ✅ Fertig | - |
+| **Desktop Redesign** | ✅ **NEU** | Feinschliff, weitere Apps |
+| **Database & Persistence** | ✅ Fertig | Hosted DB (Turso) |
 | **MOOD Deliberation** | ⬜ Offen | Domain Model & UI |
 
 ---
@@ -40,47 +42,45 @@ docs/
 
 ---
 
-## 🎯 Current Focus: OpenOS Demo Apps
+## Current Focus: Desktop Redesign & App Integration
 
-**Was heute implementiert wurde:**
+**Was zuletzt implementiert wurde:**
 
-### 5 funktionale Apps für OpenOS Laptop Demo
-1. **MessagesApp** — Nachrichten gruppiert nach Community
-2. **CalendarApp** — Events sortiert nach Datum mit farbigen Gruppen-Streifen
-3. **TasksApp** — Open/Done Listen mit Assignee-Info
-4. **DocumentsApp** — Dokumentenliste mit Inline-Reader
-5. **DebateApp** — Processes nach Status mit Badges
+### Auth System
+- **Custom Auth**: bcrypt + Session Cookie + Middleware
+- **Login/Register**: `/workspace/login`, `/workspace/register`
+- **Demo-User**: 3 vorkonfigurierte Accounts, Login per Button-Klick
 
-### App-Shell Features
-- **Navigation**: Home-Button, App-Name in Top-Bar
-- **Gruppen-Filter**: Dropdown um nach spezifischen Communities zu filtern
-- **Daten-Loading**: Server Action lädt alle Demo-Daten beim Start
-- **Groups-Navigation**: Hierarchie-Ansicht mit direkter Navigation
+### Shared Desktop Component
+- **Einheitliche Komponente** für Demo + Workspace
+- **OS-like Footer**: Ring-Menü, App-Menü, Gruppenswitcher
+- **Portal-Overlays**: Menüs via `createPortal` garantiert über Fenstern
+- **Dark Mode Toggle + Fullscreen** in Settings
+- **GroupFilterContext**: Globaler Gruppenfilter für alle App-Fenster
 
-### Database Integration
-- **Server Action**: `load-demo-data.ts` lädt alle Inhalte der gewählten Server
-- **Demo-Daten**: 3 Server (ParkClub, MarinQuarter, Rochefort) mit 7 Untergruppen
-- **Content**: Messages, Events, Tasks, Documents, Processes für alle Gruppen
-- **Filter-System**: Apps können nach "All groups" oder spezifischen Gruppen filtern
+### Persistente Events
+- **Server Actions**: `loadEvents()`, `createEvent()`, `deleteEvent()`
+- **Create Event Fenster**: Eigenes zentriertes Fenster mit hierarchischem Gruppen-Dropdown
+- **Gruppenfilter**: Alle Apps filtern nach ausgewählten Gruppen
 
 ---
 
-## 🚀 Next Steps (Milestone 5)
+## Next Steps
 
-### OpenOS Server View
+### Milestone 5 — OpenOS Server View
 - Admin-Dashboard für Server-Verwaltung
 - User-Erstellung und Gruppenverwaltung
 - Installations-Wizard (OS-Setup Simulation)
 - Bridge zu MOOD Deliberation
 
-### Client-View Erweiterung (M6)
+### Milestone 6 — Client-View Tablet/Mobile
 - Tablet-Screens für OpenOS Demo
 - Mobile-Screens für OpenOS Demo
 - Responsive App-Navigation
 
 ---
 
-## 📖 Essential Reading
+## Essential Reading
 
 **Für neue Entwickler:**
 1. `PROJECT_RULES.md` — Arbeitsweise, Tech Stack, Präferenzen
@@ -96,7 +96,7 @@ docs/
 
 ---
 
-## 🔧 Development Quick Start
+## Development Quick Start
 
 ```bash
 # In /aktuell arbeiten
@@ -116,7 +116,7 @@ npm run build              # Production Build
 
 ---
 
-## 📊 Architecture Overview
+## Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -127,18 +127,20 @@ npm run build              # Production Build
 │                  │                  │                         │
 │  ✅ Fertig       │  ✅ Client View  │  ✅ Communities         │
 │                  │  ⬜ Server View  │  ✅ Templates           │
-│                  │  ⬜ Tablet/Mobile│  ⬜ Auth System         │
+│                  │  ⬜ Tablet/Mobile│  ✅ Auth System         │
 └─────────────────────────────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                   Shared Data Layer                        │
 │  ✅ Prisma ORM  │  ✅ SQLite (dev)  │  ⬜ PostgreSQL (prod)  │
-│  ✅ 8 Tables    │  ✅ Hierarchie    │  ✅ Templates          │
+│  ✅ 9 Tables    │  ✅ Hierarchie    │  ✅ Templates          │
+│  ✅ Auth/Session │  ✅ Gruppenfilter │  ✅ Server Actions     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 **Letzte Aktualisierung:** 10. März 2026  
-**Nächster Meilenstein:** M5 — OpenOS Server View & Admin
+**Nächster Meilenstein:** M5 — OpenOS Server View & Admin  
+**Letzter Meilenstein:** M4b — Desktop Redesign & App Integration

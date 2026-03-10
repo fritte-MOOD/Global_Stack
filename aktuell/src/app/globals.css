@@ -6,15 +6,19 @@
   /* Organized Brand Color System */
   
   /* Backgrounds */
+  --color-brand-0: var(--color-brand-0);      /* Pure surface (menus, popovers) */
   --color-brand-25: var(--color-brand-25);    /* Page background */
   --color-brand-50: var(--color-brand-50);    /* Card background */
   --color-brand-100: var(--color-brand-100);  /* Hover background */
+  --color-brand-150: var(--color-brand-150);  /* Subtle border */
   
   /* Borders */
   --color-brand-200: var(--color-brand-200);  /* Default border */
   --color-brand-800: var(--color-brand-800);  /* Hover border */
   
   /* Text */
+  --color-brand-400: var(--color-brand-400);  /* Muted text / footer elements */
+  --color-brand-500: var(--color-brand-500);  /* Secondary text / icons */
   --color-brand-900: var(--color-brand-900);  /* Headings */
   --color-brand-950: var(--color-brand-950);  /* Body text */
   --color-brand-700: var(--color-brand-700);  /* Links/accents */
@@ -43,15 +47,19 @@
 /* Light Theme */
 :root {
   /* Backgrounds */
+  --color-brand-0: #ffffff;    /* Pure surface */
   --color-brand-25: #fefeff;   /* Page */
   --color-brand-50: #ffffff;   /* Cards */
   --color-brand-100: #e1ebf5;  /* Hover */
+  --color-brand-150: #d4dce4;  /* Subtle border */
   
   /* Borders */
   --color-brand-200: #e6e6e6;  /* Default */
   --color-brand-800: #d1d5db;  /* Hover */
   
   /* Text */
+  --color-brand-400: #9ca3af;  /* Muted / footer */
+  --color-brand-500: #7a8694;  /* Secondary text */
   --color-brand-900: #273e4f;  /* Headings */
   --color-brand-950: #3f3f46;  /* Body */
   --color-brand-700: #426a86;  /* Links */
@@ -80,15 +88,19 @@
 /* Dark Theme */
 html.dark {
   /* Backgrounds */
+  --color-brand-0: #1a1a1a;    /* Pure surface */
   --color-brand-25: #131415;   /* Page */
   --color-brand-50: #101010;   /* Cards */
   --color-brand-100: #2a2a2a;  /* Hover */
+  --color-brand-150: #333333;  /* Subtle border */
   
   /* Borders */
   --color-brand-200: #0e0e0e;  /* Default */
   --color-brand-800: #353535;  /* Hover */
   
   /* Text */
+  --color-brand-400: #6b7280;  /* Muted / footer */
+  --color-brand-500: #8a919c;  /* Secondary text */
   --color-brand-900: #e69451;  /* Headings (orange) */
   --color-brand-950: #d8d8dc;  /* Body (light) */
   --color-brand-700: #e69451;  /* Links (orange) */

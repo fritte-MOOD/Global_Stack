@@ -47,7 +47,7 @@ export default async function CommunityPage({
     <div className="h-full flex flex-col">
       {/* Header */}
       <header className="shrink-0 h-14 border-b border-brand-200 flex items-center gap-4 px-6">
-        <Link href="/workspace" className="text-brand-700 hover:text-brand-900 transition-colors">
+        <Link href="/workspace" className="text-brand-700 hover:text-brand-900 transition-colors cursor-pointer">
           <ArrowLeft className="size-5" />
         </Link>
         <div

@@ -49,7 +49,8 @@ Phase A — Foundation
 Phase B — Open OS
   ✅ M2   Client-View Demo (Laptop Login + Desktop fertig)
   ✅ M3   Demo Apps Implementation (Messages, Calendar, Tasks, Documents, Debate)
-  ✅ M4   Auth & Persistence (DB + Schema + Workspace + Templates fertig, Auth offen)
+  ✅ M4   Auth & Persistence (DB, Schema, Workspace, Templates, Auth, Session)
+  ✅ M4b  Desktop Redesign (Shared Desktop, Footer-Menüs, Settings, Gruppenfilter)
   ⬜ M5   Admin & User-Erstellung (Server View)
   ⬜ M6   Client-View Tablet/Mobile
 
@@ -137,15 +138,37 @@ Phase D — Integration
 
 | # | Deliverable | Status |
 |---|-------------|--------|
-| 4.1 | **Prisma Schema** (8 Tabellen, Hierarchie, Sichtbarkeit, Templates) | ✅ |
+| 4.1 | **Prisma Schema** (9 Tabellen inkl. Session, Hierarchie, Sichtbarkeit, Templates) | ✅ |
 | 4.2 | **SQLite-Datenbank** (lokal, dev.db) | ✅ |
 | 4.3 | **Prisma Client Singleton** (src/lib/db.ts) | ✅ |
-| 4.4 | **Seed-Daten** (3 Server, 7 Untergruppen, 3 Templates, 3 User) | ✅ |
+| 4.4 | **Seed-Daten** (3 Server, 7 Untergruppen, 3 Templates, 3 Demo-User) | ✅ |
 | 4.5 | **Adapter-Architektur** (wechselbar: SQLite → Turso → PostgreSQL) | ✅ |
-| 4.6 | **Workspace-Route** (/workspace/ mit Vollbild-Layout, Community-Ansicht) | ✅ |
+| 4.6 | **Workspace-Route** (/workspace/ mit Vollbild-Desktop) | ✅ |
 | 4.7 | **Template-Copy-Logik** (Deep-Copy via Server Action) | ✅ |
 | 4.8 | **Demo/Persistent Split** (Session-only vs. DB-backed) | ✅ |
-| 4.9 | **Auth-System** | ⬜ (NextAuth vs. custom, noch offen) |
+| 4.9 | **Auth-System** (custom: bcrypt + Session-Token + HTTP-Only Cookie) | ✅ |
+| 4.10 | **Login/Register** (/workspace/login, /workspace/register) | ✅ |
+| 4.11 | **Demo-User Login** (kein Passwort nötig) | ✅ |
+| 4.12 | **Middleware** (Route Protection für /workspace/*) | ✅ |
+
+---
+
+### Milestone 4b — Desktop Redesign & App Integration ✅
+
+**Goal:** Shared Desktop-Komponente, OS-like Footer-Menüs, funktionale Settings, persistente Events.
+
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 4b.1 | **Shared Desktop Component** (Demo + Workspace nutzen gleiche Komponente) | ✅ |
+| 4b.2 | **Footer/Taskbar** (Ring-Menü, App-Button, Gruppenswitcher) | ✅ |
+| 4b.3 | **Hauptmenü** (User-Info, Server/Account/Settings, Login/Logout) | ✅ |
+| 4b.4 | **Gruppenswitcher** (Multi-Select mit Farbpunkten, Select/Deselect All) | ✅ |
+| 4b.5 | **App-Menü Overlay** (transparent, 3x3 Grid, über Fenstern) | ✅ |
+| 4b.6 | **Settings App** (Dark Mode Toggle + Fullscreen, über Menü + App-Menü) | ✅ |
+| 4b.7 | **Persistente Events** (Create Event via eigenem Fenster → DB-Speicherung) | ✅ |
+| 4b.8 | **Gruppenfilter** (alle Apps filtern nach ausgewählten Gruppen) | ✅ |
+| 4b.9 | **Portal-Menüs** (via createPortal, garantiert über Fenstern) | ✅ |
+| 4b.10 | **Theme-Erweiterung** (brand-0, brand-150, brand-400, brand-500 hinzugefügt) | ✅ |
 
 ---
 
@@ -176,21 +199,6 @@ Phase D — Integration
 | 6.3 | **Mobile: Screen-Layout** | ⬜ (Coming soon) |
 | 6.4 | **Mobile: Apps angepasst** | ⬜ |
 | 6.5 | **Responsive Navigation** | ⬜ |
-
-| # | Deliverable | Status |
-|---|-------------|--------|
-| 4.1 | **Prisma Schema** (8 Tabellen, Hierarchie, Sichtbarkeit, Templates) | ✅ |
-| 4.2 | **SQLite-Datenbank** (lokal, dev.db) | ✅ |
-| 4.3 | **Prisma Client Singleton** (src/lib/db.ts) | ✅ |
-| 4.4 | **Seed-Daten** (3 Server, 7 Untergruppen, 3 Templates, 2 User) | ✅ |
-| 4.5 | **Adapter-Architektur** (wechselbar: SQLite → Turso → PostgreSQL) | ✅ |
-| 4.6 | **Workspace-Route** (/workspace/ mit Vollbild-Layout, Community-Ansicht) | ✅ |
-| 4.7 | **Template-Kopier-Logik** (Server Action: Deep Copy von Templates) | ✅ |
-| 4.8 | **Demo/Persistent-Split** (Demo = Session-only, Workspace = DB) | ✅ |
-| 4.9 | Gehostete Datenbank (Turso oder Supabase) | ⬜ |
-| 4.10 | Auth-Lösung (NextAuth oder custom) | ⬜ |
-| 4.11 | Session-Management | ⬜ |
-| 4.12 | Middleware (Route Protection) | ⬜ |
 
 **Datenbank-Strategie:**
 ```
@@ -324,7 +332,8 @@ Phase A — Foundation
 Phase B — Open OS
   ✅ M2   Client-View Demo
   ✅ M3   Demo Apps Implementation    ← 5 funktionale Apps mit DB-Daten
-  ✅ M4   Auth & Persistence         ← DB + Workspace + Templates fertig, Auth offen
+  ✅ M4   Auth & Persistence         ← DB + Auth + Session + Middleware
+  ✅ M4b  Desktop Redesign           ← Shared Desktop, Footer, Gruppenfilter, Settings
   ⬜ M5   Server-View & Admin
   ⬜ M6   Client-View Tablet/Mobile
 
@@ -416,6 +425,16 @@ Phase D — Integration
 3. **Consistent across Devices** — Gleiche Apps, angepasstes Layout
 4. **No orange accents on OpenOS pages** — Neutral halten (brand-950)
 
+#### Future Ideas
+
+**Brightness Slider statt Dark Mode Toggle:**
+Anstatt eines einfachen Dark/Light Mode Toggles könnte ein Schieberegler implementiert werden:
+- Oben = Light Mode, unten = Dark Mode
+- Der Regler steuert kontinuierlich die Helligkeit
+- Zusätzlich wechselt eine Akzentfarbe weich und spielerisch zwischen den Modi
+- Ermöglicht fließende Übergänge statt harter Wechsel
+- Nutzer können ihren bevorzugten "Grauton" zwischen hell und dunkel wählen
+
 ---
 
-*Letzte Aktualisierung: 9. März 2026*
+*Letzte Aktualisierung: 10. März 2026*

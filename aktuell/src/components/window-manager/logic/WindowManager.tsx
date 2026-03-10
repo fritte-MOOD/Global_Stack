@@ -35,6 +35,7 @@ export type WindowContent = {
   width?: number;        // Breite in px, default 320
   height?: number;       // Höhe in px, default auto (passt sich an Inhalt an)
   resizable?: boolean;   // Resize-Handle unten rechts, default false
+  centered?: boolean;    // Fenster in der Mitte des Containers öffnen
 };
 
 type OpenWindow = {
@@ -52,6 +53,7 @@ type WindowManagerCtx = {
   toggleWindow: (id: string, content: WindowContent, position?: { x: number; y: number }) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
   setContainer: (el: HTMLDivElement | null) => void;
+  setBottomInset: (px: number) => void;
 };
 
 const Ctx = createContext<WindowManagerCtx | null>(null);
@@ -69,21 +71,62 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
   const [nextZ, setNextZ] = useState(100);
   const cascadeCount = useRef(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const bottomInsetRef = useRef(0);
 
   const setContainer = useCallback((el: HTMLDivElement | null) => {
     containerRef.current = el;
   }, []);
 
+  const setBottomInset = useCallback((px: number) => {
+    bottomInsetRef.current = px;
+  }, []);
+
   const closeAllWindows = useCallback(() => setWindows([]), []);
 
-  /* ESC schließt alle Fenster */
+  const closeTopWindow = useCallback(() => {
+    setWindows(prev => {
+      if (prev.length === 0) return prev;
+      const top = prev.reduce((a, b) => (a.zIndex > b.zIndex ? a : b));
+      return prev.filter(w => w.id !== top.id);
+    });
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && windows.length > 0) closeAllWindows();
+      if (windows.length === 0) return;
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeAllWindows();
+      } else if (e.key === "Delete" || e.key === "Backspace") {
+        e.preventDefault();
+        closeTopWindow();
+      }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [windows.length, closeAllWindows]);
+  }, [windows.length, closeTopWindow, closeAllWindows]);
+
+  const clampToContainer = useCallback((
+    pos: { x: number; y: number },
+    content: WindowContent,
+  ): { x: number; y: number } => {
+    const container = containerRef.current;
+    if (!container) return pos;
+
+    const gap = 12;
+    const w = content.width ?? 320;
+    const h = content.height ?? 300;
+    const cw = container.clientWidth;
+    const ch = container.clientHeight - bottomInsetRef.current;
+
+    return {
+      x: Math.max(gap, Math.min(pos.x, cw - w - gap)),
+      y: Math.max(gap, Math.min(pos.y, ch - h - gap)),
+    };
+  }, []);
 
   const openWindow = useCallback((
     id: string,
@@ -93,10 +136,20 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
     setWindows(prev => {
       if (prev.find(w => w.id === id)) return prev;
 
-      const pos = position ?? {
-        x: 60 + (cascadeCount.current % 8) * CASCADE_OFFSET,
-        y: 40 + (cascadeCount.current % 8) * CASCADE_OFFSET,
-      };
+      let raw: { x: number; y: number };
+      if (content.centered && containerRef.current) {
+        const cw = containerRef.current.clientWidth;
+        const ch = containerRef.current.clientHeight - bottomInsetRef.current;
+        const w = content.width ?? 320;
+        const h = content.height ?? 300;
+        raw = { x: Math.max(0, (cw - w) / 2), y: Math.max(0, (ch - h) / 2) };
+      } else {
+        raw = position ?? {
+          x: 60 + (cascadeCount.current % 8) * CASCADE_OFFSET,
+          y: 40 + (cascadeCount.current % 8) * CASCADE_OFFSET,
+        };
+      }
+      const pos = clampToContainer(raw, content);
       cascadeCount.current += 1;
 
       const newZ = nextZ + 1;
@@ -104,7 +157,7 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
 
       return [...prev, { id, content, position: pos, zIndex: newZ }];
     });
-  }, [nextZ]);
+  }, [nextZ, clampToContainer]);
 
   const closeWindow = useCallback((id: string) => {
     setWindows(prev => prev.filter(w => w.id !== id));
@@ -137,7 +190,7 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
     <Ctx.Provider value={{
       openWindow, closeWindow, closeAllWindows,
       isWindowOpen, toggleWindow,
-      containerRef, setContainer,
+      containerRef, setContainer, setBottomInset,
     }}>
       {children}
 

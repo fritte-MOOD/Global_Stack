@@ -37,10 +37,10 @@ export async function cloneTemplate(templateId: string) {
   const suffix = Date.now().toString(36);
   const newSlug = `${template.slug.replace("template-", "")}-${suffix}`;
 
-  let systemUser = await prisma.user.findFirst({ where: { email: "system@local" } });
+  let systemUser = await prisma.user.findFirst({ where: { username: "system" } });
   if (!systemUser) {
     systemUser = await prisma.user.create({
-      data: { name: "System", email: "system@local" },
+      data: { username: "system", name: "System", email: "system@local" },
     });
   }
 

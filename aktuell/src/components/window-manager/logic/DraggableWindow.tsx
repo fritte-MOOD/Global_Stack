@@ -175,7 +175,7 @@ export default function DraggableWindow({
         {onClose && (
           <button
             onClick={onClose}
-            className="rounded hover:bg-brand-100 transition-colors text-brand-700 hover:text-brand-900"
+            className="rounded hover:bg-brand-100 transition-colors text-brand-700 hover:text-brand-900 cursor-pointer"
             aria-label="Close"
           >
             <X className="size-3" />
