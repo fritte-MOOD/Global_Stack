@@ -1,4 +1,4 @@
-# MOOD — Technical Architecture
+# Global Stack — Technical Architecture
 
 This document describes **how the system is built**, organized by technical layer.
 
@@ -6,201 +6,372 @@ This document describes **how the system is built**, organized by technical laye
 - Global Stack vision & narrative → `docs/architecture/VISION.md`
 - Alpha product scope & UX decisions → `docs/product/ALPHA.md`
 - Research / thesis background → `docs/research/THESIS_SUMMARY.md`
+- Project rules & conventions → `docs/PROJECT_RULES.md`
 
 ---
 
 ## 1. Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Framework** | Next.js (App Router) |
-| **Language** | TypeScript |
-| **Styling** | Tailwind CSS |
-| **State** | React Context (client-side) |
-| **Icons** | Lucide React |
-| **Data** | Static TypeScript files (mock/seed) |
-| **Backend** | *none yet* (planned: Prisma + Neon DB, Hono, Upstash Redis) |
-| **Deploy** | Vercel (primary) / wrangler.toml exists but target unclear |
+| Layer | Technology | Status |
+|-------|-----------|--------|
+| **Framework** | Next.js 16 (App Router) | aktiv |
+| **Language** | TypeScript | aktiv |
+| **Styling** | Tailwind CSS 4 | aktiv |
+| **State** | React Context (WindowManager) | aktiv |
+| **Icons** | Lucide React | aktiv |
+| **ORM** | Prisma 7 | aktiv |
+| **Datenbank (lokal)** | SQLite via better-sqlite3 | aktiv |
+| **Datenbank (Demo)** | Turso (gehostetes SQLite) | geplant |
+| **Datenbank (Prod)** | PostgreSQL (VPS / Supabase) | geplant |
+| **Auth** | noch offen (NextAuth / custom) | geplant |
+| **Deploy** | Vercel | geplant |
 
 ---
 
 ## 2. Frontend
 
-### 2.1 Route groups
-
-The app uses Next.js **route groups** (parenthesized folders) for layout separation:
+### 2.1 Route Structure
 
 ```
 src/app/
-├── layout.tsx              ← root layout (fonts, ContextProvider)
-├── globals.css
-├── (landing)/              ← public/entry pages (no sidebar)
-│   ├── layout.tsx
-│   ├── page.tsx            ← landing / name entry
-│   ├── dashboard/page.tsx  ← group selection (3 demo groups)
-│   └── discover/page.tsx
-└── (sidebar)/              ← main app with sidebar navigation
-    ├── layout.tsx          ← sidebar + navbar
-    ├── about/page.tsx      ← group info, rules, members
-    ├── calendar/page.tsx
-    ├── debate/page.tsx     ← process list + module timeline
-    ├── discussions/page.tsx
-    ├── messages/page.tsx
-    ├── profile/[id]/page.tsx
-    ├── subgroups/page.tsx
-    └── tasks/page.tsx
+├── layout.tsx              ← Root-Layout (Fonts, ThemeSync, WindowManagerProvider)
+├── globals.css             ← Tailwind + CSS-Variablen (Light/Dark)
+│
+├── (site)/                 ← Route-Group: öffentliche Seiten MIT Navbar
+│   ├── layout.tsx          ← Site-Layout (enthält Navbar_landing)
+│   ├── (landing)/
+│   │   ├── layout.tsx
+│   │   └── page.tsx        ← Startseite ("We Support Free, Sovereign Communities!")
+│   └── open-os/            ← OpenOS Demo (Session-only Mockup-Daten)
+│       ├── page.tsx        ← Auswahl: Client View / Server View + Workspace-CTA
+│       ├── client/
+│       │   ├── page.tsx    ← Geräte-Mockups (Laptop, Tablet, Mobile)
+│       │   └── screens/
+│       │       ├── laptop/
+│       │       │   ├── index.tsx       ← Screen-Controller (Login → Desktop)
+│       │       │   ├── LoginScreen.tsx ← Server-Auswahl + Verbindungsanimation
+│       │       │   ├── Desktop.tsx     ← App-Shell mit Navigation + Gruppen-Filter
+│       │       │   └── apps/           ← 5 funktionale Apps
+│       │       │       ├── MessagesApp.tsx    ← Nachrichten nach Gruppe
+│       │       │       ├── CalendarApp.tsx    ← Events nach Datum
+│       │       │       ├── TasksApp.tsx       ← Open/Done Tasks
+│       │       │       ├── DocumentsApp.tsx   ← Docs mit Inline-Reader
+│       │       │       └── DebateApp.tsx      ← Processes nach Status
+│       │       ├── tablet/             ← Coming Soon
+│       │       └── mobile/             ← Coming Soon
+│       ├── server/         ← Coming Soon
+│       └── _actions/
+│           └── load-demo-data.ts       ← Server Action: Demo-Daten laden
+│
+└── workspace/              ← Route-Group: persistente App OHNE Navbar
+    ├── layout.tsx          ← Workspace-Layout (fullscreen)
+    ├── page.tsx            ← Dashboard: Communities + Templates
+    ├── [slug]/
+    │   └── page.tsx        ← Community-Detail-Seite
+    └── _actions/
+        └── clone-template.ts           ← Server Action: Template kopieren
 ```
 
-**User flow:** Landing → Name entry → Dashboard (group select) → Sidebar app
+### 2.2 Two User Flows
 
-### 2.2 Components
+**Demo-Pfad** (`/open-os/client/`):
+1. Geräte-Auswahl (Laptop/Tablet/Mobile)
+2. Server-Auswahl (ParkClub, MarinQuarter, Rochefort)
+3. Verbindungsanimation
+4. Desktop mit App-Grid
+5. Apps mit Live-Demo-Daten (session-only)
 
-#### Module renderers (`src/components/ModuleContent/`)
-Each deliberation module type has its own UI component:
+**Persistent-Pfad** (`/workspace/`):
+1. Dashboard: eigene Communities + verfügbare Templates
+2. Template laden → Deep-Copy in User-Space
+3. Community-Detail-Seiten mit echten DB-Daten
+4. Vollständige CRUD-Operationen (geplant)
 
-| File | Module type | Notes |
-|------|-------------|-------|
-| `moduleContent.tsx` | Router | Switches on `module.type`, renders correct section |
-| `IdeationSection.tsx` | Ideation | Idea submission + display |
-| `DebateSection.tsx` | Debate | Threaded discussion |
-| `EstimateSection.tsx` | Estimate | Consequence estimation |
-| `PrioritizeSection.tsx` | Prioritize | Option ranking |
-| `VoteSection.tsx` | Vote | Option selection + local results (no persistence) |
-| `ExternalDecisionSection.tsx` | ExternalDecision | Admin/board decision + statement |
-| `AnnouncementSection.tsx` | Announcement | Read-only info from group leaders |
+### 2.3 Window Management System
 
-#### UI components (`src/components/ui/`)
+**Nur für Landing Page aktiv** — nicht in OpenOS Demo oder Workspace.
 
-| File | Purpose |
-|------|---------|
-| `navbar_sidebar.tsx` | Main navigation (sidebar layout) |
-| `navbar_landing.tsx` | Landing page navigation |
-| `GroupCheckboxes.tsx` | Group filter toggles |
-| `ButtonLandingPage.tsx` | Styled CTA buttons |
-| `SubmitButton.tsx` | Form submit button |
-| `darkModeToggle.tsx` | Dark mode switch |
-| `heading.tsx` | Reusable heading |
-| `max-width-wrapper.tsx` | Layout constraint wrapper |
+```
+components/window-manager/
+├── logic/
+│   ├── WindowManagerProvider.tsx    ← React Context für offene Fenster
+│   ├── DraggableWindow.tsx          ← Drag, Resize, Close Logik
+│   └── Tag.tsx                      ← Hover-Tooltip + Click-to-Window
+└── windows/
+    ├── ProjectWindow.tsx            ← Projekt-Fenster (OpenOS, Mood)
+    └── _TEMPLATE.tsx                ← Vorlage für neue Fenster
+```
 
-#### Modal system (`src/components/Modal/`)
-- `modal.tsx` — main modal component
-- `dialog.tsx` — dialog wrapper
-- `button.tsx` — modal trigger button
-- `use-media-query.ts` — responsive hook
+**Verwendung:**
+```tsx
+<ProjectWindow name="OpenOS" />  // Hover-Tooltip + Click-Window
+```
 
-#### Helpers (`src/components/functions/`)
-- `CalculateDateTime.tsx` — relative time computation
-- `FormattedDate.tsx` — date formatting
-- `utils.ts` — general utilities
+### 2.4 Device Mockups
 
-### 2.3 State management (`src/context/`)
+**Nur für OpenOS Client Demo** — zeigt Laptop/Tablet/Mobile Frames.
 
-All state is client-side via React Context, provided by `ContextProvider.tsx`:
+```
+components/ui/
+├── DeviceSwitcher.tsx               ← Geräte-Tabs (via Portal in Navbar)
+├── device-frames/
+│   ├── LaptopFrame.tsx              ← Laptop-Gehäuse + Screen
+│   ├── TabletFrame.tsx              ← Tablet-Gehäuse + Screen
+│   └── MobileFrame.tsx              ← Mobile-Gehäuse + Screen
+```
 
-| Context file | What it holds |
-|-------------|---------------|
-| `NameContext.tsx` | User's entered name |
-| `GroupContext.tsx` | Currently selected group |
-| `CheckboxesContext.tsx` | Group filter checkbox state |
-| `MockupContext.tsx` | Access to mock data |
-| `DarkModeContext.tsx` | Theme preference |
-| `ChatContext.tsx` | Chat/message state |
-| `DebateContext.tsx` | Current debate/process state |
-
-**Important:** Currently there is no server state. All "data" lives in static TypeScript files and React context. Persistence is a future layer.
+**Features:**
+- CSS-Variablen für Light/Dark Mode Rahmen-Farben
+- Fullscreen-Button (native Browser Fullscreen API)
+- Responsive Screen-Größen
 
 ---
 
 ## 3. Data Layer
 
-### 3.1 Domain model (`src/data/interfaces.ts`)
-
-Core types:
+### 3.1 Prisma Schema
 
 ```
-Group
- ├── Subgroup[]
- ├── Process[]
- │    └── Module[]   (ordered sequence)
- ├── Member[]
- ├── Chat[]
- ├── Task[]
- └── Appointment[]
+User ←→ Membership ←→ Group
+ ↓                      ↓
+Message              Message
+Task                 Event
+Document             Task
+Process              Document
+                     Process
 ```
 
-**Module** is a union type of 8 variants:
-
-| Type | Key fields |
-|------|-----------|
-| `Ideation` | options[], comments[] |
-| `Brainstorming` | options[], comments[] |
-| `Estimate` | options[], comments[] |
-| `Prioritize` | options[] with rank |
-| `Vote` | options[] with supportedBy[], rank |
-| `Debate` | comments[] (threaded) |
-| `ExternalDecision` | content, comments[] |
-| `Announcement` | content (read-only) |
-
-**Invariants:**
-- A `Process` belongs to exactly one scope: `groupId` or `subgroupId`.
-- Module order within a process is stable.
-
-### 3.2 Seed / mock data
-
+**Hierarchie:**
 ```
-src/data/
-├── interfaces.ts       ← type definitions
-├── mockup.ts           ← entry point: builds mockData proxy
-├── groupStructure.ts   ← group/subgroup scaffolding + ID ranges
-└── Groups/             ← 26 files with curated scenario data
-    ├── parkclub.ts
-    ├── marinquarter.ts
-    └── ... (per group/subgroup)
+Group (parentId: null)     ← Server/Community
+└── Group (parentId: set)  ← Untergruppe
+    └── Group              ← Sub-Untergruppe (beliebig tief)
 ```
 
-**How it works:**
-1. `groupStructure.ts` defines group skeletons (names, members, ID ranges).
-2. `Groups/*.ts` files fill in processes, modules, comments, options etc.
-3. `mockup.ts` calls `getGroupStructure()` and exposes it via `MockupContext`.
+**Visibility-System:**
+- `public`: Sichtbar für alle Parent-Group Mitglieder
+- `private`: Nur für direkte Mitglieder sichtbar
+- `hidden`: Unsichtbar in Listen (nur direkter Zugriff)
 
-**For alpha:** Seed data = these static files. Instance data (user edits) = future layer on top (see `docs/product/ALPHA.md`).
+**Template-System:**
+- `isTemplate: true` markiert kopierbare Vorlagen
+- Templates haben `templateDescription` für UI
+- Deep-Copy via Server Action: Gruppe + Untergruppen + Content
+
+### 3.2 Prisma Client
+
+```typescript
+// src/lib/db.ts
+import { PrismaClient } from "@/generated/prisma/client";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+
+const adapter = new PrismaBetterSqlite3({ url: "file:./dev.db" });
+export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
+```
+
+**Singleton-Pattern** verhindert mehrere Verbindungen bei Next.js Hot-Reload.
+
+### 3.3 Server Actions
+
+**Demo-Daten laden** (`load-demo-data.ts`):
+```typescript
+export async function loadDemoData(serverSlugs: string[]): Promise<DemoData>
+```
+- Lädt alle Gruppen + Content für gewählte Server
+- Serialisiert Dates zu ISO-Strings für Client
+- Wird von OpenOS Desktop beim Start aufgerufen
+
+**Template klonen** (`clone-template.ts`):
+```typescript
+export async function cloneTemplate(templateId: string)
+```
+- Deep-Copy: Template-Gruppe + Untergruppen + Content
+- Generiert unique Slugs
+- Erstellt Membership für User
+- Redirect zu neuer Community
+
+### 3.4 Seed Data
+
+**3 Top-Level Server:**
+- **ParkClub** (Sport) → Jugendabteilung, Vorstand
+- **MarinQuarter** (Wohnen) → Haus A, Gartenpflege  
+- **Rochefort** (Stadt) → Stadtrat, Feuerwehr, Jugendparlament
+
+**3 Templates:**
+- **Sportverein** → Jugend, Vorstand
+- **Wohngemeinschaft** → Haus A, Garten
+- **Gemeinde** → Stadtrat, Feuerwehr
+
+**Content:** Messages, Events, Tasks, Documents, Processes für alle Gruppen.
 
 ---
 
-## 4. Backend (planned, not yet implemented)
+## 4. OpenOS Apps (neu implementiert)
 
-`package.json` includes dependencies for a future backend:
-- **Prisma** + **Neon Database** (PostgreSQL) — structured persistence
-- **Upstash Redis** — caching / sessions
-- **Hono** — lightweight API framework
+### 4.1 App Architecture
 
-**Current gap:** `wrangler.toml` references `src/server/index.ts` which does not exist. This needs to be resolved (see open questions).
+**Desktop als App-Shell:**
+- Home-Screen: Uhrzeit + 9-Punkt App-Grid
+- App-Modus: Top-Bar mit Navigation + Gruppen-Filter
+- Daten-Loading: Server Action beim Start
+- State: `activeApp`, `selectedGroupId`, `data`
 
-**Recommended alpha path:**
-- Keep Next.js as the primary runtime (Vercel deploy).
-- Add API routes (`src/app/api/...`) only when persistence is needed.
-- Use Prisma + Neon for saved workspaces; keep seed data as static files.
+**App-Komponenten:**
+```typescript
+type AppProps = {
+  data: DemoData;                    // Alle geladenen Demo-Daten
+  groupIds: string[];                // Gefilterte Gruppen-IDs
+  allGroups: (DemoGroup & {depth})[];// Hierarchie für UI
+};
+```
+
+### 4.2 Implementierte Apps (5/9)
+
+**1. MessagesApp**
+- Nachrichten gruppiert nach Community
+- Avatar-Initialen, Autor, Zeitstempel
+- Hover-Effekte, responsive Layout
+
+**2. CalendarApp**
+- Events sortiert nach Datum (Wochentag, Tag, Monat)
+- Farbige Seitenstreifen pro Gruppe
+- Uhrzeit, Beschreibung, Gruppen-Name
+
+**3. TasksApp**
+- Aufgeteilt in "Open" und "Done" Sektionen
+- Checkbox-Icons, Assignee-Info
+- Fälligkeitsdatum, Gruppen-Zuordnung
+
+**4. DocumentsApp**
+- Dokumentenliste mit Klick-zum-Öffnen
+- Inline-Reader mit Zurück-Navigation
+- Autor, Update-Datum, Gruppen-Info
+
+**5. DebateApp (Processes)**
+- Gruppiert nach Status: Active, Draft, Other
+- Status-Badges mit Farb-Kodierung
+- Beschreibung, Autor, Gruppen-Name
+
+### 4.3 Gruppen-Filter System
+
+**Dropdown in Top-Bar:**
+- "All groups" (default)
+- Server-Gruppen (depth: 0)
+- Untergruppen (depth: 1, eingerückt)
+- Farbige Punkte für visuelle Zuordnung
+
+**Filter-Logik:**
+```typescript
+const selectedGroupIds = selectedGroupId
+  ? [selectedGroupId, ...children] // Gruppe + ihre Kinder
+  : allGroups.map(g => g.id);       // Alle Gruppen
+```
 
 ---
 
-## 5. Deployment
+## 5. Styling & Theming
 
-### 5.1 Current state
-- **Primary:** Vercel (Next.js default) — works out of the box.
-- **Stale config:** `wrangler.toml` → Cloudflare Workers setup, but entry point missing.
+### 5.1 Tailwind CSS 4
 
-### 5.2 Recommended alpha setup
-- Deploy via **Vercel** (zero-config for Next.js).
-- If Cloudflare is desired later: create `src/server/index.ts` or remove `wrangler.toml`.
+```css
+@import "tailwindcss";
+
+@theme inline {
+  --font-heading: "Inter Variable", sans-serif;
+  --font-sans: "Inter Variable", sans-serif;
+  
+  --color-brand-0: #ffffff;
+  --color-brand-25: #fefefe;
+  /* ... weitere Brand-Farben ... */
+  
+  --color-group-park-club: #16a34a;
+  --color-group-marin-quarter: #2563eb;
+  --color-group-rochefort: #9333ea;
+}
+```
+
+### 5.2 Dark Mode
+
+**Aktivierung:** `html.dark` Klasse via `ThemeSync` Component.
+
+**Präferenzen:**
+- Nur orange Akzente (#fba762), kein Blau
+- Navbar-Slash in Light-Mode orange
+- Device-Frames: unterschiedliche Farben für Light/Dark
+
+### 5.3 CSS-Variablen
+
+**Device-Frames:**
+```css
+--color-device-frame: #e5e7eb;        /* Light */
+--color-device-trackpad: #d1d5db;     /* Light */
+
+html.dark {
+  --color-device-frame: #6b7280;      /* Dark */
+  --color-device-trackpad: #4b5563;   /* Dark */
+}
+```
 
 ---
 
-## 6. Open technical questions
+## 6. Development Workflow
 
-| # | Question | Impact |
-|---|----------|--------|
-| 1 | Remove or fix `wrangler.toml`? (Missing `src/server/index.ts`) | Deploy clarity |
-| 2 | When to introduce API routes for persistence? | Alpha scope |
-| 3 | Session drafts: `localStorage` or in-memory only? | UX on reload |
-| 4 | Auth approach for "simple login"? (NextAuth, custom, Clerk?) | Save flow |
-| 5 | Database schema: start with Prisma + Neon or defer? | Backend timeline |
+### 6.1 Database Operations
+
+```bash
+# Schema ändern
+npx prisma db push --force-reset
+
+# Prisma Client neu generieren
+npx prisma generate
+
+# Demo-Daten laden
+npx tsx prisma/seed.ts
+
+# DB Explorer (GUI)
+npx prisma studio
+```
+
+### 6.2 Build & Deploy
+
+```bash
+# Development
+npm run dev
+
+# Production Build
+npm run build
+
+# Type Check
+npx tsc --noEmit
+```
+
+### 6.3 File Watching
+
+**Hot Reload funktioniert für:**
+- React Components
+- Tailwind Classes
+- TypeScript Files
+
+**Requires Restart:**
+- Prisma Schema Änderungen
+- next.config.ts Änderungen
+- Environment Variables
+
+---
+
+## 7. Next Steps
+
+### 7.1 Immediate (M6)
+- **Server View** für OpenOS implementieren
+- **Tablet/Mobile Screens** für Client View
+- **Auth System** (NextAuth vs. custom)
+
+### 7.2 Medium-term
+- **Real-time Updates** (WebSockets / Server-Sent Events)
+- **File Uploads** (Avatars, Dokument-Attachments)
+- **Advanced Processes** (Deliberation Module)
+
+### 7.3 Production
+- **Database Migration** (SQLite → PostgreSQL)
+- **Hosting Setup** (Vercel + VPS/Supabase)
+- **Performance Optimization** (Caching, CDN)

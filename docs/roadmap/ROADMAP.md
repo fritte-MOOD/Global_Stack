@@ -37,95 +37,167 @@
 
 ---
 
-## Phase A — Foundation
+## Fortschritt (Stand: 10. März 2026)
 
-### Milestone 0 — Project Bootstrap
+```
+✅ = abgeschlossen    🔧 = in Arbeit    ⬜ = offen
 
-**Goal:** Leeres, lauffähiges Next.js-Projekt mit vollständiger Toolchain.
+Phase A — Foundation
+  ✅ M0   Project Bootstrap
+  ✅ M1   Vorstellungsseite (Startseite mit Window Manager)
 
-| # | Deliverable | Details |
-|---|-------------|---------|
-| 0.1 | **Init Next.js (App Router) + TypeScript** | `create-next-app` mit App Router, TS, ESLint |
-| 0.2 | **Tailwind CSS** | `tailwind.config.ts`, `globals.css` |
-| 0.3 | **Lucide React** | Icon-Bibliothek |
-| 0.4 | **Ordnerstruktur** | `src/app/`, `src/components/`, `src/data/`, `src/context/`, `src/lib/` |
-| 0.5 | **Linting & Formatting** | ESLint + Prettier |
-| 0.6 | **Vercel deploy smoke test** | Leere App deployt erfolgreich |
+Phase B — Open OS
+  ✅ M2   Client-View Demo (Laptop Login + Desktop fertig)
+  ✅ M3   Demo Apps Implementation (Messages, Calendar, Tasks, Documents, Debate)
+  ✅ M4   Auth & Persistence (DB + Schema + Workspace + Templates fertig, Auth offen)
+  ⬜ M5   Admin & User-Erstellung (Server View)
+  ⬜ M6   Client-View Tablet/Mobile
 
-**Exit:** `npm run dev` liefert eine leere Seite; Deploy-Pipeline grün.
+Phase C — MOOD
+  ⬜ M7–M11
+
+Phase D — Integration
+  ⬜ M10–M11
+```
 
 ---
 
-### Milestone 1 — Vorstellungsseite (Global Stack Landing)
+## Phase A — Foundation
 
-**Goal:** Erste Seite, auf der jeder Besucher landet. Erklärt die Mission und bietet zwei Wege an.
+### Milestone 0 — Project Bootstrap ✅
 
-| # | Deliverable | Details |
-|---|-------------|---------|
-| 1.1 | **Hero Section** | Titel, Claim, kurze Beschreibung von Global Stack |
-| 1.2 | **Video-Embed (Platzhalter)** | Bereich für Motivations-/Missionsvideo (Inhalt kommt später) |
-| 1.3 | **Zwei CTAs** | "Open OS ausprobieren" + "Direkt zu MOOD" |
-| 1.4 | **Kurzvorstellung der drei Module** | Connect, Open OS, MOOD — je ein Absatz/Card |
-| 1.5 | **Navigation** | Minimale Top-Nav: Logo, Links zu Open OS / MOOD / About |
-| 1.6 | **Responsive & Dark Mode** | Mobile-first, Theme-Toggle |
+**Goal:** Lauffähiges Next.js-Projekt mit vollständiger Toolchain.
 
-**Exit:** Besucher versteht in 30 Sekunden, worum es geht, und kann zu Open OS oder MOOD navigieren.
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 0.1 | Next.js 16 (App Router) + TypeScript | ✅ |
+| 0.2 | Tailwind CSS 4 | ✅ |
+| 0.3 | Lucide React | ✅ |
+| 0.4 | Ordnerstruktur | ✅ |
+| 0.5 | ESLint | ✅ |
+| 0.6 | Vercel deploy smoke test | ⬜ |
+
+---
+
+### Milestone 1 — Vorstellungsseite ✅
+
+**Goal:** Erste Seite, auf der jeder Besucher landet.
+
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 1.1 | Hero Section mit Claim | ✅ |
+| 1.2 | Video-Embed (Platzhalter) | ⬜ |
+| 1.3 | CTAs zu Open OS / MOOD | ✅ (via ProjectWindows) |
+| 1.4 | Window Manager System | ✅ (Hover-Tooltip + Click-Fenster) |
+| 1.5 | Navigation (Navbar) | ✅ (mit Portal-Slot) |
+| 1.6 | Responsive & Dark Mode | ✅ |
 
 ---
 
 ## Phase B — Open OS Demo
 
-### Milestone 2 — Open OS: Installations-Simulation
+### Milestone 2 — Open OS: Client-View Demo 🔧
 
-**Goal:** Interaktive Demo, die zeigt, wie man Open OS (NixOS-basiert) zum ersten Mal installiert — aus Admin-Sicht.
+**Goal:** Interaktive Demo, die zeigt, wie OpenOS als Nutzer aussieht.
 
-| # | Deliverable | Details |
-|---|-------------|---------|
-| 2.1 | **OS-Setup Wizard UI** | Schritt-für-Schritt-Assistent (Wizard-Pattern) |
-| 2.2 | **Schritt: Willkommen** | Erklärung, was Open OS ist und was jetzt passiert |
-| 2.3 | **Schritt: Features konfigurieren** | On/Off-Schalter für OS-Features (z.B. VPN, TOR, Firewall, Malware-Schutz, Auto-Updates, Federated Auth) |
-| 2.4 | **Schritt: Ressourcen verteilen** | CPU, RAM, Storage — Slider oder Eingabefelder, visuelle Anzeige |
-| 2.5 | **Schritt: Festplatten auswählen** | Festplatten-Liste, Partitionierung (vereinfacht), Verschlüsselung on/off |
-| 2.6 | **Schritt: Zusammenfassung** | Review aller Einstellungen vor "Installation" |
-| 2.7 | **Installations-Animation** | Simulated install progress (NixOS-artig: Pakete werden "gebaut") |
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 2.1 | OpenOS Auswahl-Seite (Client/Server) | ✅ |
+| 2.2 | Geräte-Mockups (Laptop, Tablet, Mobile) | ✅ (Rahmen + Screens) |
+| 2.3 | Device Switcher in Navbar | ✅ |
+| 2.4 | Fullscreen-API für Demos | ✅ |
+| 2.5 | **Laptop: Login-Screen** | ✅ (Server-Auswahl, Verbindungsanimation, Continue) |
+| 2.6 | **Laptop: Desktop** | ✅ (Uhrzeit, App-Grid mit 9 Apps) |
+---
 
-**Exit:** Admin hat ein virtuelles Open OS "installiert" mit gewählter Konfiguration.
+### Milestone 3 — Demo Apps Implementation ✅
+
+**Goal:** Funktionale Apps für OpenOS Laptop Demo mit echten Daten aus der Datenbank.
+
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 3.1 | **Server Action: Demo-Daten laden** | ✅ (load-demo-data.ts) |
+| 3.2 | **Desktop als App-Shell** | ✅ (Navigation, Gruppen-Filter, Home-Button) |
+| 3.3 | **MessagesApp** | ✅ (Nachrichten nach Gruppe, Avatare, Zeitstempel) |
+| 3.4 | **CalendarApp** | ✅ (Events nach Datum, farbige Gruppen-Streifen) |
+| 3.5 | **TasksApp** | ✅ (Open/Done Listen, Assignee, Gruppen-Zuordnung) |
+| 3.6 | **DocumentsApp** | ✅ (Dokumentenliste mit Inline-Reader) |
+| 3.7 | **DebateApp** | ✅ (Processes nach Status mit Badges) |
+| 3.8 | **GroupsApp** | ✅ (Server-Hierarchie mit Untergruppen-Navigation) |
+| 3.9 | **Gruppen-Filter System** | ✅ (Dropdown: All groups / spezifische Gruppe) |
+
+**Implementiert:** 5/9 Apps funktional (Messages, Calendar, Tasks, Documents, Debate)  
+**Noch offen:** Wiki, Analytics, Settings
 
 ---
 
-### Milestone 3 — Open OS: Admin-Dashboard & User-Erstellung
+### Milestone 4 — Auth & Persistence (Shared Layer) ✅
 
-**Goal:** Nach der "Installation" landet der Admin in einem Dashboard und kann Benutzer anlegen. Diese Benutzer werden real erstellt (Auth-System).
+**Goal:** Datenbank und Auth-System, das Open OS und MOOD gemeinsam nutzen.
 
-| # | Deliverable | Details |
-|---|-------------|---------|
-| 3.1 | **Admin-Dashboard** | Übersicht: System-Status, aktive Features, Ressourcen-Auslastung |
-| 3.2 | **Feature-Verwaltung** | On/Off-Schalter nachträglich ändern (gleiche wie im Wizard) |
-| 3.3 | **Benutzer hinzufügen** | Formular: Name, Rolle (Admin/Member), Passwort |
-| 3.4 | **Benutzerliste** | Übersicht aller erstellten Benutzer mit Status |
-| 3.5 | **Gruppe erstellen** | Admin erstellt eine Gruppe für die Benutzer |
-| 3.6 | **Auth-Backend** | Prisma + Neon DB: User-Tabelle, Gruppen-Tabelle, Session-Management |
-| 3.7 | **Login-System** | Erstellte Benutzer können sich tatsächlich einloggen |
-| 3.8 | **Weiterleitung zu MOOD** | CTA: "Gruppe in MOOD starten" → leitet zu MOOD mit Gruppe + Benutzern |
-
-**Exit:** Admin hat Benutzer erstellt, die sich einloggen können. Die Gruppe existiert im Backend und ist bereit für MOOD.
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 4.1 | **Prisma Schema** (8 Tabellen, Hierarchie, Sichtbarkeit, Templates) | ✅ |
+| 4.2 | **SQLite-Datenbank** (lokal, dev.db) | ✅ |
+| 4.3 | **Prisma Client Singleton** (src/lib/db.ts) | ✅ |
+| 4.4 | **Seed-Daten** (3 Server, 7 Untergruppen, 3 Templates, 3 User) | ✅ |
+| 4.5 | **Adapter-Architektur** (wechselbar: SQLite → Turso → PostgreSQL) | ✅ |
+| 4.6 | **Workspace-Route** (/workspace/ mit Vollbild-Layout, Community-Ansicht) | ✅ |
+| 4.7 | **Template-Copy-Logik** (Deep-Copy via Server Action) | ✅ |
+| 4.8 | **Demo/Persistent Split** (Session-only vs. DB-backed) | ✅ |
+| 4.9 | **Auth-System** | ⬜ (NextAuth vs. custom, noch offen) |
 
 ---
 
-### Milestone 4 — Auth & Persistence (Shared Layer)
+### Milestone 5 — Open OS: Server-View & Admin ⬜
 
-**Goal:** Das Auth- und Daten-System, das Open OS und MOOD gemeinsam nutzen.
+**Goal:** Admin-Dashboard für Server-Verwaltung und User-Erstellung.
 
-| # | Deliverable | Details |
-|---|-------------|---------|
-| 4.1 | **Prisma Schema** | User, Group, Membership, Session + MOOD-Entities (Process, Module, etc.) |
-| 4.2 | **Neon DB** | PostgreSQL-Instanz provisioniert |
-| 4.3 | **Auth-Lösung** | NextAuth oder custom (Credentials Provider) — Benutzer aus Open OS können sich überall einloggen |
-| 4.4 | **Session-Management** | Server-side Sessions (Upstash Redis oder DB-backed) |
-| 4.5 | **API-Grundstruktur** | `src/app/api/` — Auth-Endpunkte, User-CRUD, Group-CRUD |
-| 4.6 | **Middleware** | Route protection: Open OS Admin-Bereich nur für Admins, MOOD nur für Gruppenmitglieder |
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 5.1 | Server-Dashboard UI | ⬜ |
+| 5.2 | Installations-Wizard (OS-Setup Simulation) | ⬜ |
+| 5.3 | Feature-Verwaltung (On/Off) | ⬜ |
+| 5.4 | Benutzer hinzufügen | ⬜ |
+| 5.5 | Benutzerliste | ⬜ |
+| 5.6 | Gruppe erstellen | ⬜ |
+| 5.7 | Weiterleitung zu MOOD | ⬜ |
 
-**Exit:** Ein in Open OS erstellter Benutzer kann sich einloggen und wird in MOOD als Gruppenmitglied erkannt.
+---
+
+### Milestone 6 — Client-View Tablet/Mobile ⬜
+
+**Goal:** OpenOS Demo für Tablet und Mobile Geräte.
+
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 6.1 | **Tablet: Screen-Layout** | ⬜ (Coming soon) |
+| 6.2 | **Tablet: Apps angepasst** | ⬜ |
+| 6.3 | **Mobile: Screen-Layout** | ⬜ (Coming soon) |
+| 6.4 | **Mobile: Apps angepasst** | ⬜ |
+| 6.5 | **Responsive Navigation** | ⬜ |
+
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 4.1 | **Prisma Schema** (8 Tabellen, Hierarchie, Sichtbarkeit, Templates) | ✅ |
+| 4.2 | **SQLite-Datenbank** (lokal, dev.db) | ✅ |
+| 4.3 | **Prisma Client Singleton** (src/lib/db.ts) | ✅ |
+| 4.4 | **Seed-Daten** (3 Server, 7 Untergruppen, 3 Templates, 2 User) | ✅ |
+| 4.5 | **Adapter-Architektur** (wechselbar: SQLite → Turso → PostgreSQL) | ✅ |
+| 4.6 | **Workspace-Route** (/workspace/ mit Vollbild-Layout, Community-Ansicht) | ✅ |
+| 4.7 | **Template-Kopier-Logik** (Server Action: Deep Copy von Templates) | ✅ |
+| 4.8 | **Demo/Persistent-Split** (Demo = Session-only, Workspace = DB) | ✅ |
+| 4.9 | Gehostete Datenbank (Turso oder Supabase) | ⬜ |
+| 4.10 | Auth-Lösung (NextAuth oder custom) | ⬜ |
+| 4.11 | Session-Management | ⬜ |
+| 4.12 | Middleware (Route Protection) | ⬜ |
+
+**Datenbank-Strategie:**
+```
+Lokal (jetzt)          → SQLite + better-sqlite3
+Erste Demo (bald)      → Turso (gehostetes SQLite, kostenloser Tier)
+Produktion (später)    → PostgreSQL auf VPS oder Supabase
+```
 
 ---
 
@@ -133,16 +205,14 @@
 
 ### Milestone 5 — MOOD: Domain Model & Seed Data
 
-**Goal:** Typsystem und Seed-Daten für die Deliberation, aufbauend auf der bestehenden Auth/Gruppen-Schicht.
+**Goal:** Typsystem und Seed-Daten für die Deliberation.
 
-| # | Deliverable | Details |
-|---|-------------|---------|
-| 5.1 | **Domain-Typen** | `Process`, `Module` (8 Varianten), `Comment`, `Vote`, `Task`, `Appointment`, `Chat` |
-| 5.2 | **Seed-Daten** | Kuratierte Demo-Szenarien (≥ 3 Gruppen mit Prozessen) |
-| 5.3 | **DB-Seeder** | Script das Seed-Daten in die DB schreibt |
-| 5.4 | **Daten-Split** | Seed (Baseline, read-only) vs. Instanz-Daten (User-Änderungen) |
-
-**Exit:** Seed-Daten in der DB; API kann Prozesse/Module für eine Gruppe abfragen.
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 5.1 | Domain-Typen: Process, Module (8 Varianten), Comment, Vote | ⬜ |
+| 5.2 | Seed-Daten: Kuratierte Demo-Szenarien (≥ 3 Gruppen) | ⬜ |
+| 5.3 | DB-Seeder erweitern | ⬜ |
+| 5.4 | Daten-Split: Seed (Baseline) vs. Instanz-Daten | ⬜ |
 
 ---
 
@@ -150,69 +220,57 @@
 
 **Goal:** MOOD-Bereich mit Sidebar-Navigation und allen Routen.
 
-| # | Deliverable | Details |
-|---|-------------|---------|
-| 6.1 | **MOOD-Layout** | Sidebar + Content-Bereich, eingeloggt als Gruppen-Mitglied |
-| 6.2 | **Sidebar-Navigation** | About, Debate, Discussions, Messages, Calendar, Tasks, Subgroups, Profile |
-| 6.3 | **Group-Header** | Zeigt aktuelle Gruppe, Mitglieder-Anzahl, Modus (A/B/C) |
-| 6.4 | **Responsive** | Sidebar klappt auf Mobile ein |
-
-**Exit:** Eingeloggter Benutzer sieht die MOOD-Navigation mit seiner Gruppe.
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 6.1 | MOOD-Layout (Sidebar + Content) | ⬜ |
+| 6.2 | Sidebar-Navigation (About, Debate, Discussions, Messages, Calendar, Tasks, Subgroups, Profile) | ⬜ |
+| 6.3 | Group-Header (Gruppe, Mitglieder, Modus A/B/C) | ⬜ |
+| 6.4 | Responsive Sidebar | ⬜ |
 
 ---
 
 ### Milestone 7 — MOOD: Deliberation Core (Module Renderers)
 
-**Goal:** Alle 8 Modul-Typen rendern und sind interaktiv. Herzstück von MOOD.
+**Goal:** Alle 8 Modul-Typen rendern und sind interaktiv.
 
-| # | Deliverable | Details |
-|---|-------------|---------|
-| 7.1 | **Module-Router** | `moduleContent.tsx` — rendert je nach `module.type` |
-| 7.2 | **IdeationSection** | Ideen einreichen + anzeigen |
-| 7.3 | **DebateSection** | Threaded Discussion |
-| 7.4 | **EstimateSection** | Konsequenzen-Abschätzung |
-| 7.5 | **PrioritizeSection** | Ranking-UI |
-| 7.6 | **VoteSection** | Abstimmung + Ergebnisse |
-| 7.7 | **ExternalDecisionSection** | Admin-Entscheidung + Statement |
-| 7.8 | **AnnouncementSection** | Read-only Ankündigung |
-| 7.9 | **Prozess-Timeline** | Visualisierung: welche Module, wo steht man |
-
-**Exit:** Benutzer kann einen Prozess öffnen, durch Module steppen und interagieren.
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 7.1 | Module-Router (moduleContent.tsx) | ⬜ |
+| 7.2 | IdeationSection | ⬜ |
+| 7.3 | DebateSection | ⬜ |
+| 7.4 | EstimateSection | ⬜ |
+| 7.5 | PrioritizeSection | ⬜ |
+| 7.6 | VoteSection | ⬜ |
+| 7.7 | ExternalDecisionSection | ⬜ |
+| 7.8 | AnnouncementSection | ⬜ |
+| 7.9 | Prozess-Timeline | ⬜ |
 
 ---
 
 ### Milestone 8 — MOOD: Alle Sidebar-Seiten
 
-**Goal:** Alle restlichen Seiten mit echten Daten.
-
-| # | Deliverable | Details |
-|---|-------------|---------|
-| 8.1 | **About** | Gruppen-Info, Regeln, Mitgliederliste |
-| 8.2 | **Subgroups** | Untergruppen anzeigen + navigieren |
-| 8.3 | **Discussions** | Diskussions-Threads (außerhalb von Prozessen) |
-| 8.4 | **Messages** | Direkt- / Gruppennachrichten |
-| 8.5 | **Calendar** | Termine |
-| 8.6 | **Tasks** | Aufgabenliste |
-| 8.7 | **Profile** | Mitglieder-Profil (`/profile/[id]`) |
-
-**Exit:** Alle Seiten zeigen echte Daten. Die kuratierte Demo ist komplett begehbar.
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 8.1 | About (Gruppen-Info, Regeln, Mitglieder) | ⬜ |
+| 8.2 | Subgroups | ⬜ |
+| 8.3 | Discussions | ⬜ |
+| 8.4 | Messages | ⬜ |
+| 8.5 | Calendar | ⬜ |
+| 8.6 | Tasks | ⬜ |
+| 8.7 | Profile (/profile/[id]) | ⬜ |
 
 ---
 
 ### Milestone 9 — MOOD: Interaktion & Persistenz
 
-**Goal:** Alles, was Benutzer schreiben/voten/ändern, wird gespeichert.
-
-| # | Deliverable | Details |
-|---|-------------|---------|
-| 9.1 | **Kommentare schreiben** | In Debates, Discussions, Messages |
-| 9.2 | **Abstimmen** | Votes in VoteSection → DB |
-| 9.3 | **Ideen einreichen** | IdeationSection → DB |
-| 9.4 | **Ranking** | PrioritizeSection → DB |
-| 9.5 | **Prozesse erstellen** | Neuen Prozess anlegen, Module wählen |
-| 9.6 | **Gruppen-Modi (A/B/C)** | Berechtigungsmodell je Gruppe |
-
-**Exit:** Mehrere Benutzer können gleichzeitig in einer Gruppe deliberieren; Änderungen sind persistent.
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 9.1 | Kommentare schreiben | ⬜ |
+| 9.2 | Abstimmen | ⬜ |
+| 9.3 | Ideen einreichen | ⬜ |
+| 9.4 | Ranking | ⬜ |
+| 9.5 | Prozesse erstellen | ⬜ |
+| 9.6 | Gruppen-Modi (A/B/C) | ⬜ |
 
 ---
 
@@ -220,69 +278,66 @@
 
 ### Milestone 10 — End-to-End Flow
 
-**Goal:** Der gesamte Pfad funktioniert durchgängig: Vorstellungsseite → Open OS Setup → User erstellen → MOOD nutzen.
-
-| # | Deliverable | Details |
-|---|-------------|---------|
-| 10.1 | **Flow-Testing** | Kompletter Durchlauf als neuer Besucher |
-| 10.2 | **Direkt-Einstieg MOOD** | Alternativer Pfad: Vorstellungsseite → MOOD (mit eigenem Login/Registrierung) |
-| 10.3 | **MOOD als Teil von Open OS** | In der Open OS Admin-Ansicht: MOOD als aktivierbares Feature |
-| 10.4 | **Collaborative Sandbox** | Gruppe startet mit Starter Kit (1 Gruppe + 1 Beispiel-Prozess) |
-
-**Exit:** Beide Wege (Open OS → MOOD und direkt MOOD) funktionieren end-to-end.
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 10.1 | Flow-Testing (Vorstellungsseite → Open OS → MOOD) | ⬜ |
+| 10.2 | Direkt-Einstieg MOOD | ⬜ |
+| 10.3 | MOOD als Feature in Open OS | ⬜ |
+| 10.4 | Collaborative Sandbox (Starter Kit) | ⬜ |
 
 ---
 
 ### Milestone 11 — Polish & Alpha Release
 
-**Goal:** Produktionsreife Alpha.
-
-| # | Deliverable | Details |
-|---|-------------|---------|
-| 11.1 | **UI Polish** | Konsistentes Design, Animationen, Ladezustände, Fehlerbehandlung |
-| 11.2 | **Accessibility** | Keyboard-Navigation, Screenreader, Kontrast |
-| 11.3 | **E2E Tests** | Kritische Flows: Open OS Setup → User erstellen → MOOD Deliberation → Vote |
-| 11.4 | **Performance** | Lighthouse, Bundle-Optimierung |
-| 11.5 | **Dokumentation** | README, Setup-Guide, Contribution-Guide |
-| 11.6 | **Vercel Production Deploy** | Custom Domain, Env-Variablen, Monitoring |
-| 11.7 | **Video für Vorstellungsseite** | Missions-/Motivationsvideo einbetten |
-
-**Exit:** Ein neuer Besucher versteht das Konzept in Minuten und kann eine Deliberation end-to-end durchspielen.
+| # | Deliverable | Status |
+|---|-------------|--------|
+| 11.1 | UI Polish | ⬜ |
+| 11.2 | Accessibility | ⬜ |
+| 11.3 | E2E Tests | ⬜ |
+| 11.4 | Performance | ⬜ |
+| 11.5 | Dokumentation | ⬜ |
+| 11.6 | Vercel Production Deploy | ⬜ |
+| 11.7 | Video für Vorstellungsseite | ⬜ |
 
 ---
 
-## Risk register
+## Risk Register
 
 | Risk | Mitigation |
 |------|-----------|
 | Open OS Demo wird zu komplex | Nur simuliert, kein echtes NixOS — reine Web-UI |
-| Auth-Komplexität | Einfachste Lösung zuerst (NextAuth Credentials); später erweiterbar |
-| Scope Creep bei Modul-Typen | Alpha = 8 Kerntypen; Erweiterbarkeit ist architektonisch, nicht Feature-shipped |
+| Auth-Komplexität | Einfachste Lösung zuerst; später erweiterbar |
+| Scope Creep bei Modul-Typen | Alpha = 8 Kerntypen; Erweiterbarkeit ist architektonisch |
 | Zwei Einstiegswege = doppelte Arbeit | Shared Auth/DB-Layer (M4) verhindert Dopplung |
-| NixOS-Bezug unklar für Nicht-Techniker | Wizard erklärt jeden Schritt; Fachbegriffe werden übersetzt |
+| SQLite reicht nicht für Produktion | Prisma-Adapter-Architektur erlaubt Wechsel in 2–4h |
+| Datenbank-Migration bei Skalierung | Prisma ORM abstrahiert; Schema bleibt gleich |
 
 ---
 
-## Sequencing summary
+## Sequencing Summary
 
 ```
 Phase A — Foundation
-  M0   Project Bootstrap          ─┐
-  M1   Vorstellungsseite           │  Basis
-                                  ─┘
+  ✅ M0   Project Bootstrap
+  ✅ M1   Vorstellungsseite
+
 Phase B — Open OS
-  M2   Installations-Simulation   ─┐
-  M3   Admin & User-Erstellung     │  Open OS Demo
-  M4   Auth & Persistence (Shared)─┘
+  ✅ M2   Client-View Demo
+  ✅ M3   Demo Apps Implementation    ← 5 funktionale Apps mit DB-Daten
+  ✅ M4   Auth & Persistence         ← DB + Workspace + Templates fertig, Auth offen
+  ⬜ M5   Server-View & Admin
+  ⬜ M6   Client-View Tablet/Mobile
+
 Phase C — MOOD
-  M5   Domain Model & Seed Data   ─┐
-  M6   Layout & Navigation         │
-  M7   Deliberation Core           │  MOOD
-  M8   Sidebar Pages               │
-  M9   Interaktion & Persistenz   ─┘
+  ⬜ M7   Domain Model & Seed Data
+  ⬜ M8   Layout & Navigation
+  ⬜ M9   Deliberation Core
+  ⬜ M10  Sidebar Pages
+  ⬜ M11  Interaktion & Persistenz
+
 Phase D — Integration
-  M10  End-to-End Flow            ─┐
-  M11  Polish & Alpha Release     ─┘  Ship
+  ⬜ M12  End-to-End Flow
+  ⬜ M13  Polish & Alpha Release
 ```
 
 ---
@@ -298,109 +353,69 @@ Phase D — Integration
 **Laptop/Desktop:**
 ```
 ┌─────────────────────────────────────┐
-│ ○ ○ ○  OpenOS Desktop              │ ← Window title bar
+│ ○  OpenOS Desktop                   │ ← Camera dot
 ├─────────────────────────────────────┤
 │                                     │
-│  📁    💬    🤖    ⚙️    🌐      │ ← App icons grid
-│ Files  MOOD   AI  Settings Browser │   (5 columns)
+│         14:32                       │ ← Time/Date
+│   Montag, 9. März                   │
 │                                     │
-│  📊    📝    🎵    📷    📧      │ ← Second row
-│ Stats  Notes Music Photos  Mail    │
+│         [⊞]                         │ ← App launcher button
 │                                     │
-│ [Taskbar with running apps]         │ ← Bottom taskbar
+│  ┌─────────────────────────────┐    │
+│  │ Debate  Calendar  Messages  │    │ ← App grid (3x3)
+│  │ Tasks   Documents Groups    │    │   opens on click
+│  │ Wiki    Analytics Settings  │    │
+│  └─────────────────────────────┘    │
+│                                     │
+└─────────────────────────────────────┘
+┌─────────────────────────────────────┐
+│          ═══════                    │ ← Laptop base with trackpad
 └─────────────────────────────────────┘
 ```
 
-**Tablet:**
+**Tablet (Querformat):**
 ```
-┌─────────────────────────┐
-│      OpenOS            │ ← Header with status
-├─────────────────────────┤
-│                         │
-│  📁   💬   🤖         │ ← 3x3 app grid
-│ Files MOOD  AI         │   (larger icons)
-│                         │
-│  ⚙️   🌐   📊         │
-│Settings Browser Stats  │
-│                         │
-│  📝   🎵   📷         │
-│ Notes Music Photos     │
-│                         │
-│        ○               │ ← Home button
-└─────────────────────────┘
+┌──────────────────────────────────┐
+│ ○                                │
+│                                  │
+│          Coming soon             │
+│                                  │
+│              ───                 │
+└──────────────────────────────────┘
 ```
 
-**Mobile/Phone:**
+**Mobile:**
 ```
 ┌─────────────────┐
-│    ────────     │ ← Notch/status bar
-│   OpenOS        │
-├─────────────────┤
+│    ────────     │ ← Notch
 │                 │
-│ 📁 Files        │ ← Vertical app list
-│ 💬 MOOD         │   (full width rows)
-│ 🤖 AI Assistant │
-│ ⚙️ Settings     │
-│ 🌐 Browser      │
-│ 📊 Statistics   │
-│ 📝 Notes        │
-│ 🎵 Music        │
-│ 📷 Photos       │
+│   Coming soon   │
 │                 │
 │     ──────      │ ← Home indicator
 └─────────────────┘
 ```
 
-#### Core App Design Requirements
+#### Core Apps (9 Stück)
 
-**Files (📁)**
-- Icon: Folder with documents visible
-- Color: `brand-600` (neutral blue-gray)
-- Function: File manager, cloud storage access
-
-**MOOD (💬)**
-- Icon: Speech bubbles with deliberation symbol (scales/voting)
-- Color: `brand-300` (orange accent) - **distinctive from other apps**
-- Function: Group decision-making, discussions, voting
-- **Special treatment:** Should stand out as the primary community feature
-
-**AI Assistant (🤖)**
-- Icon: Robot head or brain symbol
-- Color: `brand-600` 
-- Function: Local AI models, chat interface
-
-**Settings (⚙️)**
-- Icon: Gear/cog wheel
-- Color: `brand-700` (darker gray)
-- Function: System configuration, user preferences
+| App | Icon | Funktion |
+|-----|------|----------|
+| Debate | MessageSquare | Deliberation & Abstimmungen |
+| Calendar | Calendar | Termine & Events |
+| Messages | Mail | Direkt-/Gruppennachrichten |
+| Tasks | CheckSquare | Aufgabenverwaltung |
+| Documents | FileText | Dokumente & Wiki |
+| Groups | Users | Untergruppen verwalten |
+| Wiki | BookOpen | Wissensdatenbank |
+| Analytics | BarChart3 | Statistiken & Auswertungen |
+| Settings | Settings | Systemeinstellungen |
 
 #### Visual Design Principles
 
-1. **OS-like Authenticity:**
-   - Desktop: Window management, taskbar, desktop metaphor
-   - Tablet: Home screen with app grid, status bar
-   - Mobile: Native app list, gestures, status indicators
+1. **OS-like Authenticity** — Fühlt sich an wie ein echtes Betriebssystem
+2. **Clean & Minimal** — Professionelle Abstände und Typografie
+3. **Consistent across Devices** — Gleiche Apps, angepasstes Layout
+4. **No orange accents on OpenOS pages** — Neutral halten (brand-950)
 
-2. **MOOD App Prominence:**
-   - Use `brand-300` (orange) to make MOOD visually distinct
-   - Larger or more prominent placement where possible
-   - Special icon design that conveys "group decision-making"
+---
 
-3. **Consistency Across Devices:**
-   - Same 4 core apps always present
-   - Consistent iconography and naming
-   - Responsive to device capabilities (touch vs mouse)
-
-4. **Professional Feel:**
-   - Clean, minimal interface
-   - Proper spacing and typography
-   - Smooth animations and transitions
-   - Real OS conventions (window controls, navigation patterns)
-
-#### Implementation Notes
-
-- All previews should feel like real operating systems, not web apps
-- Desktop version should have window chrome (title bars, minimize/maximize/close)
-- Tablet should feel like iPad/Android tablet home screen
-- Mobile should feel like native iOS/Android app drawer
-- MOOD app gets special visual treatment to emphasize community features
+*Letzte Aktualisierung: 9. März 2026*

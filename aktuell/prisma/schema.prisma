@@ -1,0 +1,174 @@
+// Prisma Schema — SQLite (wechselbar auf PostgreSQL)
+//
+// Top-Level Entitäten:
+//   Group  — Community/Server. Kann Untergruppen enthalten (beliebig tief).
+//   User   — Nutzer mit Profil. Kann in beliebig vielen Gruppen/Servern sein.
+//
+// Innerhalb von Group:
+//   Untergruppen (= Groups mit parentId)
+//   Event, Task, Document, Process
+//
+// Innerhalb von User:
+//   Membership (Rolle pro Gruppe), Message, Profil-Felder
+//
+// Process ersetzt Debate — wird später ausgebaut wenn wir Deliberation bauen.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ═══════════════════════════════════════════
+// USER
+// ═══════════════════════════════════════════
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String
+  nickname    String?
+  avatarUrl   String?
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  memberships  Membership[]
+  messages     Message[]
+  tasks        Task[]     @relation("TaskAssignee")
+  createdTasks Task[]     @relation("TaskCreator")
+  documents    Document[]
+  processes    Process[]
+}
+
+// ═══════════════════════════════════════════
+// GROUP (Server / Community / Untergruppe)
+// ═══════════════════════════════════════════
+
+model Group {
+  id       String @id @default(cuid())
+  slug     String @unique
+  name     String
+  subtitle String
+  color    String
+  icon     String
+
+  // Hierarchie: null = Top-Level Server, gesetzt = Untergruppe
+  // Untergruppen können selbst wieder Untergruppen haben (beliebig tief)
+  parentId String?
+  parent   Group?  @relation("GroupHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
+  children Group[] @relation("GroupHierarchy")
+
+  // "public" | "private" | "hidden"
+  visibility String @default("public")
+
+  // Template-System
+  isTemplate          Boolean @default(false)
+  templateDescription String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships Membership[]
+  messages    Message[]
+  events      Event[]
+  tasks       Task[]
+  documents   Document[]
+  processes   Process[]
+}
+
+// ═══════════════════════════════════════════
+// MEMBERSHIP (User ↔ Group)
+// ═══════════════════════════════════════════
+
+model Membership {
+  id       String   @id @default(cuid())
+  role     String   @default("member") // "admin" | "moderator" | "member" | "guest"
+  joinedAt DateTime @default(now())
+
+  userId  String
+  groupId String
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group   Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+}
+
+// ═══════════════════════════════════════════
+// GROUP CONTENT
+// ═══════════════════════════════════════════
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  authorId String
+  groupId  String
+  author   User  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  group    Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  startsAt    DateTime
+  endsAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  groupId String
+  group   Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  done        Boolean   @default(false)
+  dueAt       DateTime?
+  createdAt   DateTime  @default(now())
+
+  groupId    String
+  group      Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  assigneeId String?
+  assignee   User?  @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+
+  creatorId  String
+  creator    User   @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  groupId  String
+  group    Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+// Platzhalter — wird ausgebaut wenn wir Deliberation bauen.
+// Dann kommen Module, Schritte, Abstimmungen, etc. hinzu.
+model Process {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  status      String   @default("draft") // "draft" | "active" | "completed" | "archived"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  groupId  String
+  group    Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  authorId String
+  author   User  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}

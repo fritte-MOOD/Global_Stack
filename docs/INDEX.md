@@ -1,69 +1,144 @@
-# Docs Index
+# Global Stack — Documentation Index
 
-This file is the entry point into the documentation. It exists so we can quickly re-load the relevant context without re-reading the entire repo.
+> **Stand: 10. März 2026**  
+> **Aktuelle Phase:** OpenOS Demo Apps Implementation ✅ abgeschlossen
 
-## Where to start
-- **Vision / narrative** (Global Stack, Connect, Open OS, MOOD): `docs/architecture/VISION.md`
-- **Technical architecture** (Frontend, Data, Backend, Deploy): `docs/architecture/ARCHITECTURE.md`
-- **Alpha product scope** (UX, modes, persistence, starter kit): `docs/product/ALPHA.md`
-- **Research / thesis framing**: `docs/research/THESIS_SUMMARY.md`
+---
 
-## Folder meanings
-### `docs/architecture/`
-- **Purpose:** describe the target system structure (Soll-Zustand).
-- **Contains:** domain model, system boundaries, deployment model, key invariants.
-- **Changes when:** architectural decisions change.
+## 📋 Quick Reference
 
-### `docs/research/`
-- **Purpose:** capture sources, rationale, and conceptual background.
-- **Contains:** thesis summaries, excerpts, definitions, related work notes.
-- **Changes when:** new research/excerpts are added or interpretation evolves.
+| Bereich | Status | Nächste Schritte |
+|---------|--------|------------------|
+| **Landing Page** | ✅ Fertig | Window Manager optimieren |
+| **OpenOS Client Demo** | ✅ Fertig | Server View implementieren |
+| **Demo Apps** | ✅ **NEU** | Tablet/Mobile Screens |
+| **Database & Persistence** | ✅ Fertig | Auth System hinzufügen |
+| **MOOD Deliberation** | ⬜ Offen | Domain Model & UI |
 
-### `docs/product/`
-- **Purpose:** define what we are building for users.
-- **Contains:** MVP/alpha scope, UX flows, roles/permissions policy defaults, feature decisions.
-- **Changes when:** product scope or UX decisions change.
+---
 
-### `docs/roadmap/`
-- **Purpose:** execution plan.
-- **Contains:** milestones, deliverables, sequencing, risks, release readiness checklists.
-- **Changes when:** priorities/timelines/implementation strategy changes.
+## 🗂️ Document Map
 
-## Document map (current)
+```
+docs/
+├── INDEX.md                    ← Du bist hier
+├── PROJECT_RULES.md            ← Regeln, Tech Stack, Präferenzen
+│
+├── architecture/
+│   ├── ARCHITECTURE.md         ← Technische Architektur (How)
+│   └── VISION.md               ← Produkt-Vision (What/Why)
+│
+├── product/
+│   └── ALPHA.md                ← Alpha-Scope & UX-Entscheidungen
+│
+├── research/
+│   └── THESIS_SUMMARY.md       ← Forschungshintergrund
+│
+└── roadmap/
+    └── ROADMAP.md              ← Milestones & Fortschritt
+```
 
-- `docs/architecture/VISION.md`
-  - Global Stack motivation + program framing
-  - Connect concept (decentralized connectivity)
-  - Open OS concept (sovereign infrastructure)
-  - MOOD's role in the vision
+---
 
-- `docs/architecture/ARCHITECTURE.md`
-  - Tech stack overview
-  - Frontend: route groups, pages, components, state management
-  - Data layer: domain model, seed/mock data structure
-  - Backend: planned stack (Prisma/Neon/Hono/Redis)
-  - Deployment: Vercel vs Cloudflare status
-  - Open technical questions
+## 🎯 Current Focus: OpenOS Demo Apps
 
-- `docs/product/ALPHA.md`
-  - Alpha stance (capabilities first)
-  - Two entry points (curated demo + sandbox)
-  - Group modes A/B/C
-  - Persistence & save behavior
-  - Starter kit
-  - UI principles
-  - Open product questions
+**Was heute implementiert wurde:**
 
-- `docs/research/THESIS_SUMMARY.md`
-  - Thesis-derived motivation
-  - Core framework entities (groups/subgroups/processes/modules/components)
-  - Design implications (layouts, moderation, OSS)
-  - Implications for the current prototype
+### 5 funktionale Apps für OpenOS Laptop Demo
+1. **MessagesApp** — Nachrichten gruppiert nach Community
+2. **CalendarApp** — Events sortiert nach Datum mit farbigen Gruppen-Streifen
+3. **TasksApp** — Open/Done Listen mit Assignee-Info
+4. **DocumentsApp** — Dokumentenliste mit Inline-Reader
+5. **DebateApp** — Processes nach Status mit Badges
 
-## How we keep docs consistent (rules of thumb)
-- Avoid duplicating the same decision in many files.
-  - Put the decision in **one** place and link to it.
-- `architecture` answers **how the system is shaped**.
-- `product` answers **what users can do and what we ship first**.
-- `roadmap` answers **what happens next**.
-- `research` answers **why we believe this direction makes sense**.
+### App-Shell Features
+- **Navigation**: Home-Button, App-Name in Top-Bar
+- **Gruppen-Filter**: Dropdown um nach spezifischen Communities zu filtern
+- **Daten-Loading**: Server Action lädt alle Demo-Daten beim Start
+- **Groups-Navigation**: Hierarchie-Ansicht mit direkter Navigation
+
+### Database Integration
+- **Server Action**: `load-demo-data.ts` lädt alle Inhalte der gewählten Server
+- **Demo-Daten**: 3 Server (ParkClub, MarinQuarter, Rochefort) mit 7 Untergruppen
+- **Content**: Messages, Events, Tasks, Documents, Processes für alle Gruppen
+- **Filter-System**: Apps können nach "All groups" oder spezifischen Gruppen filtern
+
+---
+
+## 🚀 Next Steps (Milestone 5)
+
+### OpenOS Server View
+- Admin-Dashboard für Server-Verwaltung
+- User-Erstellung und Gruppenverwaltung
+- Installations-Wizard (OS-Setup Simulation)
+- Bridge zu MOOD Deliberation
+
+### Client-View Erweiterung (M6)
+- Tablet-Screens für OpenOS Demo
+- Mobile-Screens für OpenOS Demo
+- Responsive App-Navigation
+
+---
+
+## 📖 Essential Reading
+
+**Für neue Entwickler:**
+1. `PROJECT_RULES.md` — Arbeitsweise, Tech Stack, Präferenzen
+2. `architecture/ARCHITECTURE.md` — Wie das System gebaut ist
+3. `roadmap/ROADMAP.md` — Wo wir stehen, was als nächstes kommt
+
+**Für Produkt-Entscheidungen:**
+1. `architecture/VISION.md` — Was wir bauen und warum
+2. `product/ALPHA.md` — Alpha-Scope und UX-Prinzipien
+
+**Für Forschungskontext:**
+1. `research/THESIS_SUMMARY.md` — Theoretischer Hintergrund
+
+---
+
+## 🔧 Development Quick Start
+
+```bash
+# In /aktuell arbeiten
+cd aktuell/
+
+# Development Server
+npm run dev
+
+# Database Operations
+npx prisma studio          # GUI für DB-Exploration
+npx tsx prisma/seed.ts     # Demo-Daten laden
+npx prisma db push         # Schema-Änderungen anwenden
+
+# Build & Deploy
+npm run build              # Production Build
+```
+
+---
+
+## 📊 Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Global Stack Alpha                       │
+├─────────────────────────────────────────────────────────────┤
+│  Landing Page    │  OpenOS Demo     │  Workspace (Persistent) │
+│  (Window Mgmt)   │  (Session-only)  │  (Database-backed)      │
+│                  │                  │                         │
+│  ✅ Fertig       │  ✅ Client View  │  ✅ Communities         │
+│                  │  ⬜ Server View  │  ✅ Templates           │
+│                  │  ⬜ Tablet/Mobile│  ⬜ Auth System         │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   Shared Data Layer                        │
+│  ✅ Prisma ORM  │  ✅ SQLite (dev)  │  ⬜ PostgreSQL (prod)  │
+│  ✅ 8 Tables    │  ✅ Hierarchie    │  ✅ Templates          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+**Letzte Aktualisierung:** 10. März 2026  
+**Nächster Meilenstein:** M5 — OpenOS Server View & Admin

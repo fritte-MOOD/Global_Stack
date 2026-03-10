@@ -192,12 +192,20 @@ export default function DraggableWindow({
       {resizable && (
         <div
           onMouseDown={startResize}
-          className="absolute bottom-0 right-0 w-4 h-4 cursor-nwse-resize"
+          className="absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize group"
           aria-label="Resize"
         >
-          <svg viewBox="0 0 16 16" className="w-full h-full text-brand-800/50">
-            <path d="M14 14L8 14M14 14L14 8M14 14L6 6" stroke="currentColor" strokeWidth="1.5" fill="none" />
-          </svg>
+          {/* Eleganter Grip mit Dots */}
+          <div className="absolute bottom-1 right-1 flex flex-col gap-0.5 opacity-40 group-hover:opacity-70 transition-opacity">
+            <div className="flex gap-0.5">
+              <div className="w-1 h-1 rounded-full bg-brand-700"></div>
+              <div className="w-1 h-1 rounded-full bg-brand-700"></div>
+            </div>
+            <div className="flex gap-0.5">
+              <div className="w-1 h-1 rounded-full bg-brand-700"></div>
+              <div className="w-1 h-1 rounded-full bg-brand-700"></div>
+            </div>
+          </div>
         </div>
       )}
     </div>

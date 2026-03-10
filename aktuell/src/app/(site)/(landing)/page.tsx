@@ -10,12 +10,12 @@ export default function Page() {
           We Support Free, Sovereign Communities!
         </Heading>
 
-        <p className="text-lg text-brand-950 max-w-prose text-center text-pretty leading-relaxed">
+        <div className="text-lg text-brand-950 max-w-prose text-center text-pretty leading-relaxed">
           Host your own digital infrastructure with a few clicks in a guided
           environment. Free and Open Source! Try{" "}
           <ProjectWindow name="OpenOS" />, <ProjectWindow name="Mood" />,{" "}
           <ProjectWindow name="Forum" /> or <ProjectWindow name="Analytics" />.
-        </p>
+        </div>
       </MaxWidthWrapper>
     </section>
   );
