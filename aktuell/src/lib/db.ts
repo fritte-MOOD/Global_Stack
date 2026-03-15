@@ -1,5 +1,5 @@
 import { PrismaClient } from "@/generated/prisma/client";
-import { PrismaLibSQL } from "@prisma/adapter-libsql";
+import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { createClient } from "@libsql/client";
 
 function createAdapter() {
@@ -8,7 +8,7 @@ function createAdapter() {
       url: process.env.TURSO_DATABASE_URL,
       authToken: process.env.TURSO_AUTH_TOKEN,
     });
-    return new PrismaLibSQL(libsql);
+    return new PrismaLibSql(libsql);
   }
 
   // Local development: dynamic import to avoid bundling native module
