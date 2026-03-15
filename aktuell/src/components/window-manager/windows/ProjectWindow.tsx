@@ -38,7 +38,7 @@ type ProjectData = {
 
 const projects: Record<string, ProjectData> = {
   OpenOS: {
-    icon: <Monitor className="size-8 text-brand-600" />,
+    icon: <Monitor className="size-8 text-brand-950" />,
     description:
       "A browser-based operating system you can self-host. Runs on any device, no installation needed.",
     buttonLabel: "Open Demo",
@@ -47,7 +47,7 @@ const projects: Record<string, ProjectData> = {
     resizable: false,
   },
   Mood: {
-    icon: <Music className="size-8 text-brand-600" />,
+    icon: <Music className="size-8 text-brand-950" />,
     description:
       "Democratic decision-making for groups. Organize discussions, vote on proposals and track decisions.",
     buttonLabel: "Try Mood",
@@ -56,7 +56,7 @@ const projects: Record<string, ProjectData> = {
     resizable: false,
   },
   Forum: {
-    icon: <MessageSquare className="size-8 text-brand-600" />,
+    icon: <MessageSquare className="size-8 text-brand-950" />,
     description:
       "A self-hosted community forum. Threaded discussions, markdown support, and full-text search. Resize this window to test!",
     buttonLabel: "Open Forum",
@@ -65,7 +65,7 @@ const projects: Record<string, ProjectData> = {
     resizable: true,
   },
   Analytics: {
-    icon: <BarChart3 className="size-8 text-brand-600" />,
+    icon: <BarChart3 className="size-8 text-brand-950" />,
     description:
       "Privacy-friendly web analytics. No cookies, no tracking, fully GDPR-compliant. Resize this window to test!",
     buttonLabel: "View Dashboard",
@@ -88,7 +88,7 @@ function ProjectContent({ name, data }: { name: string; data: ProjectData }) {
       {/* Icon + Name */}
       <div className="flex items-center gap-3">
         {data.icon}
-        <h4 className="font-heading text-lg font-semibold text-brand-900">{name}</h4>
+        <h4 className="font-heading text-lg font-semibold text-brand-950">{name}</h4>
       </div>
 
       {/* Beschreibung */}
@@ -97,7 +97,7 @@ function ProjectContent({ name, data }: { name: string; data: ProjectData }) {
       {/* Button */}
       <a
         href={data.buttonHref}
-        className="mt-1 inline-flex items-center justify-center rounded-md border border-brand-800 bg-brand-0 px-4 py-2 text-sm font-medium text-brand-900 shadow-sm shadow-brand-200 transition-all hover:shadow-md hover:ring-2 hover:ring-brand-300 hover:ring-offset-2 hover:ring-offset-brand-25 hover:border-transparent"
+        className="mt-1 inline-flex items-center justify-center rounded-md border border-brand-800 bg-brand-0 px-4 py-2 text-sm font-medium text-brand-950 shadow-sm shadow-brand-200 transition-all hover:shadow-md hover:ring-2 hover:ring-brand-200 hover:ring-offset-2 hover:ring-offset-brand-25 hover:border-transparent"
       >
         {data.buttonLabel}
       </a>
@@ -136,8 +136,8 @@ export default function ProjectWindow({ name }: { name: string }) {
       tooltip={content}
       window={windowContent}
       tooltipWidth={data.windowWidth}
-      className="font-semibold underline decoration-brand-300 underline-offset-2 transition-colors text-brand-900"
-      activeClassName="text-brand-700"
+      className="font-semibold underline decoration-brand-200 underline-offset-2 transition-colors text-brand-950"
+      activeClassName="text-brand-950"
     >
       {name}
     </Tag>

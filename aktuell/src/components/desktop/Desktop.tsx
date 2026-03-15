@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
   MessageSquare,
@@ -14,6 +14,7 @@ import {
   BarChart3,
   LayoutGrid,
   ChevronDown,
+  ChevronRight,
   LogIn,
   LogOut,
   User,
@@ -21,19 +22,22 @@ import {
   Sun,
   Maximize,
   Minimize,
+  Search,
 } from "lucide-react";
 import Link from "next/link";
 
-import { useWindowManager, type WindowContent } from "@/components/window-manager/logic/WindowManager";
-import Tag from "@/components/window-manager/logic/Tag";
+import { useWindowManager } from "@/components/window-manager/logic/WindowManager";
+import type { WindowContent } from "@/components/window-manager/logic/WindowManager";
 import {
-  CalendarWindow,
-  MessagesWindow,
-  TasksWindow,
-  DocumentsWindow,
-  DebateWindow,
+  CalendarContent,
+  MessagesContent,
+  TasksContent,
+  DocumentsContent,
+  DebateContent,
+  searchWindowContent,
 } from "@/components/window-manager/windows";
-import { GroupFilterProvider } from "./GroupFilterContext";
+import { useGroupFilter } from "./GroupFilterContext";
+import { ContextMenuProvider, type ContextMenuItem } from "./ContextMenu";
 
 export type DesktopGroup = {
   id: string;
@@ -121,7 +125,7 @@ function SettingsContent() {
           {isDark ? <Moon className="size-5 text-brand-950" /> : <Sun className="size-5 text-brand-950" />}
           <div>
             <div className="text-sm font-medium text-brand-950">Dark Mode</div>
-            <div className="text-xs text-brand-500">{isDark ? "Dark theme active" : "Light theme active"}</div>
+            <div className="text-xs text-brand-950">{isDark ? "Dark theme active" : "Light theme active"}</div>
           </div>
         </div>
         <button
@@ -141,7 +145,7 @@ function SettingsContent() {
           {isFullscreen ? <Minimize className="size-5 text-brand-950" /> : <Maximize className="size-5 text-brand-950" />}
           <div>
             <div className="text-sm font-medium text-brand-950">Fullscreen</div>
-            <div className="text-xs text-brand-500">{isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}</div>
+            <div className="text-xs text-brand-950">{isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}</div>
           </div>
         </div>
         <button
@@ -155,41 +159,17 @@ function SettingsContent() {
   );
 }
 
-function SettingsWindow({ children }: { children?: ReactNode }) {
-  const windowContent: WindowContent = {
-    title: "Settings",
-    body: <SettingsContent />,
-    width: 380,
-    height: 240,
-    resizable: false,
-  };
 
-  return (
-    <Tag
-      id="app-settings"
-      window={windowContent}
-      className={children ? "" : "font-semibold underline decoration-brand-300 underline-offset-2 transition-colors text-brand-900"}
-      activeClassName={children ? "" : "text-brand-700"}
-    >
-      {children ?? "Settings"}
-    </Tag>
-  );
-}
+// ─── Window Content Factories ──────────────────────────────────
 
-// ─── App Tile Routing ──────────────────────────────────────────
-
-function AppTile({ app, tile }: { app: AppDef; tile: React.ReactNode }) {
-  switch (app.windowComponent) {
-    case "calendar":   return <CalendarWindow name="Calendar">{tile}</CalendarWindow>;
-    case "messages":   return <MessagesWindow>{tile}</MessagesWindow>;
-    case "tasks":      return <TasksWindow>{tile}</TasksWindow>;
-    case "documents":  return <DocumentsWindow>{tile}</DocumentsWindow>;
-    case "debate":     return <DebateWindow>{tile}</DebateWindow>;
-    case "settings":   return <SettingsWindow>{tile}</SettingsWindow>;
-    default:
-      return <div className="opacity-40 cursor-not-allowed">{tile}</div>;
-  }
-}
+const WINDOW_DEFS: Record<string, () => WindowContent> = {
+  calendar:  () => ({ title: "Calendar",  body: <CalendarContent />,  width: 700, height: 520, resizable: true }),
+  messages:  () => ({ title: "Messages",  body: <MessagesContent />,  width: 480, height: 420, resizable: true }),
+  tasks:     () => ({ title: "Tasks",     body: <TasksContent />,     width: 420, height: 400, resizable: true }),
+  documents: () => ({ title: "Documents", body: <DocumentsContent />, width: 460, height: 400, resizable: true }),
+  debate:    () => ({ title: "Debate",    body: <DebateContent />,    width: 460, height: 420, resizable: true }),
+  settings:  () => ({ title: "Settings",  body: <SettingsContent />,  width: 380, height: 240, resizable: false }),
+};
 
 // ─── Portal Overlay ────────────────────────────────────────────
 
@@ -207,6 +187,174 @@ function PortalOverlay({ children, onClose }: { children: ReactNode; onClose: ()
   );
 }
 
+// ─── Group Picker Menu ─────────────────────────────────────────
+
+function GroupPickerMenu({
+  groups,
+  selectedGroupIds,
+  onToggle,
+  onSelectAll,
+  onDeselectAll,
+  onBatchToggle,
+  allCount,
+  onClose,
+}: {
+  groups: DesktopGroup[];
+  selectedGroupIds: Set<string>;
+  onToggle: (id: string) => void;
+  onBatchToggle: (ids: string[], selected: boolean) => void;
+  onSelectAll: () => void;
+  onDeselectAll: () => void;
+  allCount: number;
+  onClose: () => void;
+}) {
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
+
+  const toggleExpand = (id: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const isMainGroupFullySelected = (g: DesktopGroup) => {
+    const childIds = g.children.map((c) => c.id);
+    const allIds = [g.id, ...childIds];
+    return allIds.every((id) => selectedGroupIds.has(id));
+  };
+
+  const isMainGroupPartiallySelected = (g: DesktopGroup) => {
+    const childIds = g.children.map((c) => c.id);
+    const allIds = [g.id, ...childIds];
+    const selectedCount = allIds.filter((id) => selectedGroupIds.has(id)).length;
+    return selectedCount > 0 && selectedCount < allIds.length;
+  };
+
+  const toggleMainGroupAll = (g: DesktopGroup) => {
+    const childIds = g.children.map((c) => c.id);
+    const allIds = [g.id, ...childIds];
+    const allSelected = allIds.every((id) => selectedGroupIds.has(id));
+    
+    onBatchToggle(allIds, !allSelected);
+  };
+
+  const Checkbox = ({ checked, partial, onClick }: { checked: boolean; partial?: boolean; onClick: () => void }) => (
+    <div
+      role="checkbox"
+      aria-checked={checked ? "true" : partial ? "mixed" : "false"}
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors cursor-pointer ${
+        checked ? "border-brand-950 bg-brand-950" : partial ? "border-brand-950 bg-brand-950 opacity-50" : "border-brand-400"
+      }`}
+    >
+      {checked && (
+        <svg className="w-2.5 h-2.5 text-brand-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      )}
+      {partial && !checked && (
+        <div className="w-2 h-0.5 bg-brand-950 rounded" />
+      )}
+    </div>
+  );
+
+  return (
+    <PortalOverlay onClose={onClose}>
+      <div className="fixed left-1/2 -translate-x-1/2 bottom-14 w-80 bg-brand-0 border border-brand-150 rounded-lg shadow-lg z-[10000]">
+        {/* Header */}
+        <div className="flex items-center justify-end px-3 py-2 border-b border-brand-150">
+          <button
+            onClick={() => {
+              if (selectedGroupIds.size === allCount) onDeselectAll();
+              else onSelectAll();
+            }}
+            className="text-xs text-brand-950 hover:opacity-60 cursor-pointer"
+          >
+            {selectedGroupIds.size === allCount ? "Deselect all" : "Select all"}
+          </button>
+        </div>
+
+        {/* Main Groups */}
+        <div className="max-h-80 overflow-y-auto">
+          {groups.map((mainGroup, idx) => {
+            const isExpanded = expandedGroups.has(mainGroup.id);
+            const isFullySelected = isMainGroupFullySelected(mainGroup);
+            const isPartiallySelected = isMainGroupPartiallySelected(mainGroup);
+            const hasChildren = mainGroup.children.length > 0;
+
+            return (
+              <div key={mainGroup.id}>
+                {idx > 0 && <div className="border-t border-brand-100" />}
+                
+                {/* Main Group Header Row */}
+                <div className="flex items-center px-3 py-2.5 hover:bg-brand-25 transition-colors">
+                  <Checkbox
+                    checked={isFullySelected}
+                    partial={isPartiallySelected}
+                    onClick={() => toggleMainGroupAll(mainGroup)}
+                  />
+                  <span className="w-3 h-3 rounded-full shrink-0 mx-2" style={{ backgroundColor: mainGroup.color }} />
+                  <span
+                    className="flex-1 text-xs font-medium text-brand-950 truncate cursor-pointer"
+                    onClick={() => toggleMainGroupAll(mainGroup)}
+                  >
+                    {mainGroup.name}
+                  </span>
+                  {hasChildren && (
+                    <button
+                      onClick={() => toggleExpand(mainGroup.id)}
+                      className="p-1.5 hover:bg-brand-100 rounded transition-colors cursor-pointer"
+                    >
+                      <ChevronRight className={`size-4 text-brand-950 transition-transform ${isExpanded ? "rotate-90" : ""}`} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Expanded Content: Main Group + Subgroups */}
+                {isExpanded && (
+                  <div className="bg-brand-25 border-t border-brand-100">
+                    {/* Main Group Entry (selectable individually) */}
+                    <div
+                      onClick={() => onToggle(mainGroup.id)}
+                      className={`w-full text-left px-3 py-2 text-xs hover:bg-brand-50 transition-colors flex items-center gap-2 cursor-pointer ${
+                        selectedGroupIds.has(mainGroup.id) ? "bg-brand-50" : ""
+                      }`}
+                      style={{ paddingLeft: "2rem" }}
+                    >
+                      <Checkbox checked={selectedGroupIds.has(mainGroup.id)} onClick={() => onToggle(mainGroup.id)} />
+                      <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: mainGroup.color }} />
+                      <span className="truncate text-brand-950">{mainGroup.name}</span>
+                      <span className="text-[10px] text-brand-400 ml-auto">(Main)</span>
+                    </div>
+
+                    {/* Subgroups */}
+                    {mainGroup.children.map((child) => (
+                      <div
+                        key={child.id}
+                        onClick={() => onToggle(child.id)}
+                        className={`w-full text-left px-3 py-2 text-xs hover:bg-brand-50 transition-colors flex items-center gap-2 cursor-pointer ${
+                          selectedGroupIds.has(child.id) ? "bg-brand-50" : ""
+                        }`}
+                        style={{ paddingLeft: "2rem" }}
+                      >
+                        <Checkbox checked={selectedGroupIds.has(child.id)} onClick={() => onToggle(child.id)} />
+                        <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: mainGroup.color }} />
+                        <span className="truncate text-brand-950">{child.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </PortalOverlay>
+  );
+}
+
 // ─── Desktop ───────────────────────────────────────────────────
 
 export default function Desktop({ mode, groups, user, onLogout, onOpenCommunities, onOpenAccount, onOpenSettings }: DesktopProps) {
@@ -215,9 +363,14 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
   const [showApps, setShowApps] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
-  const { setBottomInset, toggleWindow } = useWindowManager();
+  const { setBottomInset, openNewInstance } = useWindowManager();
+  const {
+    selectedGroupIds,
+    setSelectedGroupIds,
+    setAllGroups: setGlobalGroups,
+    setCurrentUserId: setGlobalUserId,
+  } = useGroupFilter();
 
-  const [selectedGroupIds, setSelectedGroupIds] = useState<Set<string>>(new Set());
   const [showGroupPicker, setShowGroupPicker] = useState(false);
 
   useEffect(() => {
@@ -243,6 +396,15 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
 
   const selectedGroups = allGroups.filter((g) => selectedGroupIds.has(g.id));
 
+  // Sync local group/user data to global context so windows can access it
+  useEffect(() => {
+    setGlobalGroups(allGroups.map((g) => ({ id: g.id, name: g.name, color: g.color, depth: g.depth, parentId: g.parentId })));
+  }, [groups, setGlobalGroups]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    setGlobalUserId(user?.id ?? "");
+  }, [user?.id, setGlobalUserId]);
+
   const toggleGroupSelection = (groupId: string) => {
     setSelectedGroupIds((prev) => {
       const next = new Set(prev);
@@ -255,10 +417,48 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
   const selectAll = () => setSelectedGroupIds(new Set(allGroups.map((g) => g.id)));
   const deselectAll = () => setSelectedGroupIds(new Set());
 
-  const groupFilterData = allGroups.map((g) => ({ id: g.id, name: g.name, color: g.color, depth: g.depth, parentId: g.parentId }));
+  const batchToggle = (ids: string[], selected: boolean) => {
+    setSelectedGroupIds((prev) => {
+      const next = new Set(prev);
+      for (const id of ids) {
+        if (selected) next.add(id);
+        else next.delete(id);
+      }
+      return next;
+    });
+  };
+
+  const openSearch = useCallback(() => {
+    openNewInstance("search", searchWindowContent());
+  }, [openNewInstance]);
+
+  // Ctrl+K / Cmd+K keyboard shortcut for search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        openSearch();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [openSearch]);
+
+  const desktopMenuItems = useCallback((): ContextMenuItem[] => [
+    { type: "label", text: "Desktop" },
+    { type: "action", label: "Open Apps", icon: <LayoutGrid className="size-3.5" />, onClick: () => setShowApps(true) },
+    { type: "action", label: "Search", icon: <Search className="size-3.5" />, onClick: openSearch },
+    { type: "action", label: "Settings", icon: <Settings className="size-3.5" />, onClick: () => openNewInstance("settings", WINDOW_DEFS.settings()) },
+    { type: "separator" },
+    { type: "action", label: "Toggle Dark Mode", icon: <Moon className="size-3.5" />, onClick: () => {
+      const next = !document.documentElement.classList.contains("dark");
+      document.documentElement.classList.toggle("dark", next);
+      localStorage.setItem("theme", next ? "dark" : "light");
+    }},
+  ], [openNewInstance, openSearch]);
 
   return (
-    <GroupFilterProvider selectedGroupIds={selectedGroupIds} allGroups={groupFilterData}>
+    <ContextMenuProvider defaultItems={desktopMenuItems}>
     <div className="w-full h-full flex flex-col bg-brand-25 relative overflow-hidden select-none">
       {/* Desktop Content */}
       <div className="flex-1 flex flex-col items-center justify-center gap-4 pb-12">
@@ -288,19 +488,22 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
           >
             {APPS.map((app) => {
               const Icon = app.icon;
-              const tile = (
+              const factory = app.windowComponent ? WINDOW_DEFS[app.windowComponent] : null;
+
+              return (
                 <div
-                  className="flex flex-col items-center justify-center gap-3 w-32 h-32 cursor-pointer"
-                  onClick={() => app.windowComponent && setShowApps(false)}
+                  key={app.id}
+                  className={`flex flex-col items-center justify-center gap-3 w-32 h-32 ${
+                    factory ? "cursor-pointer" : "opacity-40 cursor-not-allowed"
+                  }`}
+                  onClick={() => {
+                    if (!factory) return;
+                    openNewInstance(app.id, factory());
+                    setShowApps(false);
+                  }}
                 >
                   <Icon className="size-11 text-brand-950 hover:scale-90 transition-transform" />
                   <span className="text-sm text-brand-950">{app.name}</span>
-                </div>
-              );
-
-              return (
-                <div key={app.id}>
-                  <AppTile app={app} tile={tile} />
                 </div>
               );
             })}
@@ -316,14 +519,14 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
               <div className="px-4 py-3 border-b border-brand-150">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-brand-200 flex items-center justify-center">
-                    <User className="size-5 text-brand-500" />
+                    <User className="size-5 text-brand-950" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-brand-950 truncate">{user.name}</div>
-                    <div className="text-xs text-brand-500">@{user.username}</div>
+                    <div className="text-xs text-brand-950">@{user.username}</div>
                   </div>
                   {user.isDemo && (
-                    <span className="text-xs bg-brand-200 text-brand-500 px-1.5 py-0.5 rounded shrink-0">
+                    <span className="text-xs bg-brand-200 text-brand-950 px-1.5 py-0.5 rounded shrink-0">
                       Demo
                     </span>
                   )}
@@ -331,7 +534,7 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
               </div>
             ) : (
               <div className="px-4 py-3 border-b border-brand-150">
-                <div className="text-sm text-brand-500">Not logged in</div>
+                <div className="text-sm text-brand-950">Not logged in</div>
               </div>
             )}
 
@@ -340,30 +543,24 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
                 onClick={() => { setShowMenu(false); onOpenCommunities?.(); }}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-brand-950 hover:bg-brand-50 transition-colors cursor-pointer"
               >
-                <Users className="size-4 text-brand-500" />
+                <Users className="size-4 text-brand-950" />
                 Server
               </button>
               <button
                 onClick={() => { setShowMenu(false); onOpenAccount?.(); }}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-brand-950 hover:bg-brand-50 transition-colors cursor-pointer"
               >
-                <User className="size-4 text-brand-500" />
+                <User className="size-4 text-brand-950" />
                 Account
               </button>
               <button
                 onClick={() => {
                   setShowMenu(false);
-                  toggleWindow("app-settings", {
-                    title: "Settings",
-                    body: <SettingsContent />,
-                    width: 380,
-                    height: 240,
-                    resizable: false,
-                  });
+                  openNewInstance("settings", WINDOW_DEFS.settings());
                 }}
                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-brand-950 hover:bg-brand-50 transition-colors cursor-pointer"
               >
-                <Settings className="size-4 text-brand-500" />
+                <Settings className="size-4 text-brand-950" />
                 Settings
               </button>
             </div>
@@ -375,7 +572,7 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
                   className="flex items-center gap-3 px-4 py-2.5 text-sm text-brand-950 hover:bg-brand-50 transition-colors cursor-pointer"
                   onClick={() => setShowMenu(false)}
                 >
-                  <LogIn className="size-4 text-brand-500" />
+                  <LogIn className="size-4 text-brand-950" />
                   Log in to save changes
                 </Link>
               ) : (
@@ -384,7 +581,7 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
                     onClick={() => { setShowMenu(false); onLogout(); }}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-brand-950 hover:bg-brand-50 transition-colors cursor-pointer"
                   >
-                    <LogOut className="size-4 text-brand-500" />
+                    <LogOut className="size-4 text-brand-950" />
                     Logout
                   </button>
                 )
@@ -396,49 +593,16 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
 
       {/* Group Picker — rendered via portal into document.body */}
       {showGroupPicker && (
-        <PortalOverlay onClose={() => setShowGroupPicker(false)}>
-          <div className="fixed left-1/2 -translate-x-1/2 bottom-14 w-72 bg-brand-0 border border-brand-150 rounded-lg shadow-lg py-2 z-[10000]">
-            <div className="flex items-center justify-end px-3 py-2 border-b border-brand-150">
-              <button
-                onClick={() => {
-                  if (selectedGroupIds.size === allGroups.length) deselectAll();
-                  else selectAll();
-                }}
-                className="text-xs text-brand-950 hover:opacity-60 cursor-pointer"
-              >
-                {selectedGroupIds.size === allGroups.length ? "Deselect all" : "Select all"}
-              </button>
-            </div>
-
-            <div className="py-1">
-              {allGroups.map((g) => {
-                const isSelected = selectedGroupIds.has(g.id);
-                return (
-                  <button
-                    key={g.id}
-                    onClick={() => toggleGroupSelection(g.id)}
-                    className={`w-full text-left px-3 py-2 text-xs hover:bg-brand-50 transition-colors flex items-center gap-2 cursor-pointer ${
-                      isSelected ? "bg-brand-50" : ""
-                    }`}
-                    style={{ paddingLeft: g.depth === 1 ? "2rem" : "0.75rem" }}
-                  >
-                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                      isSelected ? "border-brand-950 bg-brand-950" : "border-brand-400"
-                    }`}>
-                      {isSelected && (
-                        <svg className="w-2.5 h-2.5 text-brand-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      )}
-                    </div>
-                    <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: g.color }} />
-                    <span className="truncate text-brand-950">{g.name}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </PortalOverlay>
+        <GroupPickerMenu
+          groups={groups}
+          selectedGroupIds={selectedGroupIds}
+          onToggle={toggleGroupSelection}
+          onBatchToggle={batchToggle}
+          onSelectAll={selectAll}
+          onDeselectAll={deselectAll}
+          allCount={allGroups.length}
+          onClose={() => setShowGroupPicker(false)}
+        />
       )}
 
       {/* Footer/Taskbar */}
@@ -452,7 +616,7 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
           />
         </div>
 
-        {/* Center: App Button + Group Switcher */}
+        {/* Center: App Button + Search + Group Switcher */}
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowApps(!showApps)}
@@ -460,6 +624,15 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
             aria-label="Apps"
           >
             <LayoutGrid className="size-4 text-brand-950" />
+          </button>
+
+          <button
+            onClick={openSearch}
+            className="flex items-center justify-center w-8 h-8 rounded-md border border-brand-950 hover:bg-brand-100 transition-colors cursor-pointer"
+            aria-label="Suche (Ctrl+K)"
+            title="Suche (Ctrl+K)"
+          >
+            <Search className="size-4 text-brand-950" />
           </button>
 
           <button
@@ -489,10 +662,24 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
           </button>
         </div>
 
-        {/* Right: Empty space for balance */}
-        <div className="flex-1" />
+        {/* Right: DarkMode toggle + time */}
+        <div className="flex-1 flex justify-end items-center gap-3">
+          <span className="text-xs text-brand-950">{currentTime}</span>
+          <button
+            onClick={() => {
+              const next = !document.documentElement.classList.contains("dark");
+              document.documentElement.classList.toggle("dark", next);
+              localStorage.setItem("theme", next ? "dark" : "light");
+            }}
+            className="p-1 rounded-md hover:bg-brand-100 transition-colors cursor-pointer"
+            aria-label="Toggle dark mode"
+          >
+            <Sun className="size-4 text-brand-950 hidden dark:block" />
+            <Moon className="size-4 text-brand-950 dark:hidden" />
+          </button>
+        </div>
       </div>
     </div>
-    </GroupFilterProvider>
+    </ContextMenuProvider>
   );
 }

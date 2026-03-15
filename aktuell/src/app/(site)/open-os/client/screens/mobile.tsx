@@ -9,13 +9,13 @@ export default function MobileScreen() {
   return (
     <div className="w-full h-full flex flex-col items-center justify-center gap-3 p-6 text-center">
       <div className="text-3xl">📲</div>
-      <h3 className="font-heading text-base font-semibold text-brand-900">
+      <h3 className="font-heading text-base font-semibold text-brand-950">
         OpenOS Mobile
       </h3>
       <p className="text-xs text-brand-950 max-w-[200px]">
         A compact interface designed for phones.
       </p>
-      <span className="mt-2 text-xs text-brand-700 bg-brand-100 px-3 py-1 rounded-full">
+      <span className="mt-2 text-xs text-brand-950 bg-brand-100 px-3 py-1 rounded-full">
         Coming soon
       </span>
     </div>

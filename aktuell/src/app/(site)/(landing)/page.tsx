@@ -6,7 +6,7 @@ export default function Page() {
   return (
     <section className="relative py-24 sm:py-32 bg-brand-25">
       <MaxWidthWrapper className="text-center relative mx-auto flex flex-col items-center gap-6">
-        <Heading className="text-brand-900">
+        <Heading className="text-brand-950">
           We Support Free, Sovereign Communities!
         </Heading>
 

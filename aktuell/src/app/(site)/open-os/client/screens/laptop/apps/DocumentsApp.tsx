@@ -17,7 +17,7 @@ export default function DocumentsApp({ data, groupIds, allGroups }: Props) {
   if (documents.length === 0) {
     return (
       <div className="flex items-center justify-center h-full min-h-[200px]">
-        <span className="text-xs text-brand-500">No documents in this group.</span>
+        <span className="text-xs text-brand-950">No documents in this group.</span>
       </div>
     );
   }
@@ -30,26 +30,26 @@ export default function DocumentsApp({ data, groupIds, allGroups }: Props) {
       <div className="p-4 flex flex-col h-full">
         <button
           onClick={() => setOpenDocId(null)}
-          className="flex items-center gap-1 text-xs text-brand-600 hover:text-brand-950 transition-colors mb-3 shrink-0"
+          className="flex items-center gap-1 text-xs text-brand-950 hover:text-brand-950 transition-colors mb-3 shrink-0"
         >
           <ArrowLeft className="size-3" />
           Back to documents
         </button>
         <div className="flex items-center gap-2 mb-1">
-          <FileText className="size-4 text-brand-500" />
+          <FileText className="size-4 text-brand-950" />
           <h2 className="text-sm font-semibold text-brand-950">{openDoc.title}</h2>
         </div>
         <div className="flex items-center gap-2 mb-4">
           {group && (
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full" style={{ backgroundColor: group.color }} />
-              <span className="text-[10px] text-brand-500">{group.name}</span>
+              <span className="text-[10px] text-brand-950">{group.name}</span>
             </span>
           )}
-          <span className="text-[10px] text-brand-500">by {openDoc.author.name}</span>
+          <span className="text-[10px] text-brand-950">by {openDoc.author.name}</span>
         </div>
         <div className="flex-1 overflow-y-auto rounded-lg border border-brand-200 bg-brand-0 p-4">
-          <pre className="text-xs text-brand-800 whitespace-pre-wrap font-sans leading-relaxed">{openDoc.content}</pre>
+          <pre className="text-xs text-brand-950 whitespace-pre-wrap font-sans leading-relaxed">{openDoc.content}</pre>
         </div>
       </div>
     );
@@ -72,13 +72,13 @@ export default function DocumentsApp({ data, groupIds, allGroups }: Props) {
                 {group && (
                   <span className="flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: group.color }} />
-                    <span className="text-[10px] text-brand-500">{group.name}</span>
+                    <span className="text-[10px] text-brand-950">{group.name}</span>
                   </span>
                 )}
-                <span className="text-[10px] text-brand-500">by {doc.author.name}</span>
+                <span className="text-[10px] text-brand-950">by {doc.author.name}</span>
               </div>
             </div>
-            <span className="text-[10px] text-brand-500 shrink-0">
+            <span className="text-[10px] text-brand-950 shrink-0">
               {new Date(doc.updatedAt).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" })}
             </span>
           </button>

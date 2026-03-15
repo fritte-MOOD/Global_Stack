@@ -30,12 +30,13 @@ import DraggableWindow from "./DraggableWindow";
 
 /* Was ein Fenster inhaltlich braucht */
 export type WindowContent = {
-  title: string;         // Titelleiste
-  body: ReactNode;       // Fenster-Inhalt (ein React-Component)
-  width?: number;        // Breite in px, default 320
-  height?: number;       // Höhe in px, default auto (passt sich an Inhalt an)
-  resizable?: boolean;   // Resize-Handle unten rechts, default false
-  centered?: boolean;    // Fenster in der Mitte des Containers öffnen
+  title: string;
+  body: ReactNode;
+  width?: number;
+  height?: number;
+  resizable?: boolean;
+  centered?: boolean;
+  noScale?: boolean;
 };
 
 type OpenWindow = {
@@ -47,6 +48,8 @@ type OpenWindow = {
 
 type WindowManagerCtx = {
   openWindow: (id: string, content: WindowContent, position?: { x: number; y: number }) => void;
+  /** Opens a new instance even if one with the same prefix already exists */
+  openNewInstance: (idPrefix: string, content: WindowContent, position?: { x: number; y: number }) => void;
   closeWindow: (id: string) => void;
   closeAllWindows: () => void;
   isWindowOpen: (id: string) => boolean;
@@ -70,6 +73,7 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
   const [windows, setWindows] = useState<OpenWindow[]>([]);
   const [nextZ, setNextZ] = useState(100);
   const cascadeCount = useRef(0);
+  const instanceCounter = useRef(0);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const bottomInsetRef = useRef(0);
 
@@ -159,6 +163,16 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
     });
   }, [nextZ, clampToContainer]);
 
+  const openNewInstance = useCallback((
+    idPrefix: string,
+    content: WindowContent,
+    position?: { x: number; y: number },
+  ) => {
+    instanceCounter.current += 1;
+    const uniqueId = `${idPrefix}__${instanceCounter.current}`;
+    openWindow(uniqueId, content, position);
+  }, [openWindow]);
+
   const closeWindow = useCallback((id: string) => {
     setWindows(prev => prev.filter(w => w.id !== id));
   }, []);
@@ -188,7 +202,7 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
 
   return (
     <Ctx.Provider value={{
-      openWindow, closeWindow, closeAllWindows,
+      openWindow, openNewInstance, closeWindow, closeAllWindows,
       isWindowOpen, toggleWindow,
       containerRef, setContainer, setBottomInset,
     }}>
@@ -206,8 +220,10 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
           width={w.content.width}
           height={w.content.height}
           resizable={w.content.resizable}
+          noScale={w.content.noScale}
           zIndex={w.zIndex}
           container={containerRef.current}
+          bottomInset={bottomInsetRef.current}
         >
           {w.content.body}
         </DraggableWindow>

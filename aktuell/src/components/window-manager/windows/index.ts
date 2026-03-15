@@ -6,8 +6,9 @@
  */
 
 export { default as ProjectWindow } from "./ProjectWindow";
-export { default as CalendarWindow } from "./CalendarWindow";
-export { default as MessagesWindow } from "./MessagesWindow";
-export { default as TasksWindow } from "./TasksWindow";
-export { default as DocumentsWindow } from "./DocumentsWindow";
-export { default as DebateWindow } from "./DebateWindow";
+export { default as CalendarWindow, CalendarContent } from "./CalendarWindow";
+export { default as MessagesWindow, MessagesContent } from "./MessagesWindow";
+export { default as TasksWindow, TasksContent } from "./TasksWindow";
+export { default as DocumentsWindow, DocumentsContent } from "./DocumentsWindow";
+export { default as DebateWindow, DebateContent } from "./DebateWindow";
+export { SearchContent, searchWindowContent } from "./SearchWindow";

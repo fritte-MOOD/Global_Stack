@@ -63,7 +63,7 @@ const entries: Record<string, TemplateData> = {
 function TemplateContent({ name, data }: { name: string; data: TemplateData }) {
   return (
     <div className="p-4 flex flex-col items-center gap-2 text-center">
-      <h4 className="font-heading text-lg font-semibold text-brand-900">{name}</h4>
+      <h4 className="font-heading text-lg font-semibold text-brand-950">{name}</h4>
       <p className="text-sm text-brand-950 leading-relaxed">{data.description}</p>
     </div>
   );
@@ -98,8 +98,8 @@ export default function TemplateWindow({ name, children }: { name: string; child
       tooltip={content}
       window={windowContent}
       tooltipWidth={data.windowWidth}
-      className={children ? "" : "font-semibold underline decoration-brand-300 underline-offset-2 transition-colors text-brand-900"}
-      activeClassName={children ? "" : "text-brand-700"}
+      className={children ? "" : "font-semibold underline decoration-brand-200 underline-offset-2 transition-colors text-brand-950"}
+      activeClassName={children ? "" : "text-brand-950"}
     >
       {children ?? name}
     </Tag>

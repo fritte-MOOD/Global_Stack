@@ -92,7 +92,7 @@ export default function Tag({
       }}
     >
       <div className="flex items-center px-3 h-8 border-b border-brand-200 shrink-0">
-        <span className="font-heading text-xs font-medium text-brand-700 flex-1 text-left">
+        <span className="font-heading text-xs font-medium text-brand-950 flex-1 text-left">
           {windowContent.title}
         </span>
       </div>

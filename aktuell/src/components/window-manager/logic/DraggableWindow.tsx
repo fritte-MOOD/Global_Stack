@@ -1,29 +1,6 @@
-/*
- * DraggableWindow.tsx — Das visuelle Fenster-Element.
- *
- * Wird NICHT direkt benutzt — WindowManager rendert es automatisch.
- *
- * REIN (Props vom WindowManager):
- *   - title:           Text in der Titelleiste
- *   - children:        Fenster-Inhalt (body aus WindowContent)
- *   - initialPosition: { x, y } Startposition auf der Seite
- *   - width/height:    Größe (height optional → auto)
- *   - resizable:       zeigt Resize-Handle unten rechts
- *   - zIndex:          Stapelreihenfolge
- *   - onClose:         X-Button Callback → WindowManager.closeWindow
- *   - onFocus:         Klick aufs Fenster → WindowManager.bringToFront
- *
- * RAUS: Rendert ein Portal in document.body (oder container)
- *
- * Features:
- *   - Drag an der Titelleiste
- *   - X-Button oben rechts zum Schließen
- *   - Optionaler Resize-Handle unten rechts
- */
-
 "use client";
 
-import { X } from "lucide-react";
+import { Maximize2, Minimize2, X } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
@@ -40,7 +17,22 @@ export type DraggableWindowProps = {
   resizable?: boolean;
   zIndex?: number;
   container?: HTMLElement | null;
+  bottomInset?: number;
+  noScale?: boolean;
 };
+
+type Edge = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
+
+const EDGE_CURSORS: Record<Edge, string> = {
+  n: "ns-resize", s: "ns-resize",
+  e: "ew-resize", w: "ew-resize",
+  ne: "nesw-resize", sw: "nesw-resize",
+  nw: "nwse-resize", se: "nwse-resize",
+};
+
+const MIN_W = 200;
+const MIN_H = 120;
+const EDGE_SIZE = 6;
 
 export default function DraggableWindow({
   title,
@@ -54,26 +46,50 @@ export default function DraggableWindow({
   resizable = false,
   zIndex = 50,
   container,
+  bottomInset = 0,
+  noScale = false,
 }: DraggableWindowProps) {
   const windowRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{ offsetX: number; offsetY: number } | null>(null);
-  const resizeState = useRef<{ startX: number; startY: number; startW: number; startH: number } | null>(null);
+  const resizeState = useRef<{
+    edge: Edge;
+    startX: number;
+    startY: number;
+    startW: number;
+    startH: number;
+    startPosX: number;
+    startPosY: number;
+  } | null>(null);
+
   const [position, setPosition] = useState(initialPosition);
   const [size, setSize] = useState({ w: initialWidth, h: initialHeight });
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [mounted, setMounted] = useState(false);
+
+  const preFullscreenRef = useRef({ position: initialPosition, size: { w: initialWidth, h: initialHeight } });
+  const baseSize = useRef({ w: initialWidth, h: initialHeight });
 
   useEffect(() => setMounted(true), []);
 
-  /* Globale Maus-Events für Drag und Resize */
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
       if (resizeState.current) {
-        const dx = e.clientX - resizeState.current.startX;
-        const dy = e.clientY - resizeState.current.startY;
-        setSize({
-          w: Math.max(200, resizeState.current.startW + dx),
-          h: Math.max(120, resizeState.current.startH + dy),
-        });
+        const rs = resizeState.current;
+        const dx = e.clientX - rs.startX;
+        const dy = e.clientY - rs.startY;
+
+        let newW = rs.startW;
+        let newH = rs.startH;
+        let newX = rs.startPosX;
+        let newY = rs.startPosY;
+
+        if (rs.edge.includes("e")) newW = Math.max(MIN_W, rs.startW + dx);
+        if (rs.edge.includes("w")) { newW = Math.max(MIN_W, rs.startW - dx); newX = rs.startPosX + (rs.startW - newW); }
+        if (rs.edge.includes("s")) newH = Math.max(MIN_H, rs.startH + dy);
+        if (rs.edge.includes("n")) { newH = Math.max(MIN_H, rs.startH - dy); newY = rs.startPosY + (rs.startH - newH); }
+
+        setSize({ w: newW, h: newH });
+        setPosition({ x: newX, y: newY });
         return;
       }
 
@@ -111,7 +127,7 @@ export default function DraggableWindow({
   }, [container]);
 
   const startDrag = (e: React.MouseEvent) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0 || isFullscreen) return;
     e.preventDefault();
     onFocus?.();
 
@@ -126,8 +142,8 @@ export default function DraggableWindow({
     document.body.style.userSelect = "none";
   };
 
-  const startResize = (e: React.MouseEvent) => {
-    if (e.button !== 0) return;
+  const startEdgeResize = (edge: Edge) => (e: React.MouseEvent) => {
+    if (e.button !== 0 || !resizable || isFullscreen) return;
     e.preventDefault();
     e.stopPropagation();
     onFocus?.();
@@ -136,24 +152,61 @@ export default function DraggableWindow({
     if (!rect) return;
 
     resizeState.current = {
+      edge,
       startX: e.clientX,
       startY: e.clientY,
       startW: rect.width,
       startH: rect.height,
+      startPosX: position.x,
+      startPosY: position.y,
     };
-    document.body.style.cursor = "nwse-resize";
+    document.body.style.cursor = EDGE_CURSORS[edge];
     document.body.style.userSelect = "none";
   };
 
+  const toggleFullscreen = () => {
+    if (!isFullscreen) {
+      preFullscreenRef.current = { position, size: { ...size } };
+      const c = container ?? document.body;
+      const cw = c === document.body ? window.innerWidth : c.clientWidth;
+      const ch = (c === document.body ? window.innerHeight : c.clientHeight) - bottomInset;
+      setPosition({ x: 0, y: 0 });
+      setSize({ w: cw, h: ch });
+      setIsFullscreen(true);
+    } else {
+      setPosition(preFullscreenRef.current.position);
+      setSize(preFullscreenRef.current.size);
+      setIsFullscreen(false);
+    }
+  };
+
+  const handleDoubleClickTitle = () => {
+    if (resizable) toggleFullscreen();
+  };
+
   if (!mounted) return null;
+
+  const currentW = size.w ?? initialWidth;
+  const currentH = size.h;
+  const baseW = baseSize.current.w;
+  const baseH = baseSize.current.h;
+
+  let scale = 1;
+  if (!noScale && baseW && baseH && currentH) {
+    const scaleW = currentW / baseW;
+    const scaleH = currentH / baseH;
+    const minScale = Math.min(scaleW, scaleH);
+    if (minScale > 1) scale = minScale;
+  }
 
   const style: React.CSSProperties = {
     position: "absolute",
     left: position.x,
     top: position.y,
-    width: size.w,
-    ...(size.h ? { height: size.h } : {}),
+    width: currentW,
+    ...(currentH ? { height: currentH } : {}),
     zIndex,
+    ...(isFullscreen ? { borderRadius: 0 } : {}),
   };
 
   const el = (
@@ -163,50 +216,63 @@ export default function DraggableWindow({
       style={style}
       onMouseDown={onFocus}
     >
-      {/* ── Titelleiste (drag hier) ── */}
+      {/* Title Bar */}
       <div
         className="flex items-center px-3 h-8 border-b border-brand-200 select-none shrink-0 cursor-grab active:cursor-grabbing"
         onMouseDown={startDrag}
+        onDoubleClick={handleDoubleClickTitle}
       >
-        <h3 className="font-heading text-xs font-medium text-brand-700 flex-1">
-          {title}
-        </h3>
+        <h3 className="font-heading text-xs font-medium text-brand-950 flex-1">{title}</h3>
 
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="rounded hover:bg-brand-100 transition-colors text-brand-700 hover:text-brand-900 cursor-pointer"
-            aria-label="Close"
-          >
-            <X className="size-3" />
-          </button>
-        )}
+        <div className="flex items-center gap-1">
+          {resizable && (
+            <button
+              onClick={toggleFullscreen}
+              className="rounded p-0.5 hover:bg-brand-100 transition-colors text-brand-950 cursor-pointer"
+              aria-label={isFullscreen ? "Restore" : "Maximize"}
+            >
+              {isFullscreen ? <Minimize2 className="size-3" /> : <Maximize2 className="size-3" />}
+            </button>
+          )}
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="rounded p-0.5 hover:bg-brand-100 transition-colors text-brand-950 cursor-pointer"
+              aria-label="Close"
+            >
+              <X className="size-3" />
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* ── Fenster-Inhalt ── */}
-      <div className="flex-1 overflow-hidden">
+      {/* Content */}
+      <div
+        className="flex-1 min-h-0 overflow-hidden"
+        style={scale > 1 ? {
+          transform: `scale(${scale})`,
+          transformOrigin: "top left",
+          width: `${100 / scale}%`,
+          height: `${100 / scale}%`,
+        } : undefined}
+      >
         {children}
       </div>
 
-      {/* ── Resize-Handle (nur wenn resizable) ── */}
-      {resizable && (
-        <div
-          onMouseDown={startResize}
-          className="absolute bottom-0 right-0 w-6 h-6 cursor-nwse-resize group"
-          aria-label="Resize"
-        >
-          {/* Eleganter Grip mit Dots */}
-          <div className="absolute bottom-1 right-1 flex flex-col gap-0.5 opacity-40 group-hover:opacity-70 transition-opacity">
-            <div className="flex gap-0.5">
-              <div className="w-1 h-1 rounded-full bg-brand-700"></div>
-              <div className="w-1 h-1 rounded-full bg-brand-700"></div>
-            </div>
-            <div className="flex gap-0.5">
-              <div className="w-1 h-1 rounded-full bg-brand-700"></div>
-              <div className="w-1 h-1 rounded-full bg-brand-700"></div>
-            </div>
-          </div>
-        </div>
+      {/* Edge and Corner Resize Handles */}
+      {resizable && !isFullscreen && (
+        <>
+          {/* Edges */}
+          <div onMouseDown={startEdgeResize("n")} className="absolute -top-[3px] left-[6px] right-[6px] h-[6px] cursor-ns-resize" />
+          <div onMouseDown={startEdgeResize("s")} className="absolute -bottom-[3px] left-[6px] right-[6px] h-[6px] cursor-ns-resize" />
+          <div onMouseDown={startEdgeResize("e")} className="absolute top-[6px] -right-[3px] bottom-[6px] w-[6px] cursor-ew-resize" />
+          <div onMouseDown={startEdgeResize("w")} className="absolute top-[6px] -left-[3px] bottom-[6px] w-[6px] cursor-ew-resize" />
+          {/* Corners */}
+          <div onMouseDown={startEdgeResize("nw")} className="absolute -top-[3px] -left-[3px] w-[10px] h-[10px] cursor-nwse-resize" />
+          <div onMouseDown={startEdgeResize("ne")} className="absolute -top-[3px] -right-[3px] w-[10px] h-[10px] cursor-nesw-resize" />
+          <div onMouseDown={startEdgeResize("sw")} className="absolute -bottom-[3px] -left-[3px] w-[10px] h-[10px] cursor-nesw-resize" />
+          <div onMouseDown={startEdgeResize("se")} className="absolute -bottom-[3px] -right-[3px] w-[10px] h-[10px] cursor-nwse-resize" />
+        </>
       )}
     </div>
   );

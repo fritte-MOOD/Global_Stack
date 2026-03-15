@@ -7,7 +7,7 @@ export type DemoMessage = {
   content: string;
   createdAt: string;
   author: { name: string; nickname: string | null };
-  groupId: string;
+  groupId: string | null;
 };
 
 export type DemoEvent = {
@@ -59,6 +59,12 @@ export type DemoGroup = {
   children: { id: string; slug: string; name: string; subtitle: string; color: string; icon: string }[];
 };
 
+export type DemoUser = {
+  id: string;
+  name: string;
+  username: string;
+};
+
 export type DemoData = {
   groups: DemoGroup[];
   messages: DemoMessage[];
@@ -66,9 +72,15 @@ export type DemoData = {
   tasks: DemoTask[];
   documents: DemoDocument[];
   processes: DemoProcess[];
+  user: DemoUser | null;
 };
 
 export async function loadDemoData(serverSlugs: string[]): Promise<DemoData> {
+  const demoUser = await prisma.user.findFirst({
+    where: { isDemo: true },
+    select: { id: true, name: true, username: true },
+  });
+
   const servers = await prisma.group.findMany({
     where: { slug: { in: serverSlugs }, isTemplate: false, parentId: null },
     include: { children: { where: { isTemplate: false }, orderBy: { name: "asc" } } },
@@ -136,5 +148,6 @@ export async function loadDemoData(serverSlugs: string[]): Promise<DemoData> {
       id: p.id, title: p.title, description: p.description, status: p.status,
       groupId: p.groupId, author: p.author,
     })),
+    user: demoUser ? { id: demoUser.id, name: demoUser.name, username: demoUser.username } : null,
   };
 }

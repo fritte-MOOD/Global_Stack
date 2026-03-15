@@ -37,7 +37,7 @@ function LoginForm() {
     <div className="min-h-screen flex items-center justify-center bg-brand-25 px-4">
       <div className="w-full max-w-md">
         <div className="bg-brand-0 rounded-xl shadow-lg shadow-brand-200/40 border border-brand-200 p-8">
-          <h1 className="text-2xl font-heading font-bold text-brand-900 text-center mb-6">
+          <h1 className="text-2xl font-heading font-bold text-brand-950 text-center mb-6">
             Login to Workspace
           </h1>
 
@@ -47,7 +47,7 @@ function LoginForm() {
             <div>
               <label
                 htmlFor="username"
-                className="block text-sm font-medium text-brand-700 mb-1"
+                className="block text-sm font-medium text-brand-950 mb-1"
               >
                 Username
               </label>
@@ -57,7 +57,7 @@ function LoginForm() {
                 name="username"
                 autoComplete="username"
                 required
-                className="w-full px-3 py-2 border border-brand-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-brand-0 text-brand-900"
+                className="w-full px-3 py-2 border border-brand-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-transparent bg-brand-0 text-brand-950"
                 placeholder="your_username"
               />
             </div>
@@ -65,7 +65,7 @@ function LoginForm() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-brand-700 mb-1"
+                className="block text-sm font-medium text-brand-950 mb-1"
               >
                 Password
               </label>
@@ -75,7 +75,7 @@ function LoginForm() {
                 name="password"
                 autoComplete="current-password"
                 required
-                className="w-full px-3 py-2 border border-brand-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-brand-0 text-brand-900"
+                className="w-full px-3 py-2 border border-brand-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-transparent bg-brand-0 text-brand-950"
                 placeholder="••••••••"
               />
             </div>
@@ -96,11 +96,11 @@ function LoginForm() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-brand-600">
+            <p className="text-sm text-brand-950">
               Don&apos;t have an account?{" "}
               <Link
                 href="/workspace/register"
-                className="font-medium text-brand-700 hover:text-brand-900 underline cursor-pointer"
+                className="font-medium text-brand-950 hover:text-brand-950 underline cursor-pointer"
               >
                 Register
               </Link>
@@ -114,7 +114,7 @@ function LoginForm() {
                   <div className="w-full border-t border-brand-200" />
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-brand-0 text-brand-500">
+                  <span className="px-2 bg-brand-0 text-brand-950">
                     or try a demo account
                   </span>
                 </div>
@@ -126,7 +126,7 @@ function LoginForm() {
                     key={user.id}
                     onClick={() => handleDemoLogin(user.id)}
                     disabled={isLoadingDemo}
-                    className="w-full py-2 px-4 bg-brand-100 hover:bg-brand-200 text-brand-800 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-sm"
+                    className="w-full py-2 px-4 bg-brand-100 hover:bg-brand-200 text-brand-950 font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-sm"
                   >
                     Login as {user.name} (@{user.username})
                   </button>
@@ -144,7 +144,7 @@ export default function LoginPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center bg-brand-25">
-        <div className="text-brand-600">Loading...</div>
+        <div className="text-brand-950">Loading...</div>
       </div>
     }>
       <LoginForm />

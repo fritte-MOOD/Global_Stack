@@ -161,7 +161,7 @@ export default function LoginScreen({ onContinue }: { onContinue: () => void }) 
 
                     <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${
                       isSelected
-                        ? "border-brand-900 bg-brand-900"
+                        ? "border-brand-950 bg-brand-950"
                         : "border-brand-200"
                     }`}>
                       {isSelected && <Check className="size-3 text-brand-50" />}
@@ -176,16 +176,16 @@ export default function LoginScreen({ onContinue }: { onContinue: () => void }) 
               disabled={selected.size === 0}
               className={`group relative z-10 flex items-center justify-center gap-2 w-full h-14 px-8 rounded-md text-base font-medium whitespace-nowrap overflow-hidden transition-all duration-300 ${
                 selected.size > 0
-                  ? "bg-brand-0 border border-brand-800 shadow-md shadow-brand-200 hover:shadow-xl hover:border-transparent hover:ring-2 hover:ring-brand-300 hover:ring-offset-2 hover:ring-offset-brand-25 cursor-pointer"
+                  ? "bg-brand-0 border border-brand-800 shadow-md shadow-brand-200 hover:shadow-xl hover:border-transparent hover:ring-2 hover:ring-brand-200 hover:ring-offset-2 hover:ring-offset-brand-25 cursor-pointer"
                   : "bg-brand-200 border border-brand-200 text-brand-950 cursor-not-allowed"
               }`}
             >
-              <span className="relative z-10 flex items-center gap-2 text-brand-900">
+              <span className="relative z-10 flex items-center gap-2 text-brand-950">
                 Connect to {selected.size} {selected.size === 1 ? "server" : "servers"}
                 <ArrowRight className="size-4 shrink-0 transition-transform duration-300 ease-in-out group-hover:translate-x-[2px]" />
               </span>
               {selected.size > 0 && (
-                <div className="absolute -left-[75px] -top-[50px] -z-10 h-[155px] w-8 rotate-[35deg] bg-brand-300 opacity-20 transition-all duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:left-[120%]" />
+                <div className="absolute -left-[75px] -top-[50px] -z-10 h-[155px] w-8 rotate-[35deg] bg-brand-200 opacity-20 transition-all duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:left-[120%]" />
               )}
             </button>
           </>
@@ -224,12 +224,12 @@ export default function LoginScreen({ onContinue }: { onContinue: () => void }) 
 
                     <div className="text-right">
                       {conn.status === "waiting" && (
-                        <span className="text-xs text-brand-700">Waiting...</span>
+                        <span className="text-xs text-brand-950">Waiting...</span>
                       )}
                       {conn.status === "connecting" && (
                         <div className="flex items-center gap-1.5">
                           <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: server.colorVar }} />
-                          <span className="text-xs text-brand-700">Connecting</span>
+                          <span className="text-xs text-brand-950">Connecting</span>
                         </div>
                       )}
                       {conn.status === "connected" && (
@@ -247,14 +247,14 @@ export default function LoginScreen({ onContinue }: { onContinue: () => void }) 
             <div className="w-full">
               <div className="h-1 bg-brand-200 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-brand-300 transition-all duration-700 ease-out"
+                  className="h-full bg-brand-200 transition-all duration-700 ease-out"
                   style={{
                     width: `${(connections.filter(c => c.status === "connected").length / connections.length) * 100}%`
                   }}
                 />
               </div>
               <div className="mt-2 text-center">
-                <span className="text-xs text-brand-700">
+                <span className="text-xs text-brand-950">
                   {connections.filter(c => c.status === "connected").length} / {connections.length} connected
                 </span>
               </div>
@@ -263,13 +263,13 @@ export default function LoginScreen({ onContinue }: { onContinue: () => void }) 
             {phase === "done" && (
               <button
                 onClick={onContinue}
-                className="group relative z-10 flex items-center justify-center gap-2 w-full h-14 px-8 rounded-md text-base font-medium whitespace-nowrap bg-brand-0 border border-brand-800 shadow-md shadow-brand-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-transparent hover:ring-2 hover:ring-brand-300 hover:ring-offset-2 hover:ring-offset-brand-25 cursor-pointer"
+                className="group relative z-10 flex items-center justify-center gap-2 w-full h-14 px-8 rounded-md text-base font-medium whitespace-nowrap bg-brand-0 border border-brand-800 shadow-md shadow-brand-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:border-transparent hover:ring-2 hover:ring-brand-200 hover:ring-offset-2 hover:ring-offset-brand-25 cursor-pointer"
               >
-                <span className="relative z-10 flex items-center gap-2 text-brand-900">
+                <span className="relative z-10 flex items-center gap-2 text-brand-950">
                   Continue
                   <ArrowRight className="size-4 shrink-0 transition-transform duration-300 ease-in-out group-hover:translate-x-[2px]" />
                 </span>
-                <div className="absolute -left-[75px] -top-[50px] -z-10 h-[155px] w-8 rotate-[35deg] bg-brand-300 opacity-20 transition-all duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:left-[120%]" />
+                <div className="absolute -left-[75px] -top-[50px] -z-10 h-[155px] w-8 rotate-[35deg] bg-brand-200 opacity-20 transition-all duration-500 ease-[cubic-bezier(0.19,1,0.22,1)] group-hover:left-[120%]" />
               </button>
             )}
           </>

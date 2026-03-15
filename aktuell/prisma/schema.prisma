@@ -46,6 +46,12 @@ model User {
   documents    Document[]
   processes    Process[]
   sessions     Session[]
+  
+  createdEvents    Event[]           @relation("EventCreator")
+  eventInvitations EventInvitation[]
+  comments         Comment[]
+  reactions        Reaction[]
+  chatParticipants ChatParticipant[]
 }
 
 // ═══════════════════════════════════════════
@@ -96,6 +102,7 @@ model Group {
   tasks       Task[]
   documents   Document[]
   processes   Process[]
+  chats       Chat[]
 }
 
 // ═══════════════════════════════════════════
@@ -125,21 +132,120 @@ model Message {
   createdAt DateTime @default(now())
 
   authorId String
-  groupId  String
-  author   User  @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  group    Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId  String?
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  group    Group? @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  chatId String?
+  chat   Chat?  @relation(fields: [chatId], references: [id], onDelete: Cascade)
+}
+
+model Chat {
+  id        String   @id @default(cuid())
+  type      String   // "group" | "direct"
+  subject   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  groupId String?
+  group   Group?  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  participants ChatParticipant[]
+  messages     Message[]
+}
+
+model ChatParticipant {
+  id       String   @id @default(cuid())
+  joinedAt DateTime @default(now())
+
+  chatId String
+  userId String
+  chat   Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
 }
 
 model Event {
   id          String    @id @default(cuid())
   title       String
   description String?
+  location    String?
   startsAt    DateTime
   endsAt      DateTime?
   createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  groupId String
-  group   Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId   String
+  group     Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  creatorId String
+  creator   User  @relation("EventCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  invitations EventInvitation[]
+  comments    Comment[]
+}
+
+// ═══════════════════════════════════════════
+// EVENT INVITATIONS (Einladungen mit RSVP)
+// ═══════════════════════════════════════════
+
+model EventInvitation {
+  id        String   @id @default(cuid())
+  status    String   @default("pending") // "pending" | "accepted" | "declined" | "maybe"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  eventId String
+  event   Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId])
+}
+
+// ═══════════════════════════════════════════
+// COMMENTS (für Events, später auch Tasks etc.)
+// ═══════════════════════════════════════════
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  authorId String
+  author   User  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  // Polymorphe Zuordnung: Comment kann zu Event gehören (später auch Task, Document, etc.)
+  eventId String?
+  event   Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Antworten (Unterkommentare)
+  parentId String?
+  parent   Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies  Comment[] @relation("CommentReplies")
+
+  reactions Reaction[]
+}
+
+// ═══════════════════════════════════════════
+// REACTIONS (Emoji-Reaktionen auf Kommentare)
+// ═══════════════════════════════════════════
+
+model Reaction {
+  id        String   @id @default(cuid())
+  emoji     String   // z.B. "👍", "❤️", "😂", "🎉", "😢", "😡"
+  createdAt DateTime @default(now())
+
+  commentId String
+  comment   Comment @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, userId, emoji])
 }
 
 model Task {

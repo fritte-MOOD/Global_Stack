@@ -11,7 +11,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-brand-25 px-4">
       <div className="w-full max-w-md">
         <div className="bg-brand-0 rounded-xl shadow-lg shadow-brand-200/40 border border-brand-200 p-8">
-          <h1 className="text-2xl font-heading font-bold text-brand-900 text-center mb-6">
+          <h1 className="text-2xl font-heading font-bold text-brand-950 text-center mb-6">
             Create Account
           </h1>
 
@@ -19,7 +19,7 @@ export default function RegisterPage() {
             <div>
               <label
                 htmlFor="username"
-                className="block text-sm font-medium text-brand-700 mb-1"
+                className="block text-sm font-medium text-brand-950 mb-1"
               >
                 Username
               </label>
@@ -29,10 +29,10 @@ export default function RegisterPage() {
                 name="username"
                 autoComplete="username"
                 required
-                className="w-full px-3 py-2 border border-brand-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-brand-0 text-brand-900"
+                className="w-full px-3 py-2 border border-brand-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-transparent bg-brand-0 text-brand-950"
                 placeholder="your_username"
               />
-              <p className="mt-1 text-xs text-brand-500">
+              <p className="mt-1 text-xs text-brand-950">
                 3-20 characters, letters, numbers, and underscores only
               </p>
             </div>
@@ -40,7 +40,7 @@ export default function RegisterPage() {
             <div>
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-brand-700 mb-1"
+                className="block text-sm font-medium text-brand-950 mb-1"
               >
                 Display Name
               </label>
@@ -50,7 +50,7 @@ export default function RegisterPage() {
                 name="name"
                 autoComplete="name"
                 required
-                className="w-full px-3 py-2 border border-brand-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-brand-0 text-brand-900"
+                className="w-full px-3 py-2 border border-brand-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-transparent bg-brand-0 text-brand-950"
                 placeholder="Your Name"
               />
             </div>
@@ -58,7 +58,7 @@ export default function RegisterPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-brand-700 mb-1"
+                className="block text-sm font-medium text-brand-950 mb-1"
               >
                 Password
               </label>
@@ -68,10 +68,10 @@ export default function RegisterPage() {
                 name="password"
                 autoComplete="new-password"
                 required
-                className="w-full px-3 py-2 border border-brand-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-brand-0 text-brand-900"
+                className="w-full px-3 py-2 border border-brand-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-transparent bg-brand-0 text-brand-950"
                 placeholder="••••••••"
               />
-              <p className="mt-1 text-xs text-brand-500">
+              <p className="mt-1 text-xs text-brand-950">
                 At least 6 characters
               </p>
             </div>
@@ -92,11 +92,11 @@ export default function RegisterPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-brand-600">
+            <p className="text-sm text-brand-950">
               Already have an account?{" "}
               <Link
                 href="/workspace/login"
-                className="font-medium text-brand-700 hover:text-brand-900 underline cursor-pointer"
+                className="font-medium text-brand-950 hover:text-brand-950 underline cursor-pointer"
               >
                 Login
               </Link>

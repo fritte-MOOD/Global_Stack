@@ -38,8 +38,8 @@ export default async function CommunityPage({
   if (!group) notFound();
 
   const visibilityIcon = (v: string) => {
-    if (v === "private") return <Lock className="size-3 text-brand-700" />;
-    if (v === "hidden") return <EyeOff className="size-3 text-brand-700" />;
+    if (v === "private") return <Lock className="size-3 text-brand-950" />;
+    if (v === "hidden") return <EyeOff className="size-3 text-brand-950" />;
     return null;
   };
 
@@ -47,7 +47,7 @@ export default async function CommunityPage({
     <div className="h-full flex flex-col">
       {/* Header */}
       <header className="shrink-0 h-14 border-b border-brand-200 flex items-center gap-4 px-6">
-        <Link href="/workspace" className="text-brand-700 hover:text-brand-900 transition-colors cursor-pointer">
+        <Link href="/workspace" className="text-brand-950 hover:text-brand-950 transition-colors cursor-pointer">
           <ArrowLeft className="size-5" />
         </Link>
         <div
@@ -57,8 +57,8 @@ export default async function CommunityPage({
           {group.name[0]}
         </div>
         <div>
-          <h1 className="font-heading text-lg font-semibold text-brand-900">{group.name}</h1>
-          <p className="text-xs text-brand-700">{group.subtitle}</p>
+          <h1 className="font-heading text-lg font-semibold text-brand-950">{group.name}</h1>
+          <p className="text-xs text-brand-950">{group.subtitle}</p>
         </div>
       </header>
 
@@ -69,7 +69,7 @@ export default async function CommunityPage({
           {/* Subgroups */}
           {group.children.length > 0 && (
             <section>
-              <h2 className="font-heading text-base font-semibold text-brand-900 mb-3 flex items-center gap-2">
+              <h2 className="font-heading text-base font-semibold text-brand-950 mb-3 flex items-center gap-2">
                 <Users className="size-4" />
                 Groups
               </h2>
@@ -90,8 +90,8 @@ export default async function CommunityPage({
                         <span className="font-medium text-sm text-brand-950 truncate">{child.name}</span>
                         {visibilityIcon(child.visibility)}
                       </div>
-                      <p className="text-xs text-brand-700">{child.subtitle}</p>
-                      <p className="text-xs text-brand-700 mt-1">
+                      <p className="text-xs text-brand-950">{child.subtitle}</p>
+                      <p className="text-xs text-brand-950 mt-1">
                         {child._count.memberships} members &middot; {child._count.messages} messages
                       </p>
                     </div>
@@ -106,18 +106,18 @@ export default async function CommunityPage({
 
             {/* Messages */}
             <section className="rounded-xl border border-brand-200 bg-brand-50 p-5">
-              <h3 className="font-heading text-sm font-semibold text-brand-900 mb-3 flex items-center gap-2">
+              <h3 className="font-heading text-sm font-semibold text-brand-950 mb-3 flex items-center gap-2">
                 <MessageSquare className="size-4" />
                 Recent Messages
               </h3>
               {group.messages.length === 0 ? (
-                <p className="text-xs text-brand-700">No messages yet.</p>
+                <p className="text-xs text-brand-950">No messages yet.</p>
               ) : (
                 <ul className="space-y-2">
                   {group.messages.map((msg) => (
                     <li key={msg.id} className="text-sm">
                       <span className="font-medium text-brand-950">{msg.author.name}:</span>{" "}
-                      <span className="text-brand-700">{msg.content}</span>
+                      <span className="text-brand-950">{msg.content}</span>
                     </li>
                   ))}
                 </ul>
@@ -126,18 +126,18 @@ export default async function CommunityPage({
 
             {/* Events */}
             <section className="rounded-xl border border-brand-200 bg-brand-50 p-5">
-              <h3 className="font-heading text-sm font-semibold text-brand-900 mb-3 flex items-center gap-2">
+              <h3 className="font-heading text-sm font-semibold text-brand-950 mb-3 flex items-center gap-2">
                 <Calendar className="size-4" />
                 Upcoming Events
               </h3>
               {group.events.length === 0 ? (
-                <p className="text-xs text-brand-700">No events scheduled.</p>
+                <p className="text-xs text-brand-950">No events scheduled.</p>
               ) : (
                 <ul className="space-y-2">
                   {group.events.map((evt) => (
                     <li key={evt.id} className="text-sm">
                       <span className="font-medium text-brand-950">{evt.title}</span>
-                      <span className="text-xs text-brand-700 ml-2">
+                      <span className="text-xs text-brand-950 ml-2">
                         {evt.startsAt.toLocaleDateString("de-DE")}
                       </span>
                     </li>
@@ -148,12 +148,12 @@ export default async function CommunityPage({
 
             {/* Tasks */}
             <section className="rounded-xl border border-brand-200 bg-brand-50 p-5">
-              <h3 className="font-heading text-sm font-semibold text-brand-900 mb-3 flex items-center gap-2">
+              <h3 className="font-heading text-sm font-semibold text-brand-950 mb-3 flex items-center gap-2">
                 <CheckSquare className="size-4" />
                 Open Tasks
               </h3>
               {group.tasks.length === 0 ? (
-                <p className="text-xs text-brand-700">All done.</p>
+                <p className="text-xs text-brand-950">All done.</p>
               ) : (
                 <ul className="space-y-2">
                   {group.tasks.map((task) => (
@@ -167,12 +167,12 @@ export default async function CommunityPage({
 
             {/* Processes */}
             <section className="rounded-xl border border-brand-200 bg-brand-50 p-5">
-              <h3 className="font-heading text-sm font-semibold text-brand-900 mb-3 flex items-center gap-2">
+              <h3 className="font-heading text-sm font-semibold text-brand-950 mb-3 flex items-center gap-2">
                 <Scale className="size-4" />
                 Processes
               </h3>
               {group.processes.length === 0 ? (
-                <p className="text-xs text-brand-700">No processes yet.</p>
+                <p className="text-xs text-brand-950">No processes yet.</p>
               ) : (
                 <ul className="space-y-2">
                   {group.processes.map((proc) => (
@@ -181,7 +181,7 @@ export default async function CommunityPage({
                         proc.status === "active" ? "bg-green-100 text-green-700" :
                         proc.status === "draft" ? "bg-yellow-100 text-yellow-700" :
                         proc.status === "completed" ? "bg-blue-100 text-blue-700" :
-                        "bg-brand-100 text-brand-700"
+                        "bg-brand-100 text-brand-950"
                       }`}>
                         {proc.status}
                       </span>
@@ -194,12 +194,12 @@ export default async function CommunityPage({
 
             {/* Documents */}
             <section className="rounded-xl border border-brand-200 bg-brand-50 p-5 md:col-span-2">
-              <h3 className="font-heading text-sm font-semibold text-brand-900 mb-3 flex items-center gap-2">
+              <h3 className="font-heading text-sm font-semibold text-brand-950 mb-3 flex items-center gap-2">
                 <FileText className="size-4" />
                 Documents
               </h3>
               {group.documents.length === 0 ? (
-                <p className="text-xs text-brand-700">No documents yet.</p>
+                <p className="text-xs text-brand-950">No documents yet.</p>
               ) : (
                 <ul className="space-y-2">
                   {group.documents.map((doc) => (
@@ -215,7 +215,7 @@ export default async function CommunityPage({
 
           {/* Members */}
           <section>
-            <h2 className="font-heading text-base font-semibold text-brand-900 mb-3">
+            <h2 className="font-heading text-base font-semibold text-brand-950 mb-3">
               Members ({group.memberships.length})
             </h2>
             <div className="flex flex-wrap gap-2">
@@ -224,11 +224,11 @@ export default async function CommunityPage({
                   key={m.id}
                   className="flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 pl-1 pr-3 py-1"
                 >
-                  <div className="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center text-[10px] font-bold text-brand-900">
+                  <div className="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center text-[10px] font-bold text-brand-950">
                     {m.user.name[0]}
                   </div>
                   <span className="text-sm text-brand-950">{m.user.name}</span>
-                  <span className="text-[10px] text-brand-700">{m.role}</span>
+                  <span className="text-[10px] text-brand-950">{m.role}</span>
                 </div>
               ))}
             </div>

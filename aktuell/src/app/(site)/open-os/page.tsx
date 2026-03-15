@@ -75,12 +75,12 @@ export default function OpenOSPage() {
         {/* Workspace CTA */}
         <div className="mt-8 pt-8 border-t border-brand-200 w-full max-w-4xl">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
-            <p className="text-sm text-brand-700 text-center sm:text-left">
+            <p className="text-sm text-brand-950 text-center sm:text-left">
               Want to use OpenOS for your community? Create a persistent workspace with your own data.
             </p>
             <Link
               href="/workspace"
-              className="group shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium border border-brand-800 bg-brand-0 text-brand-900 hover:shadow-md transition-all cursor-pointer"
+              className="group shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-md text-sm font-medium border border-brand-800 bg-brand-0 text-brand-950 hover:shadow-md transition-all cursor-pointer"
             >
               Open Workspace
               <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />

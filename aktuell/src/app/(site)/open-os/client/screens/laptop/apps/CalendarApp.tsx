@@ -92,10 +92,10 @@ export default function CalendarApp({ data, groupIds, allGroups }: Props) {
           key={i}
           className={`min-h-[70px] p-1.5 border-r border-b border-brand-100 ${
             isCurrentMonth ? "bg-brand-0" : "bg-brand-25"
-          } ${isToday ? "bg-brand-50 ring-1 ring-brand-300" : ""}`}
+          } ${isToday ? "bg-brand-50 ring-1 ring-brand-200" : ""}`}
         >
           <div className={`text-xs font-medium mb-1 ${
-            isCurrentMonth ? "text-brand-900" : "text-brand-400"
+            isCurrentMonth ? "text-brand-950" : "text-brand-400"
           }`}>
             {currentDateObj.getDate()}
           </div>
@@ -110,7 +110,7 @@ export default function CalendarApp({ data, groupIds, allGroups }: Props) {
               </div>
             ))}
             {dayEvents.length > 3 && (
-              <div className="text-[9px] text-brand-500">+{dayEvents.length - 3} more</div>
+              <div className="text-[9px] text-brand-950">+{dayEvents.length - 3} more</div>
             )}
           </div>
         </div>
@@ -122,7 +122,7 @@ export default function CalendarApp({ data, groupIds, allGroups }: Props) {
       <div className="flex-1 flex flex-col">
         <div className="grid grid-cols-7 bg-brand-100 border-b border-brand-200">
           {["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"].map(day => (
-            <div key={day} className="p-2 text-xs font-semibold text-brand-700 text-center border-r border-brand-200 last:border-r-0">
+            <div key={day} className="p-2 text-xs font-semibold text-brand-950 text-center border-r border-brand-200 last:border-r-0">
               {day}
             </div>
           ))}
@@ -151,13 +151,13 @@ export default function CalendarApp({ data, groupIds, allGroups }: Props) {
         <div className="grid grid-cols-7 bg-brand-100 border-b border-brand-200">
           {weekDays.map((day, i) => (
             <div key={i} className="p-2 text-center border-r border-brand-200 last:border-r-0">
-              <div className="text-xs font-semibold text-brand-700">
+              <div className="text-xs font-semibold text-brand-950">
                 {day.toLocaleDateString("de-DE", { weekday: "short" })}
               </div>
               <div className={`text-sm font-medium mt-1 ${
                 day.toDateString() === new Date(2026, 2, 10).toDateString()
-                  ? "text-brand-900 bg-brand-200 rounded-full w-6 h-6 flex items-center justify-center mx-auto"
-                  : "text-brand-800"
+                  ? "text-brand-950 bg-brand-200 rounded-full w-6 h-6 flex items-center justify-center mx-auto"
+                  : "text-brand-950"
               }`}>
                 {day.getDate()}
               </div>
@@ -200,7 +200,7 @@ export default function CalendarApp({ data, groupIds, allGroups }: Props) {
     return (
       <div className="flex-1 flex flex-col">
         <div className="bg-brand-100 border-b border-brand-200 p-3 text-center">
-          <div className="text-sm font-semibold text-brand-900">
+          <div className="text-sm font-semibold text-brand-950">
             {currentDate.toLocaleDateString("de-DE", { 
               weekday: "long", 
               day: "numeric", 
@@ -213,7 +213,7 @@ export default function CalendarApp({ data, groupIds, allGroups }: Props) {
           <div className="space-y-px">
             {hours.map(hour => (
               <div key={hour} className="flex border-b border-brand-100">
-                <div className="w-16 p-2 text-xs text-brand-500 bg-brand-25 border-r border-brand-100">
+                <div className="w-16 p-2 text-xs text-brand-950 bg-brand-25 border-r border-brand-100">
                   {hour.toString().padStart(2, "0")}:00
                 </div>
                 <div className="flex-1 p-2 min-h-[50px] relative">
@@ -261,8 +261,8 @@ export default function CalendarApp({ data, groupIds, allGroups }: Props) {
     return (
       <div className="flex items-center justify-center h-full min-h-[300px]">
         <div className="text-center">
-          <CalendarIcon className="size-12 text-brand-300 mx-auto mb-3" />
-          <span className="text-sm text-brand-500">No events found.</span>
+          <CalendarIcon className="size-12 text-brand-200 mx-auto mb-3" />
+          <span className="text-sm text-brand-950">No events found.</span>
         </div>
       </div>
     );
@@ -273,9 +273,9 @@ export default function CalendarApp({ data, groupIds, allGroups }: Props) {
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-brand-200 bg-brand-50 shrink-0">
         <div className="flex items-center gap-2">
-          <CalendarIcon className="size-4 text-brand-700" />
-          <span className="font-heading text-sm font-semibold text-brand-900">Calendar</span>
-          <span className="text-xs text-brand-500">({calendarEvents.length} events)</span>
+          <CalendarIcon className="size-4 text-brand-950" />
+          <span className="font-heading text-sm font-semibold text-brand-950">Calendar</span>
+          <span className="text-xs text-brand-950">({calendarEvents.length} events)</span>
         </div>
         
         <div className="flex items-center gap-2">
@@ -287,8 +287,8 @@ export default function CalendarApp({ data, groupIds, allGroups }: Props) {
                 onClick={() => setViewMode(mode)}
                 className={`px-2 py-1 text-xs rounded transition-colors cursor-pointer ${
                   viewMode === mode
-                    ? "bg-brand-200 text-brand-900 font-medium"
-                    : "text-brand-700 hover:text-brand-900 hover:bg-brand-100"
+                    ? "bg-brand-200 text-brand-950 font-medium"
+                    : "text-brand-950 hover:text-brand-950 hover:bg-brand-100"
                 }`}
               >
                 {mode === "month" ? "Monat" : mode === "week" ? "Woche" : "Tag"}
@@ -302,16 +302,16 @@ export default function CalendarApp({ data, groupIds, allGroups }: Props) {
               onClick={() => navigateDate("prev")}
               className="p-1 rounded hover:bg-brand-100 transition-colors cursor-pointer"
             >
-              <ChevronLeft className="size-4 text-brand-700" />
+              <ChevronLeft className="size-4 text-brand-950" />
             </button>
-            <div className="px-2 py-1 text-xs font-medium text-brand-900 min-w-[140px] text-center">
+            <div className="px-2 py-1 text-xs font-medium text-brand-950 min-w-[140px] text-center">
               {formatTitle()}
             </div>
             <button
               onClick={() => navigateDate("next")}
               className="p-1 rounded hover:bg-brand-100 transition-colors cursor-pointer"
             >
-              <ChevronRight className="size-4 text-brand-700" />
+              <ChevronRight className="size-4 text-brand-950" />
             </button>
           </div>
         </div>

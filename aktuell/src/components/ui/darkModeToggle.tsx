@@ -26,9 +26,9 @@ export const DarkModeToggle = () => {
       aria-label="Toggle dark mode"
     >
       {isDark ? (
-        <Sun className="h-5 w-5 text-brand-900" />
+        <Sun className="h-5 w-5 text-brand-950" />
       ) : (
-        <Moon className="h-5 w-5 text-brand-900" />
+        <Moon className="h-5 w-5 text-brand-950" />
       )}
     </button>
   );

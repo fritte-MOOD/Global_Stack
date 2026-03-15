@@ -11,12 +11,17 @@ const adapter = new PrismaBetterSqlite3({ url: "file:./dev.db" });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  await prisma.reaction.deleteMany();
+  await prisma.comment.deleteMany();
+  await prisma.eventInvitation.deleteMany();
+  await prisma.chatParticipant.deleteMany();
   await prisma.session.deleteMany();
   await prisma.process.deleteMany();
   await prisma.document.deleteMany();
   await prisma.task.deleteMany();
   await prisma.event.deleteMany();
   await prisma.message.deleteMany();
+  await prisma.chat.deleteMany();
   await prisma.membership.deleteMany();
   await prisma.group.deleteMany();
   await prisma.user.deleteMany();
@@ -170,20 +175,39 @@ async function main() {
   ]});
 
   // ═══════════════════════════════════════════
-  // Events
+  // Events (jetzt mit creatorId, location, etc.)
   // ═══════════════════════════════════════════
 
-  const nextWeek = new Date(); nextWeek.setDate(nextWeek.getDate() + 7);
-  const inTwoWeeks = new Date(); inTwoWeeks.setDate(inTwoWeeks.getDate() + 14);
+  const today = new Date();
+  const tomorrow = new Date(); tomorrow.setDate(today.getDate() + 1);
+  const inThreeDays = new Date(); inThreeDays.setDate(today.getDate() + 3);
+  const nextWeek = new Date(); nextWeek.setDate(today.getDate() + 7);
+  const inTwoWeeks = new Date(); inTwoWeeks.setDate(today.getDate() + 14);
+
+  // Mehrere Events am gleichen Tag für Test
+  const todayMorning = new Date(today); todayMorning.setHours(9, 0, 0, 0);
+  const todayNoon = new Date(today); todayNoon.setHours(12, 30, 0, 0);
+  const todayAfternoon = new Date(today); todayAfternoon.setHours(15, 0, 0, 0);
+  const todayEvening = new Date(today); todayEvening.setHours(19, 0, 0, 0);
 
   await prisma.event.createMany({ data: [
-    { title: "Fußball-Training", description: "Treffpunkt: Hauptplatz", startsAt: nextWeek, groupId: parkClub.id },
-    { title: "Jugend-Turnier", description: "U18 Hallenturnier", startsAt: inTwoWeeks, groupId: pcJugend.id },
-    { title: "Vorstandssitzung", startsAt: nextWeek, groupId: pcVorstand.id },
-    { title: "Hausverwaltung Sitzung", startsAt: nextWeek, groupId: marinQuarter.id },
-    { title: "Gartentag", description: "Gemeinsam Unkraut jäten", startsAt: inTwoWeeks, groupId: mqGarten.id },
-    { title: "Conseil Municipal", description: "Ratssitzung im Rathaus", startsAt: nextWeek, groupId: rcStadtrat.id },
-    { title: "Feuerwehrübung", description: "Brandsimulation Altstadt", startsAt: inTwoWeeks, groupId: rcFeuerwehr.id },
+    { title: "Fußball-Training", description: "Treffpunkt: Hauptplatz. Bitte Sportkleidung mitbringen.", location: "Sportplatz Hauptstraße 12", startsAt: nextWeek, groupId: parkClub.id, creatorId: alex.id },
+    { title: "Jugend-Turnier", description: "U18 Hallenturnier gegen Nachbarvereine. Eltern als Zuschauer willkommen!", location: "Sporthalle Am Park", startsAt: inTwoWeeks, groupId: pcJugend.id, creatorId: alex.id },
+    { title: "Vorstandssitzung", description: "Tagesordnung: Jahresbericht, Budget 2026, Mitgliederbeitrag", location: "Vereinsheim, Raum 3", startsAt: nextWeek, groupId: pcVorstand.id, creatorId: alex.id },
+    { title: "Hausverwaltung Sitzung", description: "Nebenkostenabrechnung, Hausmeister-Themen", location: "Gemeinschaftsraum EG", startsAt: nextWeek, groupId: marinQuarter.id, creatorId: alex.id },
+    { title: "Gartentag", description: "Gemeinsam Unkraut jäten und neue Beete anlegen. Werkzeug vorhanden.", location: "Innenhof", startsAt: inTwoWeeks, groupId: mqGarten.id, creatorId: maria.id },
+    { title: "Conseil Municipal", description: "Ratssitzung im Rathaus. Öffentlich zugänglich.", location: "Hôtel de Ville, Grande Salle", startsAt: nextWeek, groupId: rcStadtrat.id, creatorId: leon.id },
+    { title: "Feuerwehrübung", description: "Brandsimulation Altstadt. Alle Einsatzkräfte müssen teilnehmen.", location: "Altstadt, Place du Marché", startsAt: inTwoWeeks, groupId: rcFeuerwehr.id, creatorId: leon.id },
+    // Mehrere Events heute zum Testen
+    { title: "Morgenlauf", description: "Gemeinsamer Lauf durch den Park", location: "Parkeingang Nord", startsAt: todayMorning, groupId: parkClub.id, creatorId: alex.id },
+    { title: "Mittagspause Yoga", description: "30 Minuten Entspannung", location: "Wiese hinter dem Vereinsheim", startsAt: todayNoon, groupId: parkClub.id, creatorId: maria.id },
+    { title: "Kindertraining", startsAt: todayAfternoon, groupId: pcJugend.id, creatorId: alex.id },
+    { title: "Abendlauf", description: "Lockerer 5km Lauf", startsAt: todayEvening, groupId: parkClub.id, creatorId: alex.id },
+    // Events morgen
+    { title: "Gartenplanung", startsAt: tomorrow, groupId: mqGarten.id, creatorId: maria.id },
+    { title: "Nachbarschaftstreffen", description: "Kennenlernen der neuen Bewohner", location: "Gemeinschaftsraum", startsAt: tomorrow, groupId: marinQuarter.id, creatorId: alex.id },
+    // Events in 3 Tagen
+    { title: "Stadtratsvorbereitung", startsAt: inThreeDays, groupId: rcStadtrat.id, creatorId: leon.id },
   ]});
 
   // ═══════════════════════════════════════════
@@ -227,8 +251,8 @@ async function main() {
 
   // Template-Content
   await prisma.event.createMany({ data: [
-    { title: "Beispiel: Wöchentliches Training", startsAt: nextWeek, groupId: tplSport.id },
-    { title: "Beispiel: Jahreshauptversammlung", startsAt: inTwoWeeks, groupId: tplSport.id },
+    { title: "Beispiel: Wöchentliches Training", startsAt: nextWeek, groupId: tplSport.id, creatorId: alex.id },
+    { title: "Beispiel: Jahreshauptversammlung", startsAt: inTwoWeeks, groupId: tplSport.id, creatorId: alex.id },
   ]});
   await prisma.document.createMany({ data: [
     { title: "Beispiel: Satzung", content: "§1 Name und Sitz\n§2 Zweck\n§3 Mitgliedschaft\n§4 Organe\n§5 Beiträge", groupId: tplSport.id, authorId: alex.id },
@@ -237,6 +261,62 @@ async function main() {
   await prisma.process.createMany({ data: [
     { title: "Beispiel: Beitragserhöhung", description: "Soll der Jahresbeitrag angepasst werden?", groupId: tplSport.id, authorId: alex.id },
     { title: "Beispiel: Bürgerinitiative Radwege", description: "Ausbau des Radwegenetzes", groupId: tplGemeinde.id, authorId: alex.id },
+  ]});
+
+  // ═══════════════════════════════════════════
+  // Chats (Group + Direct)
+  // ═══════════════════════════════════════════
+
+  const groupChat1 = await prisma.chat.create({
+    data: {
+      type: "group",
+      subject: "Trainingszeiten Sommer",
+      groupId: parkClub.id,
+      participants: { create: [{ userId: alex.id }, { userId: maria.id }, { userId: leon.id }] },
+    },
+  });
+  await prisma.message.createMany({ data: [
+    { content: "Sollen wir dienstags auf 18:30 verschieben?", authorId: alex.id, groupId: parkClub.id, chatId: groupChat1.id, createdAt: new Date("2026-03-01T09:00:00") },
+    { content: "Finde ich gut, dann ist es noch hell genug.", authorId: maria.id, groupId: parkClub.id, chatId: groupChat1.id, createdAt: new Date("2026-03-01T09:15:00") },
+    { content: "Einverstanden!", authorId: leon.id, groupId: parkClub.id, chatId: groupChat1.id, createdAt: new Date("2026-03-01T10:00:00") },
+  ]});
+
+  const groupChat2 = await prisma.chat.create({
+    data: {
+      type: "group",
+      subject: "Gartenplanung Frühling",
+      groupId: mqGarten.id,
+      participants: { create: [{ userId: alex.id }, { userId: maria.id }] },
+    },
+  });
+  await prisma.message.createMany({ data: [
+    { content: "Wer hat Lust, am Samstag die Beete vorzubereiten?", authorId: maria.id, groupId: mqGarten.id, chatId: groupChat2.id, createdAt: new Date("2026-03-05T14:00:00") },
+    { content: "Bin dabei! Bringe Erde und Samen mit.", authorId: alex.id, groupId: mqGarten.id, chatId: groupChat2.id, createdAt: new Date("2026-03-05T14:30:00") },
+  ]});
+
+  const directChat1 = await prisma.chat.create({
+    data: {
+      type: "direct",
+      subject: null,
+      participants: { create: [{ userId: alex.id }, { userId: maria.id }] },
+    },
+  });
+  await prisma.message.createMany({ data: [
+    { content: "Hey Maria, hast du die Unterlagen für die HV?", authorId: alex.id, groupId: parkClub.id, chatId: directChat1.id, createdAt: new Date("2026-03-07T16:00:00") },
+    { content: "Ja, schicke ich dir gleich per Mail!", authorId: maria.id, groupId: parkClub.id, chatId: directChat1.id, createdAt: new Date("2026-03-07T16:05:00") },
+    { content: "Super, danke dir!", authorId: alex.id, groupId: parkClub.id, chatId: directChat1.id, createdAt: new Date("2026-03-07T16:06:00") },
+  ]});
+
+  const directChat2 = await prisma.chat.create({
+    data: {
+      type: "direct",
+      subject: "Stadtratssitzung",
+      participants: { create: [{ userId: alex.id }, { userId: leon.id }] },
+    },
+  });
+  await prisma.message.createMany({ data: [
+    { content: "Léon, wann ist die nächste Stadtratssitzung?", authorId: alex.id, groupId: rochefort.id, chatId: directChat2.id, createdAt: new Date("2026-03-08T11:00:00") },
+    { content: "Am 20. März, 19 Uhr im Rathaus.", authorId: leon.id, groupId: rochefort.id, chatId: directChat2.id, createdAt: new Date("2026-03-08T11:30:00") },
   ]});
 
   // ═══════════════════════════════════════════

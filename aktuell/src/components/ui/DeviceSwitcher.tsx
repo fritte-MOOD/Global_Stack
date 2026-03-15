@@ -28,7 +28,7 @@ export default function DeviceSwitcher({
             onClick={() => onChange(id)}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all cursor-pointer ${
               value === id
-                ? "bg-brand-50 text-brand-900 shadow-sm"
+                ? "bg-brand-50 text-brand-950 shadow-sm"
                 : "text-brand-950 hover:bg-brand-50/50"
             }`}
           >
