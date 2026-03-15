@@ -1,0 +1,48 @@
+:root {
+    --color-brand-0: #FFFFFF;   /* white */
+    --color-brand-1: #000000;   /* black */
+    --color-brand-25: #fefeff;  /* Background */
+    --color-brand-50: #FFFFFF;  /* NavBar and boxes F7FAFD*/
+    --color-brand-100: #E1EBF5; /* aktuelle Auswahl Menüs */
+    --color-brand-200: #E6E6E6; /* Shadow colorvorher: 8FB4F0 */
+    --color-brand-300: #fba762; /* orange */
+    --color-brand-400: #8BAECF; /* blue background */
+    --color-brand-500: #fde9d3; /* orange background */
+    --color-brand-550: #f3f4f6; /* gray on hover (gray-100) */
+    --color-brand-600: #5483A3; /* blue: icons */
+    --color-brand-700: #426A86; /* blue text (Links, Icons) */
+    --color-brand-800: #d1d5db; /* gray for button border old one: #335269 */
+    --color-brand-850: #335269; /* blue text */
+    --color-brand-900: #273E4F; /* blue button, headings, checks */
+    --color-brand-901: #273E4F; /* Icon: MOOD */
+    --color-brand-902: #fba762; /* Icon: / */
+    --color-brand-950: #3f3f46; /* Text Zinc */
+
+    --color-group-park-club-500: #704c93;     /* Medium purple */
+    --color-group-marin-quarter-500: #337835; /* Medium green */
+    --color-group-rochefort-500: #d63f3f;     /* Medium pink */
+}
+
+[data-theme="dark"] {
+    --color-brand-0: #1b1b1b;   /* black (inverted for dark mode) */
+    --color-brand-1: #eae9e9;   /* white (inverted for dark mode) */
+    --color-brand-25: #131415;  /* Background (dark) */
+    --color-brand-50: #101010;  /* NavBar (dark) */
+    --color-brand-100: #2a2a2a; /* aktuelle Auswahl Menüs (dark) */
+    --color-brand-200: #0e0e0e; /* shadow color*/
+    --color-brand-300: #3d5c7a; /* orange (adjusted for dark mode) */
+    --color-brand-400: #e69451; /* blue background (dark) */
+    --color-brand-500: #d4a76a; /* orange background (dark) */
+    --color-brand-550: #202020; /* gray on hover (dark) */
+    --color-brand-600: #3d5c7a; /* blue: icons (dark) */
+    --color-brand-700: #e69451; /* blue text (Links, Icons) (dark) */
+    --color-brand-800: #353535;
+    --color-brand-900: #e69451; /* blue button, headings, checks (dark) */
+    --color-brand-901: #e69451; /* Icon: MOOD (dark) */
+    --color-brand-902: #5483A3; /* Icon: / (dark) */
+    --color-brand-950: #d8d8dc; /* Text Zinc (dark) d4d4d8*/
+
+    --color-group-park-club-500: #8026d6;     /* Medium purple (dark) */
+    --color-group-marin-quarter-500: #239124; /* Medium green (dark) */
+    --color-group-rochefort-500: #ec2222;     /* Medium pink (dark) */
+}
