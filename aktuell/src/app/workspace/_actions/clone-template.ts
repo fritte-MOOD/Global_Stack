@@ -104,6 +104,7 @@ async function copyGroupContent(
         startsAt: e.startsAt,
         endsAt: e.endsAt,
         groupId: targetGroupId,
+        creatorId: userId,
       })),
     });
   }
