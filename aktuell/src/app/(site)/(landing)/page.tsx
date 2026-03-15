@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Heading } from "@/components/ui/heading";
 import { MaxWidthWrapper } from "@/components/ui/max-width-wrapper";
 import ProjectWindow from "@/components/window-manager/windows/ProjectWindow";
@@ -16,6 +17,13 @@ export default function Page() {
           <ProjectWindow name="OpenOS" />, <ProjectWindow name="Mood" />,{" "}
           <ProjectWindow name="Forum" /> or <ProjectWindow name="Analytics" />.
         </div>
+
+        <Link
+          href="/workspace/login"
+          className="mt-4 inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-brand-950 text-brand-0 text-sm font-medium hover:opacity-90 transition-opacity"
+        >
+          Try Workspace →
+        </Link>
       </MaxWidthWrapper>
     </section>
   );
