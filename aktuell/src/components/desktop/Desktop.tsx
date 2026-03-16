@@ -10,6 +10,7 @@ import {
   FileText,
   Settings,
   Users,
+  Contact,
   BookOpen,
   BarChart3,
   LayoutGrid,
@@ -34,6 +35,8 @@ import {
   TasksContent,
   DocumentsContent,
   DebateContent,
+  GroupsContent,
+  MembersContent,
   searchWindowContent,
 } from "@/components/window-manager/windows";
 import { useGroupFilter } from "./GroupFilterContext";
@@ -71,7 +74,7 @@ type AppDef = {
   id: string;
   name: string;
   icon: typeof MessageSquare;
-  windowComponent: "calendar" | "messages" | "tasks" | "documents" | "debate" | "settings" | null;
+  windowComponent: "calendar" | "messages" | "tasks" | "documents" | "debate" | "groups" | "members" | "settings" | null;
 };
 
 const APPS: AppDef[] = [
@@ -80,7 +83,8 @@ const APPS: AppDef[] = [
   { id: "messages", name: "Messages", icon: Mail, windowComponent: "messages" },
   { id: "tasks", name: "Tasks", icon: CheckSquare, windowComponent: "tasks" },
   { id: "documents", name: "Documents", icon: FileText, windowComponent: "documents" },
-  { id: "groups", name: "Groups", icon: Users, windowComponent: null },
+  { id: "groups", name: "Groups", icon: Users, windowComponent: "groups" },
+  { id: "members", name: "Members", icon: Contact, windowComponent: "members" },
   { id: "wiki", name: "Wiki", icon: BookOpen, windowComponent: null },
   { id: "analytics", name: "Analytics", icon: BarChart3, windowComponent: null },
   { id: "settings", name: "Settings", icon: Settings, windowComponent: "settings" },
@@ -168,6 +172,8 @@ const WINDOW_DEFS: Record<string, () => WindowContent> = {
   tasks:     () => ({ title: "Tasks",     body: <TasksContent />,     width: 420, height: 400, resizable: true }),
   documents: () => ({ title: "Documents", body: <DocumentsContent />, width: 460, height: 400, resizable: true }),
   debate:    () => ({ title: "Debate",    body: <DebateContent />,    width: 460, height: 420, resizable: true }),
+  groups:    () => ({ title: "Groups",    body: <GroupsContent />,    width: 380, height: 450, resizable: true }),
+  members:   () => ({ title: "Members",  body: <MembersContent />,  width: 400, height: 480, resizable: true }),
   settings:  () => ({ title: "Settings",  body: <SettingsContent />,  width: 380, height: 240, resizable: false }),
 };
 
@@ -381,8 +387,8 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
   useEffect(() => {
     const tick = () => {
       const now = new Date();
-      setCurrentTime(now.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }));
-      setCurrentDate(now.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" }));
+      setCurrentTime(now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }));
+      setCurrentDate(now.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" }));
     };
     tick();
     const id = setInterval(tick, 1000);
@@ -634,8 +640,8 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
           <button
             onClick={openSearch}
             className="flex items-center justify-center w-8 h-8 rounded-md border border-brand-950 hover:bg-brand-100 transition-colors cursor-pointer"
-            aria-label="Suche (Ctrl+K)"
-            title="Suche (Ctrl+K)"
+            aria-label="Search (Ctrl+K)"
+            title="Search (Ctrl+K)"
           >
             <Search className="size-4 text-brand-950" />
           </button>

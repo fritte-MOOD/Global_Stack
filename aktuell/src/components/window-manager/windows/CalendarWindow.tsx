@@ -58,7 +58,7 @@ function getMondayOfWeek(date: Date): Date {
 }
 
 function formatTime(date: Date): string {
-  return date.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
 const DAY_SEGMENTS = [
@@ -223,7 +223,7 @@ function CommentItem({
       <div className="bg-brand-25 rounded-lg p-3">
         <div className="flex items-center gap-2 text-xs mb-1.5">
           <span className="font-semibold text-brand-950">{comment.authorName}</span>
-          <span className="text-brand-950">{new Date(comment.createdAt).toLocaleDateString("de-DE")}</span>
+          <span className="text-brand-950">{new Date(comment.createdAt).toLocaleDateString("en-US")}</span>
         </div>
         <p className="text-sm text-brand-950 whitespace-pre-wrap leading-relaxed">{comment.content}</p>
 
@@ -277,7 +277,7 @@ function CommentItem({
                 onClick={() => setShowReplyInput(!showReplyInput)}
                 className="text-xs text-brand-950 hover:text-brand-950 transition-colors cursor-pointer"
               >
-                Antworten
+                Reply
               </button>
             )}
           </div>
@@ -290,7 +290,7 @@ function CommentItem({
             type="text"
             value={replyText}
             onChange={(e) => setReplyText(e.target.value)}
-            placeholder="Antwort schreiben..."
+            placeholder="Write a reply..."
             className="flex-1 px-2.5 py-1.5 text-sm border border-brand-200 rounded-lg bg-brand-0 text-brand-950 focus:outline-none focus:ring-1 focus:ring-brand-200"
             onKeyDown={(e) => e.key === "Enter" && handleReply()}
             autoFocus
@@ -312,7 +312,7 @@ function CommentItem({
             className="text-xs text-brand-950 hover:text-brand-950 cursor-pointer mb-1.5 flex items-center gap-1"
           >
             <ChevronRight className={`size-3 transition-transform ${repliesCollapsed ? "" : "rotate-90"}`} />
-            {comment.replies.length} {comment.replies.length === 1 ? "Antwort" : "Antworten"}
+            {comment.replies.length} {comment.replies.length === 1 ? "reply" : "replies"}
           </button>
           {!repliesCollapsed && (
             <div className="space-y-2">
@@ -415,24 +415,24 @@ function EventDetailContent({ eventId, currentUserId }: { eventId: string; curre
         <div className="flex items-start gap-2.5">
           <CalendarIcon className="size-4 text-brand-950 mt-0.5 shrink-0" />
           <div>
-            <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-0.5">Datum</div>
+            <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-0.5">Date</div>
             <div className="text-sm text-brand-950">
-              {evDate.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "long", year: "numeric" })}
+              {evDate.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "long", year: "numeric" })}
             </div>
           </div>
         </div>
         <div className="flex items-start gap-2.5">
           <Clock className="size-4 text-brand-950 mt-0.5 shrink-0" />
           <div>
-            <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-0.5">Uhrzeit</div>
-            <div className="text-sm text-brand-950">{formatTime(evDate)} Uhr</div>
+            <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-0.5">Time</div>
+            <div className="text-sm text-brand-950">{formatTime(evDate)}</div>
           </div>
         </div>
         {event.location && (
           <div className="flex items-start gap-2.5">
             <MapPin className="size-4 text-brand-950 mt-0.5 shrink-0" />
             <div>
-              <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-0.5">Ort</div>
+              <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-0.5">Location</div>
               <div className="text-sm text-brand-950">{event.location}</div>
             </div>
           </div>
@@ -440,16 +440,16 @@ function EventDetailContent({ eventId, currentUserId }: { eventId: string; curre
         <div className="flex items-start gap-2.5">
           <User className="size-4 text-brand-950 mt-0.5 shrink-0" />
           <div>
-            <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-0.5">Erstellt von</div>
+            <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-0.5">Created by</div>
             <div className="text-sm text-brand-950">{event.creatorName}</div>
-            <div className="text-[11px] text-brand-950">{createdDate.toLocaleDateString("de-DE")}</div>
+            <div className="text-[11px] text-brand-950">{createdDate.toLocaleDateString("en-US")}</div>
           </div>
         </div>
       </div>
 
       {/* RSVP Section */}
       <div className="px-5 py-4 border-b border-brand-150">
-        <div className="text-xs font-semibold text-brand-950 uppercase tracking-wide mb-3">Deine Antwort</div>
+        <div className="text-xs font-semibold text-brand-950 uppercase tracking-wide mb-3">Your response</div>
         <div className="flex gap-2">
           <button
             onClick={() => handleRSVP("accepted")}
@@ -460,7 +460,7 @@ function EventDetailContent({ eventId, currentUserId }: { eventId: string; curre
             }`}
           >
             <Check className="size-3.5" />
-            Zusage
+            Accept
           </button>
           <button
             onClick={() => handleRSVP("maybe")}
@@ -471,7 +471,7 @@ function EventDetailContent({ eventId, currentUserId }: { eventId: string; curre
             }`}
           >
             <HelpCircle className="size-3.5" />
-            Vielleicht
+            Maybe
           </button>
           <button
             onClick={() => handleRSVP("declined")}
@@ -482,7 +482,7 @@ function EventDetailContent({ eventId, currentUserId }: { eventId: string; curre
             }`}
           >
             <X className="size-3.5" />
-            Absage
+            Decline
           </button>
         </div>
 
@@ -491,19 +491,19 @@ function EventDetailContent({ eventId, currentUserId }: { eventId: string; curre
             {accepted.length > 0 && (
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-brand-950" />
-                <span className="text-brand-950"><span className="font-semibold">{accepted.length}</span> Zusage{accepted.length !== 1 && "n"}</span>
+                <span className="text-brand-950"><span className="font-semibold">{accepted.length}</span> accepted</span>
               </div>
             )}
             {maybe.length > 0 && (
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-brand-400" />
-                <span className="text-brand-950"><span className="font-semibold">{maybe.length}</span> Vielleicht</span>
+                <span className="text-brand-950"><span className="font-semibold">{maybe.length}</span> maybe</span>
               </div>
             )}
             {declined.length > 0 && (
               <div className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-brand-200" />
-                <span className="text-brand-950"><span className="font-semibold">{declined.length}</span> Absage{declined.length !== 1 && "n"}</span>
+                <span className="text-brand-950"><span className="font-semibold">{declined.length}</span> declined</span>
               </div>
             )}
           </div>
@@ -520,7 +520,7 @@ function EventDetailContent({ eventId, currentUserId }: { eventId: string; curre
       <div className="px-5 py-4 flex-1 flex flex-col min-h-0">
         <div className="text-xs font-semibold text-brand-950 uppercase tracking-wide flex items-center gap-1.5 mb-3">
           <MessageSquare className="size-3.5" />
-          Kommentare {event.comments && event.comments.length > 0 && `(${event.comments.length})`}
+          Comments {event.comments && event.comments.length > 0 && `(${event.comments.length})`}
         </div>
 
         {event.comments && event.comments.length > 0 && (
@@ -536,7 +536,7 @@ function EventDetailContent({ eventId, currentUserId }: { eventId: string; curre
             type="text"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            placeholder="Kommentar schreiben..."
+            placeholder="Write a comment..."
             className="flex-1 px-3 py-2 text-sm border border-brand-200 rounded-lg bg-brand-0 text-brand-950 focus:outline-none focus:ring-1 focus:ring-brand-200"
             onKeyDown={(e) => e.key === "Enter" && !submitting && handleAddComment()}
           />
@@ -659,7 +659,7 @@ function CreateEventForm({
         </div>
         <input
           type="text"
-          placeholder="Titel des Termins"
+          placeholder="Event title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="w-full text-lg font-bold text-brand-950 bg-transparent border-b border-brand-200 focus:border-brand-400 outline-none pb-1 placeholder:text-brand-400 placeholder:font-normal"
@@ -667,7 +667,7 @@ function CreateEventForm({
           required
         />
         <textarea
-          placeholder="Beschreibung (optional)"
+          placeholder="Description (optional)"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={2}
@@ -680,7 +680,7 @@ function CreateEventForm({
         <div className="flex items-start gap-2.5">
           <CalendarIcon className="size-4 text-brand-950 mt-2.5 shrink-0" />
           <div className="flex-1">
-            <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-1">Datum</div>
+            <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-1">Date</div>
             <input
               type="date"
               value={date}
@@ -693,7 +693,7 @@ function CreateEventForm({
         <div className="flex items-start gap-2.5">
           <Clock className="size-4 text-brand-950 mt-2.5 shrink-0" />
           <div className="flex-1">
-            <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-1">Uhrzeit</div>
+            <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-1">Time</div>
             <input
               type="time"
               value={time}
@@ -705,10 +705,10 @@ function CreateEventForm({
         <div className="flex items-start gap-2.5 col-span-2">
           <MapPin className="size-4 text-brand-950 mt-2.5 shrink-0" />
           <div className="flex-1">
-            <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-1">Ort</div>
+            <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-1">Location</div>
             <input
               type="text"
-              placeholder="Ort eingeben (optional)"
+              placeholder="Enter location (optional)"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               className={inputCls}
@@ -723,6 +723,7 @@ function CreateEventForm({
           selectedIds={inviteeIds}
           onChange={setInviteeIds}
           currentUserId={currentUserId}
+          groupId={groupId}
         />
       </div>
 
@@ -734,7 +735,7 @@ function CreateEventForm({
           disabled={saving || !title.trim() || !date}
           className="w-full py-2.5 text-sm font-medium rounded-lg bg-brand-950 text-brand-0 hover:opacity-80 transition-opacity disabled:opacity-40 cursor-pointer"
         >
-          {saving ? "Wird erstellt..." : "Termin erstellen"}
+          {saving ? "Creating..." : "Create event"}
         </button>
       </div>
     </form>
@@ -743,7 +744,7 @@ function CreateEventForm({
 
 // ─── Calendar Content ───────────────────────────────────────────
 
-export function CalendarContent() {
+export function CalendarContent({ focusGroupId }: { focusGroupId?: string } = {}) {
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [viewMode, setViewMode] = useState<ViewMode>("month");
   const [allEvents, setAllEvents] = useState<CalendarEvent[]>([]);
@@ -751,6 +752,7 @@ export function CalendarContent() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [tempGroupFilter, setTempGroupFilter] = useState<string | null>(focusGroupId ?? null);
   const { toggleWindow, closeWindow, openNewInstance } = useWindowManager();
   const { selectedGroupIds, allGroups: filterGroups, currentUserId } = useGroupFilter();
 
@@ -765,7 +767,17 @@ export function CalendarContent() {
     reload();
   }, [reload]);
 
-  const groupFilteredEvents = allEvents.filter((e) => selectedGroupIds.has(e.groupId));
+  const effectiveGroupIds = (() => {
+    if (tempGroupFilter) {
+      const ids = new Set<string>();
+      ids.add(tempGroupFilter);
+      filterGroups.filter((g) => g.parentId === tempGroupFilter).forEach((g) => ids.add(g.id));
+      return ids;
+    }
+    return selectedGroupIds;
+  })();
+  const tempGroupName = tempGroupFilter ? filterGroups.find((g) => g.id === tempGroupFilter)?.name : null;
+  const groupFilteredEvents = allEvents.filter((e) => effectiveGroupIds.has(e.groupId));
   const sq = searchQuery.toLowerCase();
   const events = sq
     ? groupFilteredEvents.filter(
@@ -946,7 +958,7 @@ export function CalendarContent() {
               className="p-2 text-center border-r border-brand-200 last:border-r-0 hover:bg-brand-100 transition-colors cursor-pointer"
             >
               <div className="text-xs font-semibold text-brand-950">
-                {day.toLocaleDateString("de-DE", { weekday: "short" })}
+                {day.toLocaleDateString("en-US", { weekday: "short" })}
               </div>
               <div
                 className={`text-sm font-medium mt-1 ${day.toDateString() === new Date().toDateString() ? "text-brand-0 bg-brand-950 rounded-full w-6 h-6 flex items-center justify-center mx-auto" : "text-brand-950"}`}
@@ -1041,7 +1053,7 @@ export function CalendarContent() {
       <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-0.5">
         {upcoming.map((ev) => {
           const evDate = new Date(ev.startsAt);
-          const dateStr = evDate.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "long" });
+          const dateStr = evDate.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "long" });
           const showDate = dateStr !== lastDateStr;
           lastDateStr = dateStr;
           const isToday = evDate.toDateString() === new Date().toDateString();
@@ -1065,7 +1077,7 @@ export function CalendarContent() {
   const formatTitle = () => {
     if (viewMode === "list") return "Upcoming";
     if (viewMode === "month")
-      return currentDate.toLocaleDateString("de-DE", { month: "long", year: "numeric" });
+      return currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
     if (viewMode === "week") {
       const monday = getMondayOfWeek(currentDate);
       const sunday = new Date(monday);
@@ -1073,7 +1085,7 @@ export function CalendarContent() {
       const wn = getISOWeekNumber(currentDate);
       return `KW ${wn} · ${monday.getDate()}.${monday.getMonth() + 1} – ${sunday.getDate()}.${sunday.getMonth() + 1}`;
     }
-    return currentDate.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "long" });
+    return currentDate.toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "long" });
   };
 
   if (loading)
@@ -1085,6 +1097,17 @@ export function CalendarContent() {
 
   return (
     <div className="flex flex-col h-full">
+      {tempGroupFilter && tempGroupName && (
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-brand-100 border-b border-brand-150 shrink-0">
+          <span className="text-[10px] text-brand-950">Filtered: <strong>{tempGroupName}</strong></span>
+          <button
+            onClick={() => setTempGroupFilter(null)}
+            className="ml-auto flex items-center gap-1 px-2 py-0.5 text-[10px] rounded border border-brand-200 text-brand-950 hover:bg-brand-200 transition-colors cursor-pointer"
+          >
+            <X className="size-2.5" /> Show all
+          </button>
+        </div>
+      )}
       <div className="flex items-center justify-between p-2 border-b border-brand-200 bg-brand-50 shrink-0 gap-2">
         <div className="flex items-center gap-1 shrink-0">
           <div className="flex rounded-md border border-brand-200 bg-brand-0 p-0.5">
@@ -1123,7 +1146,7 @@ export function CalendarContent() {
               if (showSearch) setSearchQuery("");
             }}
             className={`p-1 rounded transition-colors cursor-pointer ${showSearch ? "bg-brand-200" : "hover:bg-brand-50"}`}
-            title="Termine filtern"
+            title="Filter events"
           >
             <Search className="size-3.5 text-brand-950" />
           </button>
@@ -1146,7 +1169,7 @@ export function CalendarContent() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Termine filtern..."
+                placeholder="Filter events..."
                 className="flex-1 text-xs bg-transparent text-brand-950 outline-none placeholder:text-brand-400"
                 autoFocus
               />
@@ -1154,7 +1177,7 @@ export function CalendarContent() {
             <button
               onClick={() => openNewInstance("search", searchWindowContent("event"))}
               className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer shrink-0"
-              title="Globale Suche (Termine)"
+              title="Global search (events)"
             >
               <Search className="size-3.5 text-brand-950" />
             </button>

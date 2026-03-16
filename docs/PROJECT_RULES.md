@@ -1,118 +1,114 @@
 # Project Rules & Guidelines
 
-Diese Dokumentation enthält wichtige Regeln für die Entwicklung des Global Stack Projekts.
+Documentation and conventions for the Global Stack project.
 
 ---
 
-## Arbeitsverzeichnisse
+## Working Directories
 
-**WICHTIG:** Es wird NUR in folgenden Verzeichnissen gearbeitet:
+**Active development ONLY in:**
 
-- `/aktuell` — Die aktive Next.js Anwendung (ehemals `/app`)
-- `/docs` — Projektdokumentation
+- `/aktuell` — The active Next.js application
+- `/docs` — Project documentation
 
-**NIEMALS ändern:**
-- `/legacy/prototype_1` — Original MOOD Referenz-Design
-- `/legacy/prototype_2` — Vorherige App-Version (archiviert)
-
----
-
-## Dokumentations-Pflicht
-
-Diese Dokumentation muss **kontinuierlich aktualisiert** werden, wenn:
-- Neue Projektregeln gelernt werden
-- Design-Entscheidungen getroffen werden
-- Technische Konventionen festgelegt werden
-- Feedback vom Nutzer kommt
+**NEVER modify:**
+- `/legacy/prototype_1` — Original MOOD reference design
+- `/legacy/prototype_2` — Previous app version (archived)
 
 ---
 
-## Tech Stack (aktuell)
+## Documentation
 
-| Layer | Technologie | Version |
-|-------|-------------|---------|
+This file must be kept up-to-date when:
+- New project rules are established
+- Design decisions are made
+- Technical conventions change
+- User feedback is incorporated
+
+---
+
+## Tech Stack
+
+| Layer | Technology | Version |
+|-------|------------|---------|
 | **Framework** | Next.js (App Router) | 16.1 |
 | **Language** | TypeScript | 5.x |
 | **Styling** | Tailwind CSS | 4.x |
 | **State** | React Context (WindowManager, GroupFilter, ContextMenu) | — |
 | **Icons** | Lucide React | 0.577 |
 | **ORM** | Prisma | 7.4 |
-| **Datenbank** | SQLite (lokal via better-sqlite3) / Turso (Remote) | — |
-| **Auth** | Custom (bcrypt + Session Cookie) | — |
-| **Deploy** | Vercel + Turso | — |
+| **Database** | SQLite (local via better-sqlite3) / Turso (remote) | — |
+| **Auth** | Custom (bcryptjs + Session Cookie) | — |
+| **Deploy** | Vercel (Dublin region) + Turso | — |
+| **License** | AGPL-3.0 | — |
 
 ---
 
-## Projektstruktur (`/aktuell`)
+## Project Structure (`/aktuell`)
 
 ```
 aktuell/
 ├── prisma/
-│   ├── schema.prisma          Datenmodell (15 Tabellen)
-│   ├── seed.ts                Demo-Daten (3 Server, 7 Untergruppen, 3 User, Chats)
-│   └── prisma.config.ts       CLI-Konfiguration
+│   ├── schema.prisma          Data model (15 tables)
+│   ├── seed.ts                Demo data (3 servers, 9 subgroups, 8 users, chats, events, tasks, docs)
+│   └── prisma.config.ts       CLI config
 ├── src/
 │   ├── app/
-│   │   ├── _actions/          Globale Server Actions
+│   │   ├── _actions/          Global Server Actions
 │   │   │   ├── events.ts      loadEvents, createEvent, loadEventDetails, updateRSVP, addComment, toggleReaction
-│   │   │   ├── groups.ts      loadGroups
+│   │   │   ├── groups.ts      loadGroups, loadGroupsWithMembers (with parentId)
 │   │   │   ├── chats.ts       loadChats, loadChatMessages, sendChatMessage, createChat, deleteChat, loadAvailableUsers
-│   │   │   ├── search.ts      globalSearch (parallel queries über alle Content-Typen)
-│   │   │   └── messages.ts    (Legacy, ersetzt durch chats.ts)
-│   │   ├── api/               API Routes
-│   │   ├── (site)/            Route Group: Öffentliche Seiten mit Navbar
-│   │   │   ├── (landing)/     Landing Page
+│   │   │   ├── tasks.ts       loadTaskDetails, createTask, toggleTaskDone, updateTask
+│   │   │   ├── members.ts     loadGroupTree, loadGroupDetail, loadGroupMembers, loadMemberProfile, loadAllMembers
+│   │   │   ├── search.ts      globalSearch (parallel queries across all content types)
+│   │   │   └── messages.ts    (Legacy, replaced by chats.ts)
+│   │   ├── api/               API Routes (demo-users, cron/cleanup)
+│   │   ├── (site)/            Route Group: Public pages with navbar
+│   │   │   ├── (landing)/     Landing Page (with "Try Workspace" link)
 │   │   │   └── open-os/       OpenOS Demo
 │   │   │       ├── client/    Client View (Laptop/Tablet/Mobile)
-│   │   │       │   └── screens/laptop/
-│   │   │       │       ├── Desktop.tsx      App-Shell mit Navigation
-│   │   │       │       ├── LoginScreen.tsx  Server-Auswahl
-│   │   │       │       └── apps/            5 funktionale Apps
 │   │   │       ├── server/    Server View (Coming Soon)
-│   │   │       └── _actions/  Server Actions für Demo-Daten
-│   │   │           └── load-demo-data.ts
-│   │   ├── workspace/         Route Group: Persistente App (fullscreen)
+│   │   │       └── _actions/  Server Actions for demo data
+│   │   ├── workspace/         Route Group: Persistent app (fullscreen)
 │   │   │   ├── page.tsx       Desktop (Shared Desktop Component)
-│   │   │   ├── login/         Login-Seite (Username/Password + Demo-User)
-│   │   │   ├── register/      Registrierungs-Seite
-│   │   │   ├── [slug]/        Dynamische Community-Seiten
-│   │   │   └── _actions/      Server Actions
-│   │   │       ├── auth.ts    Login, Register, Logout
-│   │   │       ├── clone-template.ts
-│   │   │       └── load-user-data.ts
+│   │   │   ├── login/         Login page (Username/Password + Demo Users)
+│   │   │   ├── register/      Registration page
+│   │   │   ├── [slug]/        Dynamic community pages
+│   │   │   └── _actions/      Server Actions (auth, clone-template, load-user-data)
 │   │   ├── layout.tsx         Root Layout
-│   │   └── globals.css        Tailwind + CSS Variablen (Light/Dark)
+│   │   └── globals.css        Tailwind + CSS Variables (Light/Dark)
 │   ├── components/
-│   │   ├── desktop/           Shared Desktop-Komponente
-│   │   │   ├── Desktop.tsx    Hauptkomponente (Footer, Menüs, WindowManager, DarkMode, Search)
-│   │   │   ├── GroupFilterContext.tsx  Globaler Gruppenfilter (mit tri-state Checkboxen)
-│   │   │   ├── ContextMenu.tsx        Custom Rechtsklick-Menü
+│   │   ├── desktop/           Shared Desktop component
+│   │   │   ├── Desktop.tsx    Main component (Footer, Menus, WindowManager, DarkMode, Search)
+│   │   │   ├── GroupFilterContext.tsx  Global group filter (tri-state checkboxes, all selected by default)
+│   │   │   ├── ContextMenu.tsx        Custom right-click menu
 │   │   │   └── index.ts
-│   │   ├── ui/                UI-Komponenten (DeviceSwitcher, DarkModeToggle)
-│   │   └── window-manager/    Fenster-System
+│   │   ├── ui/                UI components (DeviceSwitcher, DarkModeToggle)
+│   │   └── window-manager/    Window system
 │   │       ├── logic/         WindowManager, DraggableWindow, Tag
-│   │       └── windows/       App-Fenster (8 Fenster-Komponenten)
+│   │       └── windows/       App windows (10 window components)
 │   ├── lib/
-│   │   ├── db.ts              Prisma Client Singleton
-│   │   └── auth.ts            Auth-Hilfsfunktionen (getSession, getUserFromCookie)
+│   │   ├── db.ts              Prisma Client Singleton (auto-detects SQLite vs Turso)
+│   │   └── auth.ts            Auth helpers (getSession, getUserFromCookie)
 │   └── middleware.ts          Route Protection (/workspace/*)
-├── dev.db                     SQLite Datenbank (lokal, .gitignore)
+├── dev.db                     SQLite database (local, .gitignore)
 ├── package.json               Dependencies
-└── next.config.ts             Next.js Konfiguration
+├── vercel.json                Region config (dub1 for Turso proximity)
+└── next.config.ts             Next.js config (serverExternalPackages, ignoreBuildErrors)
 ```
 
 ---
 
-## Datenbank
+## Database
 
-### Prinzipien
+### Principles
 
-1. **Daten gehören Gruppen, nicht Usern** — User greifen via Memberships zu
-2. **Hierarchie**: Server (parentId=null) → Untergruppen (parentId gesetzt), beliebig tief
-3. **Templates**: Kopierbare Vorlagen mit `isTemplate=true`
-4. **Zwei Modi**: Demo (session-only) vs. Workspace (persistent)
+1. **Data belongs to groups, not users** — Users access via memberships
+2. **Hierarchy**: Server (parentId=null) → Subgroups (parentId set), any depth
+3. **Templates**: Copyable structures with `isTemplate=true`
+4. **Two modes**: Demo (session-only) vs. Workspace (persistent)
 
-### Schema (15 Modelle)
+### Schema (15 Models)
 
 ```prisma
 model User {
@@ -121,173 +117,186 @@ model User {
   chatParticipants[]
 }
 
-model Session {
-  id, token, userId, expiresAt
-}
+model Session { id, token, userId, expiresAt }
 
 model Group {
   id, slug, name, subtitle, color, icon
-  parentId (self-referencing für Hierarchie)
+  parentId (self-referencing hierarchy)
   visibility ("public" | "private" | "hidden")
   isTemplate, templateDescription
-  memberships[], messages[], events[], tasks[], documents[], processes[]
-  chats[]
+  memberships[], messages[], events[], tasks[], documents[], processes[], chats[]
 }
 
 model Membership { userId, groupId, role }
-
-model Chat {
-  id, type ("group" | "direct"), subject?, groupId?
-  participants[], messages[]
-  createdAt, updatedAt
-}
-
+model Chat { id, type ("group" | "direct"), subject?, groupId?, participants[], messages[] }
 model ChatParticipant { chatId, userId }
-
 model Message { content, authorId, groupId?, chatId? }
-
-model Event {
-  title, description?, location?, startsAt, endsAt, allDay, groupId, creatorId
-  invitations[], comments[], reactions[]
-}
-
+model Event { title, description?, location?, startsAt, endsAt, allDay, groupId, creatorId, invitations[], comments[], reactions[] }
 model EventInvitation { eventId, userId, status ("pending" | "accepted" | "declined") }
 model Comment { content, eventId, authorId, parentId (threaded replies) }
 model Reaction { emoji, eventId, authorId }
-
 model Task { title, description, done, dueAt, groupId, assigneeId, creatorId }
 model Document { title, content, groupId, authorId }
 model Process { title, description, status, groupId, authorId }
 ```
 
-### Seed-Daten (aktuell)
+### Seed Data
 
-- **3 Top-Level Server**: ParkClub (Sport), MarinQuarter (Wohnen), Rochefort (Stadt)
-- **7 Untergruppen**: Jugendabteilung, Vorstand, Haus A, Gartenpflege, Stadtrat, Feuerwehr, Jugendparlament
-- **3 Templates**: Sportverein, Wohngemeinschaft, Gemeinde (jeweils mit Untergruppen)
-- **3 Demo-User**: Alex Demo, Maria Beispiel, Léon Dupont
-- **Content**: Messages, Events (mit Einladungen), Tasks, Documents, Processes, Chats (Gruppe + Direkt)
+- **3 Top-Level Servers**: Marin Quarter (housing co-op, Berlin), Sportclub (multi-sport, Hamburg), Rochefort (town, France)
+- **9 Subgroups**: Board & Management, Community Garden, Events & Social, Basketball, Youth Program, Sportclub Board, Town Council, Volunteer Fire Dept., Youth Parliament
+- **3 Templates**: Sports Club, Housing Cooperative, Municipality (each with subgroups)
+- **8 Demo Users**: Alex Rivera, Sam Chen, Robin Moreau, Nina Petrova, Max Berger, Leila Dubois, Jonas Kim, Emma Larsson — all with first-person profile bios
+- **Content**: Events (14), Tasks (15 with due dates), Documents (8 with group rules/guidelines), Processes (6), Chats (6 with realistic conversations)
 
 ---
 
 ## Desktop & Apps
 
 ### Shared Desktop Component (`components/desktop/Desktop.tsx`)
-- **Genutzt von**: Demo (`/open-os/client`) und Workspace (`/workspace`)
-- **Mode-Prop**: `"demo"` vs. `"workspace"` für kontextspezifische Anpassungen
-- **Footer/Taskbar**: Ring-Menü (User/Settings/Server), App-Button (3x3 Grid), Search-Button, Gruppenswitcher, Dark Mode Toggle (rechts)
-- **Portal-Overlays**: Alle Menüs via `createPortal` → `document.body` (z-index garantiert)
-- **GroupFilterContext**: Globaler Gruppenfilter mit hierarchischer Darstellung und tri-state Checkboxen
-- **ContextMenuProvider**: Custom Rechtsklick-Menü auf dem Desktop
-- **Keyboard Shortcuts**: `Ctrl/Cmd+K` für globale Suche
+- **Used by**: Demo (`/open-os/client`) and Workspace (`/workspace`)
+- **Mode prop**: `"demo"` vs. `"workspace"` for context-specific adjustments
+- **Footer/Taskbar**: Ring menu (User/Settings/Servers), App button (3x3 grid), Search button, Group switcher, Dark Mode toggle
+- **Portal Overlays**: All menus via `createPortal` → `document.body`
+- **GroupFilterContext**: Global group filter with hierarchical display, tri-state checkboxes, all groups selected by default
+- **ContextMenuProvider**: Custom right-click menu on the desktop
+- **Keyboard Shortcuts**: `Ctrl/Cmd+K` for global search
+- **Clock**: 24h format (international)
 
-### Fenster-System (`window-manager/`)
+### Window System (`window-manager/`)
 
-**DraggableWindow** — Kernkomponente für alle Fenster:
-- Drag & Drop via Titelleiste
-- Resize an allen 8 Kanten/Ecken
-- Fullscreen-Modus (respektiert Footer-Höhe via `bottomInset`)
-- Optionale Content-Skalierung (`noScale` deaktiviert für z.B. Messages)
-- Multi-Instanzen möglich (`openNewInstance`)
+**DraggableWindow** — Core component:
+- Drag & Drop via title bar (bounded: title bar cannot leave screen top/bottom)
+- Resize from all 8 edges/corners
+- Fullscreen mode (respects footer height via `bottomInset`)
+- Snap-to-edge multitasking (halves, quarters, fullscreen) with visual preview
+- No content scaling — larger windows show more content
+- Multi-instance support (`openNewInstance`)
 
 **WindowManager** — Context Provider:
-- Verwaltet alle offenen Fenster (Position, z-Index, Fokus)
+- Manages all open windows (position, z-index, focus)
 - `openWindow`, `closeWindow`, `toggleWindow`, `openNewInstance`
 
-### Window-Apps (8 Fenster-Komponenten)
+### Window Apps (10 Components)
 
-1. **Calendar** — Monats-/Wochen-/Tages-/Listenansicht, Event-Erstellung, Event-Details (mit RSVP, Kommentaren, Reaktionen)
-2. **Messages** — Messenger mit Gruppenchats & Einzelchats, Split-View (responsive), Chat-Erstellung, Chat-Löschen
-3. **Tasks** — Open/Done Listen, lokale Suche + globale Suche
-4. **Documents** — Dokumentenliste mit Inline-Reader, lokale Suche + globale Suche
-5. **Debate** — Processes nach Status, lokale Suche + globale Suche
-6. **Search** — Globale Suche über alle Content-Typen, Mehrfachauswahl-Filter, Zeitraum-Filter, Gruppenfilter
-7. **Project** — Projekt-Übersicht
-8. **_TEMPLATE** — Vorlage für neue Fenster-Komponenten
+1. **Calendar** — Month/Week/Day/List views, event creation, event details (RSVP, comments, reactions), inline search + global search, **focus group filter**
+2. **Messages** — Messenger with group chats & direct chats, **resizable split-view** (draggable divider), chat creation/deletion, inline search + global search
+3. **Tasks** — Open/Done lists sorted by due date, task detail window, task creation form, "Done" button + circle click, inline search + global search, **focus group filter**
+4. **Documents** — Document list with inline reader, inline search + global search, **focus group filter**
+5. **Debate** — Processes by status, inline search + global search
+6. **Groups** — Two views (list + visual tree diagram), group detail with clickable stats → opens Members/Calendar/Tasks/Documents for that group
+7. **Members** — All-member listing with search, group filter chips (main groups + subgroups), member profile with shared groups/events/chats/tasks, quick-create buttons
+8. **Search** — Global search across all content types, multi-select type filter, time range filter, group filter
+9. **Settings** — Unified settings window
+10. **_TEMPLATE** — Template for new window components
 
-### Demo-Apps (innerhalb OpenOS Laptop Screen)
-- Eigenständige App-Komponenten in `screens/laptop/apps/`
-- Laden Demo-Daten via `loadDemoData()` Server Action
-- Filtern nach spezifischen Gruppen via Dropdown
+### Focus Group Filter
+When opening Calendar, Tasks, or Documents from a group detail view, the app opens with a temporary filter showing only that group's content (including subgroups). A dismissible banner ("Filtered: Group Name — Show all") lets the user clear the filter and see everything.
 
----
-
-## Suche
-
-### Globale Suche (`_actions/search.ts`)
-- **Server-seitig**: Parallele Prisma-Queries via `Promise.all` über Messages, Events, Tasks, Documents, Processes
-- **Filter**: Content-Typ (Mehrfachauswahl), Zeitraum (Presets), Gruppenfilter (übernimmt globale Auswahl)
-- **Zugang**: Desktop Footer-Button, Keyboard Shortcut `Ctrl/Cmd+K`, Rechtsklick-Menü, Lupe in jeder App
-
-### In-App Suche
-- Jede App hat ein lokales Suchfeld (client-side Filterung) + Lupe für globale Suche (mit App-spezifischem Vorfilter)
+### Participant Picker
+Group-first selection flow:
+1. Parent form selects a group → all members (including subgroups) are auto-included
+2. Subgroup toggles allow deselecting entire subgroups
+3. Individual chips with X to deselect specific people
+4. "Add from other groups" — collapsible search to add external people
+5. Direct chats use a simplified single-person picker
 
 ---
 
-## Chat-System
+## Search
 
-### Architektur
-- **Gruppenchats**: Optionale Gruppenzuordnung, Betreff verpflichtend
-- **Einzelchats**: Kein Gruppenkontext, Betreff optional, mehrere Chats mit gleicher Person möglich
-- **Split-View**: Ab ≥520px Breite zeigt das Messages-Fenster Chat-Liste + aktives Chat-Fenster nebeneinander
-- **Erstellung**: "+" Button mit Dropdown (Gruppenchat / Einzelchat)
-- **Löschen**: Via 3-Punkt-Menü oder Rechtsklick auf Chat
-- **No Scale**: Messages-Fenster skaliert Inhalt nicht bei Vergrößerung
+### Global Search (`_actions/search.ts`)
+- **Server-side**: Parallel Prisma queries via `Promise.all` across Messages, Events, Tasks, Documents, Processes
+- **Filters**: Content type (multi-select), time range (presets), group filter (inherits global selection)
+- **Access**: Desktop footer button, `Ctrl/Cmd+K`, right-click menu, magnifying glass in each app
 
----
-
-## Farbsystem & Design-Regeln
-
-### Farbpalette
-Die gesamte Anwendung verwendet ausschließlich die `brand-*` Farbskala (definiert in `globals.css`):
-
-| Token | Light | Dark | Verwendung |
-|-------|-------|------|------------|
-| `brand-0` | `#ffffff` | `#1a1a1a` | Oberflächen (Menüs, Popovers) |
-| `brand-25` | `#fefeff` | `#131415` | Seitenhintergrund |
-| `brand-50` | `#ffffff` | `#101010` | Karten-Hintergrund |
-| `brand-100` | `#e1ebf5` | `#2a2a2a` | Hover-Hintergrund |
-| `brand-150` | `#d4dce4` | `#333333` | Subtile Borders |
-| `brand-200` | `#e6e6e6` | `#0e0e0e` | Default Borders, Focus-Ringe |
-| `brand-400` | `#9ca3af` | `#6b7280` | Muted Text, Placeholder |
-| `brand-950` | `#3f3f46` | `#d8d8dc` | **Body Text** (Standardfarbe) |
-
-### Regel: Keine Akzentfarben
-- **ALLE Texte, Icons, Buttons** verwenden `text-brand-950` (normale Textfarbe)
-- **Keine** `text-brand-500`, `text-brand-600`, `text-brand-700`, `text-brand-800`, `text-brand-900` im Code
-- **Focus-Ringe** verwenden `ring-brand-200` (neutral)
-- **Unterstreichungen** verwenden `decoration-brand-200` (neutral)
-- **Fenster-Buttons** (Schließen, Fullscreen) in `text-brand-950`
-- Akzentfarben (`brand-300` orange, `brand-700` blau/orange) werden **später** eingeführt
+### In-App Search
+- Every app has a local search field (client-side filtering) + magnifying glass for global search (with app-specific pre-filter)
 
 ---
 
-## Gelernte Präferenzen
+## Chat System
 
-1. **Fenster-System**: Tooltips und geöffnete Fenster müssen identisch positioniert und gestylt sein
-2. **Konsistente Schriftarten**: Tailwind v4 `@theme inline` mit expliziten `font-family` Definitionen
-3. **Darkmode**: Akzentfarben werden zunächst komplett entfernt und später bewusst eingeführt
-4. **Device-Frames**: Unterschiedliche Farben für Light/Dark Mode (CSS Variablen)
-5. **Build-Optimierung**: `devIndicators: false` in next.config.ts
-6. **Daten gehören Gruppen**: Content wird primär nach Gruppe organisiert, nicht nach User
-7. **Session-only Demo**: OpenOS Client zeigt Live-Daten, aber ohne Persistierung
-8. **Fullscreen Workspace**: Persistente App läuft ohne Device-Mockups oder globale Navbar
-9. **Kopierbare Templates**: User können vordefinierte Strukturen in ihren Space laden
-10. **Gruppen-Filter in Apps**: Jede App kann nach spezifischen Communities gefiltert werden
-11. **Gruppenfilter 0 = leer**: Wenn keine Gruppe ausgewählt, wird kein Content angezeigt (nicht alle)
-12. **Multi-Instanzen**: Gleiche App kann mehrfach geöffnet werden
-13. **No Scaling für Chat**: Messages-Fenster zeigt bei Vergrößerung mehr Inhalt statt zu skalieren
-14. **Event-Details vollständig**: Einladungen, RSVP, Kommentare (threaded), Reaktionen, Gruppenpfad
+- **Group chats**: Optional group assignment, subject required
+- **Direct chats**: No group context, subject optional, multiple chats with same person possible
+- **Resizable split-view**: Above ≥520px width, draggable divider between chat list and chat detail
+- **Creation**: "+" button with dropdown (Group chat / Direct chat)
+- **Deletion**: Via context menu or right-click on chat
 
 ---
 
-## Roadmap-Status
+## Color System & Design Rules
+
+### Palette
+The entire application uses exclusively the `brand-*` color scale (defined in `globals.css`):
+
+| Token | Light | Dark | Usage |
+|-------|-------|------|-------|
+| `brand-0` | `#ffffff` | `#1a1a1a` | Surfaces (menus, popovers) |
+| `brand-25` | `#fefeff` | `#131415` | Page background |
+| `brand-50` | `#ffffff` | `#101010` | Card background |
+| `brand-100` | `#e1ebf5` | `#2a2a2a` | Hover background |
+| `brand-150` | `#d4dce4` | `#333333` | Subtle borders |
+| `brand-200` | `#e6e6e6` | `#0e0e0e` | Default borders, focus rings |
+| `brand-400` | `#9ca3af` | `#6b7280` | Muted text, placeholder |
+| `brand-950` | `#3f3f46` | `#d8d8dc` | **Body text** (default color) |
+
+### Rule: No Accent Colors
+- **ALL text, icons, buttons** use `text-brand-950` (normal text color)
+- **No** `text-brand-500/600/700/800/900` in code
+- **Focus rings**: `ring-brand-200` (neutral)
+- **Window buttons** (close, fullscreen) in `text-brand-950`
+- Accent colors will be introduced later in a dedicated design phase
+
+---
+
+## UI Language
+
+All user-facing text is in **English**. Date/time formatting uses `en-US` locale with `hour12: false` (24h clock).
+
+---
+
+## Deployment
+
+- **Hosting**: Vercel (Dublin region `dub1` for Turso proximity)
+- **Database**: Turso (libSQL, Ireland region)
+- **Build**: `prisma generate` runs as `postinstall` hook
+- **Config**: `typescript.ignoreBuildErrors: true` in `next.config.ts`
+- **Auth**: `bcryptjs` (pure JS, no native modules)
+- **Cleanup**: Vercel cron job deletes users inactive for 30 days
+
+---
+
+## Learned Preferences
+
+1. **Window system**: Tooltips and opened windows must be identically positioned and styled
+2. **Consistent fonts**: Tailwind v4 `@theme inline` with explicit `font-family` definitions
+3. **Dark mode**: Accent colors removed first, to be reintroduced later
+4. **Device frames**: Different colors for Light/Dark mode (CSS variables)
+5. **Build optimization**: `devIndicators: false` in next.config.ts
+6. **Data belongs to groups**: Content organized primarily by group, not by user
+7. **Session-only demo**: OpenOS Client shows live data without persistence
+8. **Fullscreen workspace**: Persistent app runs without device mockups or global navbar
+9. **Copyable templates**: Users can load predefined structures into their space
+10. **Group filter 0 = empty**: When no group selected, no content shown (not all)
+11. **Multi-instance**: Same app can be opened multiple times
+12. **No content scaling**: All windows show more content when enlarged, never scale
+13. **Event details complete**: Invitations, RSVP, comments (threaded), reactions, group path
+14. **24h time format**: International time display across all components
+15. **First-person bios**: User profile descriptions written in first person, expandable on click
+16. **Focus group filter**: Apps opened from group detail show temporary filter, dismissible with "Show all"
+17. **Resizable chat columns**: Messages split-view divider is user-draggable
+
+---
+
+## Roadmap
 
 - **M1**: ✅ Landing Page (Next.js 16, Tailwind 4, Window Manager)
 - **M2**: ✅ OpenOS Demo Structure (Device Switcher, Login Flow)
 - **M3**: ✅ Demo Apps Implementation (Messages, Calendar, Tasks, Documents, Debate)
 - **M4**: ✅ Auth & Persistence (Prisma, SQLite, Auth, Session, Middleware, Templates)
-- **M4b**: ✅ Desktop Redesign (Shared Desktop, Footer-Menüs, Settings, Gruppenfilter)
-- **M5**: ✅ Enhanced Apps (Chat-System, Globale Suche, Kalender-Ansichten, Event-Details, Fenster-Resize, Rechtsklick-Menü, Akzentfarben-Bereinigung)
+- **M4b**: ✅ Desktop Redesign (Shared Desktop, Footer menus, Settings, Group filter)
+- **M5**: ✅ Enhanced Apps (Chat system, Global search, Calendar views, Event details, Window resize, Context menu, Accent color cleanup)
+- **M6**: ✅ Groups & Members (Groups app with tree view, Members app, Member profiles, Focus group filter, Participant picker redesign)
+- **M6b**: ✅ Polish (i18n to English, seed data overhaul with 8 users, snap-to-edge, resizable chat columns, 24h time, expandable bios)
 
-**Nächste Schritte**: Server View (M6), Tablet/Mobile Screens (M7), Akzentfarben-System (M8)
+**Next steps**: Server View (M7), Tablet/Mobile Screens (M8), Accent Color System (M9), Notifications (M10)

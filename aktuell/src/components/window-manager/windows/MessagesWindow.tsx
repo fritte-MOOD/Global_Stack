@@ -27,18 +27,18 @@ function formatRelativeTime(dateStr: string): string {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return "gerade eben";
+  if (diffMins < 1) return "just now";
   if (diffMins < 60) return `${diffMins}m`;
   if (diffHours < 24) return `${diffHours}h`;
   if (diffDays < 7) return `${diffDays}d`;
-  return date.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+  return date.toLocaleDateString("en-US", { day: "2-digit", month: "2-digit" });
 }
 
 function getChatDisplayName(chat: ChatInfo, currentUserId: string): string {
   if (chat.subject) return chat.subject;
   if (chat.type === "group" && chat.groupName) return chat.groupName;
   const others = chat.participants.filter((p) => p.id !== currentUserId);
-  if (others.length === 0) return "Du";
+  if (others.length === 0) return "You";
   return others.map((p) => p.name).join(", ");
 }
 
@@ -95,7 +95,7 @@ function NewChatForm({
           <ChevronLeft className="size-4 text-brand-950" />
         </button>
         <span className="text-sm font-semibold text-brand-950">
-          {chatType === "group" ? "Neuer Gruppenchat" : "Neuer Einzelchat"}
+          {chatType === "group" ? "New group chat" : "New direct chat"}
         </span>
       </div>
 
@@ -103,13 +103,13 @@ function NewChatForm({
         {/* Subject */}
         <div>
           <label className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-1 block">
-            Betreff{chatType === "direct" ? " (optional)" : ""}
+            Subject{chatType === "direct" ? " (optional)" : ""}
           </label>
           <input
             type="text"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            placeholder={chatType === "group" ? "Betreff eingeben..." : "Betreff (optional)"}
+            placeholder={chatType === "group" ? "Enter subject..." : "Subject (optional)"}
             className="w-full px-3 py-2 text-sm border border-brand-200 rounded-lg bg-brand-0 text-brand-950 focus:outline-none focus:ring-1 focus:ring-brand-200"
             autoFocus
           />
@@ -118,7 +118,7 @@ function NewChatForm({
         {/* Group Selection (only for group chats) */}
         {chatType === "group" && (
           <div>
-            <label className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-1 block">Gruppe</label>
+            <label className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-1 block">Group</label>
             <select
               value={groupId}
               onChange={(e) => setGroupId(e.target.value)}
@@ -139,6 +139,7 @@ function NewChatForm({
           onChange={setSelectedUserIds}
           currentUserId={currentUserId}
           singleSelect={chatType === "direct"}
+          groupId={chatType === "group" ? groupId : undefined}
         />
       </div>
 
@@ -148,7 +149,7 @@ function NewChatForm({
           disabled={saving || (chatType === "group" && !subject.trim()) || selectedUserIds.size === 0}
           className="w-full py-2 text-sm font-medium rounded-lg bg-brand-950 text-brand-0 hover:opacity-80 transition-opacity disabled:opacity-40 cursor-pointer"
         >
-          {saving ? "Wird erstellt..." : "Chat erstellen"}
+          {saving ? "Creating..." : "Create chat"}
         </button>
       </div>
     </div>
@@ -193,7 +194,7 @@ function ChatListView({
           <button
             onClick={onNewChat}
             className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer"
-            title="Neuer Chat"
+            title="New chat"
           >
             <Plus className="size-3.5 text-brand-950" />
           </button>
@@ -209,14 +210,14 @@ function ChatListView({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Chats durchsuchen..."
+              placeholder="Search chats..."
               className="flex-1 text-xs bg-transparent text-brand-950 outline-none placeholder:text-brand-400"
             />
           </div>
           <button
             onClick={onSearch}
             className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer shrink-0"
-            title="Globale Suche (Nachrichten)"
+            title="Global search (messages)"
           >
             <Search className="size-3.5 text-brand-950" />
           </button>
@@ -228,13 +229,13 @@ function ChatListView({
         {filteredChats.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-8 text-brand-950">
             <Mail className="size-8 mb-2 opacity-40" />
-            <span className="text-sm">{chats.length === 0 ? "Keine Chats" : "Keine Treffer"}</span>
+            <span className="text-sm">{chats.length === 0 ? "No chats" : "No results"}</span>
             {chats.length === 0 && (
               <button
                 onClick={onNewChat}
                 className="mt-3 px-3 py-1.5 text-xs font-medium rounded-lg bg-brand-950 text-brand-0 hover:opacity-80 cursor-pointer"
               >
-                Chat erstellen
+                Create chat
               </button>
             )}
           </div>
@@ -307,7 +308,7 @@ function ChatListView({
                         className="w-full flex items-center gap-2 px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                       >
                         <Trash2 className="size-3.5" />
-                        Chat löschen
+                        Delete chat
                       </button>
                     </div>
                   </>
@@ -391,7 +392,7 @@ function ChatDetailView({
         <div className="min-w-0 flex-1">
           <span className="text-sm font-semibold text-brand-950 truncate block">{displayName}</span>
           <span className="text-[10px] text-brand-950">
-            {chat.participants.length} Teilnehmer
+            {chat.participants.length} Participants
           </span>
         </div>
       </div>
@@ -404,12 +405,12 @@ function ChatDetailView({
           </div>
         ) : messages.length === 0 ? (
           <div className="flex items-center justify-center py-8">
-            <span className="text-xs text-brand-950">Noch keine Nachrichten</span>
+            <span className="text-xs text-brand-950">No messages yet</span>
           </div>
         ) : (
           messages.map((msg) => {
             const msgDate = new Date(msg.createdAt);
-            const dateStr = msgDate.toLocaleDateString("de-DE", {
+            const dateStr = msgDate.toLocaleDateString("en-US", {
               weekday: "short",
               day: "numeric",
               month: "short",
@@ -434,7 +435,7 @@ function ChatDetailView({
                     <div className="flex items-baseline gap-2">
                       <span className="text-xs font-semibold text-brand-950">{msg.author.name}</span>
                       <span className="text-[10px] text-brand-950">
-                        {msgDate.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
+                        {msgDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
                       </span>
                     </div>
                     <p className="text-sm text-brand-950 mt-0.5 leading-relaxed">{msg.content}</p>
@@ -453,7 +454,7 @@ function ChatDetailView({
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Nachricht schreiben..."
+            placeholder="Write a message..."
             className="flex-1 min-w-0 px-3 py-2 text-sm border border-brand-200 rounded-lg bg-brand-0 text-brand-950 focus:outline-none focus:ring-1 focus:ring-brand-200"
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
@@ -481,7 +482,7 @@ function EmptyChatPanel() {
   return (
     <div className="flex flex-col items-center justify-center h-full text-brand-950">
       <Mail className="size-10 mb-3 opacity-40" />
-      <span className="text-sm">Wähle einen Chat aus</span>
+      <span className="text-sm">Select a chat</span>
     </div>
   );
 }
@@ -504,14 +505,14 @@ function NewChatDropdown({
           className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-brand-950 hover:bg-brand-50 transition-colors cursor-pointer"
         >
           <Users className="size-3.5 text-brand-950" />
-          Gruppenchat
+          Group chat
         </button>
         <button
           onClick={() => onSelect("direct")}
           className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-brand-950 hover:bg-brand-50 transition-colors cursor-pointer"
         >
           <UserIcon className="size-3.5 text-brand-950" />
-          Einzelchat
+          Direct chat
         </button>
       </div>
     </>
@@ -519,6 +520,48 @@ function NewChatDropdown({
 }
 
 // ─── Messages Content ───────────────────────────────────────────
+
+function ResizableSplitView({
+  left,
+  right,
+  containerWidth,
+}: {
+  left: ReactNode;
+  right: ReactNode;
+  containerWidth: number;
+}) {
+  const [leftWidth, setLeftWidth] = useState(220);
+  const dragging = useRef(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      if (!dragging.current || !rootRef.current) return;
+      const rect = rootRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      setLeftWidth(Math.max(140, Math.min(x, containerWidth - 160)));
+    };
+    const onUp = () => { dragging.current = false; };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    return () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
+  }, [containerWidth]);
+
+  return (
+    <div ref={rootRef} className="flex h-full w-full">
+      <div className="shrink-0 overflow-hidden" style={{ width: leftWidth }}>
+        {left}
+      </div>
+      <div
+        className="w-[3px] shrink-0 bg-brand-150 hover:bg-brand-300 active:bg-brand-400 cursor-col-resize transition-colors"
+        onMouseDown={() => { dragging.current = true; }}
+      />
+      <div className="flex-1 min-w-0 overflow-hidden">
+        {right}
+      </div>
+    </div>
+  );
+}
 
 export function MessagesContent() {
   const { currentUserId } = useGroupFilter();
@@ -621,21 +664,22 @@ export function MessagesContent() {
   if (isSplit) {
     return (
       <div ref={containerRef} className="flex h-full overflow-hidden">
-        <div className="w-[220px] shrink-0 border-r border-brand-150 overflow-hidden">
-          {chatListWithDropdown}
-        </div>
-        <div className="flex-1 min-w-0 overflow-hidden">
-          {openChat ? (
-            <ChatDetailView
-              chat={openChat}
-              currentUserId={currentUserId}
-              onBack={() => setOpenChat(null)}
-              showBackButton={false}
-            />
-          ) : (
-            <EmptyChatPanel />
-          )}
-        </div>
+        <ResizableSplitView
+          left={chatListWithDropdown}
+          right={
+            openChat ? (
+              <ChatDetailView
+                chat={openChat}
+                currentUserId={currentUserId}
+                onBack={() => setOpenChat(null)}
+                showBackButton={false}
+              />
+            ) : (
+              <EmptyChatPanel />
+            )
+          }
+          containerWidth={containerWidth}
+        />
       </div>
     );
   }
@@ -675,7 +719,6 @@ export default function MessagesWindow({ children }: { children?: ReactNode }) {
     width: 440,
     height: 500,
     resizable: true,
-    noScale: true,
   };
 
   return (

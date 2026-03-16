@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Desktop as SharedDesktop, type DesktopGroup, type DesktopUser } from "@/components/desktop";
 import { loadDemoData } from "../../../_actions/load-demo-data";
 
-const SERVER_SLUGS = ["park-club", "marin-quarter", "rochefort"];
+const SERVER_SLUGS = ["sportclub", "marin-quarter", "rochefort"];
 
 export default function DemoDesktop() {
   const [groups, setGroups] = useState<DesktopGroup[]>([]);

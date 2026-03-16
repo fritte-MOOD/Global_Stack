@@ -18,10 +18,10 @@ export type DraggableWindowProps = {
   zIndex?: number;
   container?: HTMLElement | null;
   bottomInset?: number;
-  noScale?: boolean;
 };
 
 type Edge = "n" | "s" | "e" | "w" | "ne" | "nw" | "se" | "sw";
+type SnapZone = "left" | "right" | "top" | "top-left" | "top-right" | "bottom-left" | "bottom-right" | null;
 
 const EDGE_CURSORS: Record<Edge, string> = {
   n: "ns-resize", s: "ns-resize",
@@ -33,7 +33,70 @@ const EDGE_CURSORS: Record<Edge, string> = {
 const MIN_W = 200;
 const MIN_H = 120;
 const TITLE_BAR_H = 32;
-const EDGE_SIZE = 6;
+const SNAP_THRESHOLD = 12;
+const SNAP_CORNER_SIZE = 80;
+
+function detectSnapZone(clientX: number, clientY: number, areaW: number, areaH: number): SnapZone {
+  const nearLeft = clientX <= SNAP_THRESHOLD;
+  const nearRight = clientX >= areaW - SNAP_THRESHOLD;
+  const nearTop = clientY <= SNAP_THRESHOLD;
+  const nearBottom = clientY >= areaH - SNAP_THRESHOLD;
+  const inTopCorner = clientY <= SNAP_CORNER_SIZE;
+  const inBottomCorner = clientY >= areaH - SNAP_CORNER_SIZE;
+
+  if (nearTop && clientX <= SNAP_CORNER_SIZE) return "top-left";
+  if (nearTop && clientX >= areaW - SNAP_CORNER_SIZE) return "top-right";
+  if (nearLeft && inTopCorner) return "top-left";
+  if (nearRight && inTopCorner) return "top-right";
+  if (nearLeft && inBottomCorner) return "bottom-left";
+  if (nearRight && inBottomCorner) return "bottom-right";
+  if (nearTop) return "top";
+  if (nearLeft) return "left";
+  if (nearRight) return "right";
+  if (nearBottom && clientX < areaW / 2) return "bottom-left";
+  if (nearBottom && clientX >= areaW / 2) return "bottom-right";
+  return null;
+}
+
+function snapZoneRect(zone: SnapZone, areaW: number, areaH: number): { x: number; y: number; w: number; h: number } | null {
+  if (!zone) return null;
+  const hw = Math.round(areaW / 2);
+  const hh = Math.round(areaH / 2);
+  switch (zone) {
+    case "left":         return { x: 0,  y: 0,  w: hw,    h: areaH };
+    case "right":        return { x: hw, y: 0,  w: areaW - hw, h: areaH };
+    case "top":          return { x: 0,  y: 0,  w: areaW, h: areaH };
+    case "top-left":     return { x: 0,  y: 0,  w: hw,    h: hh };
+    case "top-right":    return { x: hw, y: 0,  w: areaW - hw, h: hh };
+    case "bottom-left":  return { x: 0,  y: hh, w: hw,    h: areaH - hh };
+    case "bottom-right": return { x: hw, y: hh, w: areaW - hw, h: areaH - hh };
+  }
+}
+
+// ─── Snap Preview Overlay ───────────────────────────────────────
+
+function SnapPreview({ zone, areaW, areaH, container }: { zone: SnapZone; areaW: number; areaH: number; container: HTMLElement | null }) {
+  if (!zone) return null;
+  const r = snapZoneRect(zone, areaW, areaH);
+  if (!r) return null;
+
+  const padding = 6;
+  const el = (
+    <div
+      className="pointer-events-none rounded-lg border-2 border-brand-950/30 bg-brand-950/8 transition-all duration-150 ease-out"
+      style={{
+        position: "absolute",
+        left: r.x + padding,
+        top: r.y + padding,
+        width: r.w - padding * 2,
+        height: r.h - padding * 2,
+        zIndex: 29999,
+      }}
+    />
+  );
+
+  return createPortal(el, container ?? document.body);
+}
 
 export default function DraggableWindow({
   title,
@@ -48,7 +111,6 @@ export default function DraggableWindow({
   zIndex = 50,
   container,
   bottomInset = 0,
-  noScale = false,
 }: DraggableWindowProps) {
   const windowRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{ offsetX: number; offsetY: number } | null>(null);
@@ -65,10 +127,27 @@ export default function DraggableWindow({
   const [position, setPosition] = useState(initialPosition);
   const [size, setSize] = useState({ w: initialWidth, h: initialHeight });
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isSnapped, setIsSnapped] = useState(false);
+  const [snapPreview, setSnapPreview] = useState<SnapZone>(null);
   const [mounted, setMounted] = useState(false);
 
   const preFullscreenRef = useRef({ position: initialPosition, size: { w: initialWidth, h: initialHeight } });
-  const baseSize = useRef({ w: initialWidth, h: initialHeight });
+  const preSnapRef = useRef({ position: initialPosition, size: { w: initialWidth, h: initialHeight } });
+  const livePos = useRef(position);
+  const liveSize = useRef(size);
+  const liveSnapped = useRef(false);
+  const liveFullscreen = useRef(false);
+  livePos.current = position;
+  liveSize.current = size;
+  liveSnapped.current = isSnapped;
+  liveFullscreen.current = isFullscreen;
+
+  const getArea = () => {
+    const c = container ?? document.body;
+    const w = c === document.body ? window.innerWidth : c.clientWidth;
+    const h = (c === document.body ? window.innerHeight : c.clientHeight) - bottomInset;
+    return { w, h };
+  };
 
   useEffect(() => setMounted(true), []);
 
@@ -91,6 +170,7 @@ export default function DraggableWindow({
 
         setSize({ w: newW, h: newH });
         setPosition({ x: newX, y: newY });
+        setIsSnapped(false);
         return;
       }
 
@@ -98,6 +178,8 @@ export default function DraggableWindow({
 
       let newX: number;
       let newY: number;
+      let cx: number;
+      let cy: number;
 
       if (container) {
         const rect = container.getBoundingClientRect();
@@ -105,17 +187,54 @@ export default function DraggableWindow({
         newY = e.clientY - dragState.current.offsetY - rect.top;
         const maxY = rect.height - bottomInset - TITLE_BAR_H;
         newY = Math.max(0, Math.min(newY, maxY));
+        cx = e.clientX - rect.left;
+        cy = e.clientY - rect.top;
       } else {
         newX = e.clientX - dragState.current.offsetX + window.scrollX;
         newY = e.clientY - dragState.current.offsetY + window.scrollY;
         const maxY = window.innerHeight - bottomInset - TITLE_BAR_H;
         newY = Math.max(0, Math.min(newY, maxY));
+        cx = e.clientX;
+        cy = e.clientY;
       }
 
       setPosition({ x: newX, y: newY });
+
+      if (resizable) {
+        const area = getArea();
+        setSnapPreview(detectSnapZone(cx, cy, area.w, area.h));
+      }
     };
 
-    const onUp = () => {
+    const onUp = (e: MouseEvent) => {
+      if (dragState.current && resizable) {
+        let cx: number;
+        let cy: number;
+        if (container) {
+          const rect = container.getBoundingClientRect();
+          cx = e.clientX - rect.left;
+          cy = e.clientY - rect.top;
+        } else {
+          cx = e.clientX;
+          cy = e.clientY;
+        }
+
+        const area = getArea();
+        const zone = detectSnapZone(cx, cy, area.w, area.h);
+
+        if (zone) {
+          const r = snapZoneRect(zone, area.w, area.h);
+          if (r) {
+            setPosition({ x: r.x, y: r.y });
+            setSize({ w: r.w, h: r.h });
+            setIsSnapped(true);
+            setIsFullscreen(zone === "top");
+          }
+        }
+
+        setSnapPreview(null);
+      }
+
       if (dragState.current || resizeState.current) {
         dragState.current = null;
         resizeState.current = null;
@@ -130,20 +249,46 @@ export default function DraggableWindow({
       document.removeEventListener("mousemove", onMove);
       document.removeEventListener("mouseup", onUp);
     };
-  }, [container]);
+  }, [container, resizable, bottomInset]);
 
   const startDrag = (e: React.MouseEvent) => {
-    if (e.button !== 0 || isFullscreen) return;
+    if (e.button !== 0) return;
     e.preventDefault();
     onFocus?.();
 
     const rect = windowRef.current?.getBoundingClientRect();
     if (!rect) return;
 
-    dragState.current = {
-      offsetX: e.clientX - rect.left,
-      offsetY: e.clientY - rect.top,
-    };
+    if (isSnapped || isFullscreen) {
+      const prev = preSnapRef.current;
+      const prevW = prev.size.w ?? initialWidth;
+      const prevH = prev.size.h;
+      const ratioX = (e.clientX - rect.left) / rect.width;
+      const offsetX = ratioX * prevW;
+      const offsetY = e.clientY - rect.top;
+
+      let newX: number;
+      if (container) {
+        const cRect = container.getBoundingClientRect();
+        newX = e.clientX - offsetX - cRect.left;
+      } else {
+        newX = e.clientX - offsetX + window.scrollX;
+      }
+
+      setSize({ w: prevW, h: prevH });
+      setPosition({ x: newX, y: position.y });
+      setIsFullscreen(false);
+      setIsSnapped(false);
+
+      dragState.current = { offsetX, offsetY };
+    } else {
+      preSnapRef.current = { position: { ...position }, size: { ...size } };
+      dragState.current = {
+        offsetX: e.clientX - rect.left,
+        offsetY: e.clientY - rect.top,
+      };
+    }
+
     document.body.style.cursor = "grabbing";
     document.body.style.userSelect = "none";
   };
@@ -173,16 +318,17 @@ export default function DraggableWindow({
   const toggleFullscreen = () => {
     if (!isFullscreen) {
       preFullscreenRef.current = { position, size: { ...size } };
-      const c = container ?? document.body;
-      const cw = c === document.body ? window.innerWidth : c.clientWidth;
-      const ch = (c === document.body ? window.innerHeight : c.clientHeight) - bottomInset;
+      preSnapRef.current = { position, size: { ...size } };
+      const area = getArea();
       setPosition({ x: 0, y: 0 });
-      setSize({ w: cw, h: ch });
+      setSize({ w: area.w, h: area.h });
       setIsFullscreen(true);
+      setIsSnapped(true);
     } else {
       setPosition(preFullscreenRef.current.position);
       setSize(preFullscreenRef.current.size);
       setIsFullscreen(false);
+      setIsSnapped(false);
     }
   };
 
@@ -194,16 +340,6 @@ export default function DraggableWindow({
 
   const currentW = size.w ?? initialWidth;
   const currentH = size.h;
-  const baseW = baseSize.current.w;
-  const baseH = baseSize.current.h;
-
-  let scale = 1;
-  if (!noScale && baseW && baseH && currentH) {
-    const scaleW = currentW / baseW;
-    const scaleH = currentH / baseH;
-    const minScale = Math.min(scaleW, scaleH);
-    if (minScale > 1) scale = minScale;
-  }
 
   const style: React.CSSProperties = {
     position: "absolute",
@@ -212,75 +348,72 @@ export default function DraggableWindow({
     width: currentW,
     ...(currentH ? { height: currentH } : {}),
     zIndex,
-    ...(isFullscreen ? { borderRadius: 0 } : {}),
+    ...(isFullscreen || isSnapped ? { borderRadius: 0 } : {}),
   };
 
+  const area = mounted ? getArea() : { w: 0, h: 0 };
+
   const el = (
-    <div
-      ref={windowRef}
-      className={`flex flex-col rounded-lg border border-brand-200 bg-brand-50 shadow-lg shadow-brand-200/60 box-border ${className}`}
-      style={style}
-      onMouseDown={onFocus}
-    >
-      {/* Title Bar */}
+    <>
+      <SnapPreview zone={snapPreview} areaW={area.w} areaH={area.h} container={container} />
       <div
-        className="flex items-center px-3 h-8 border-b border-brand-200 select-none shrink-0 cursor-grab active:cursor-grabbing"
-        onMouseDown={startDrag}
-        onDoubleClick={handleDoubleClickTitle}
+        ref={windowRef}
+        className={`flex flex-col rounded-lg border border-brand-200 bg-brand-50 shadow-lg shadow-brand-200/60 box-border ${isSnapped ? "rounded-none" : ""} ${className}`}
+        style={style}
+        onMouseDown={onFocus}
       >
-        <h3 className="font-heading text-xs font-medium text-brand-950 flex-1">{title}</h3>
+        {/* Title Bar */}
+        <div
+          className="flex items-center px-3 h-8 border-b border-brand-200 select-none shrink-0 cursor-grab active:cursor-grabbing"
+          onMouseDown={startDrag}
+          onDoubleClick={handleDoubleClickTitle}
+        >
+          <h3 className="font-heading text-xs font-medium text-brand-950 flex-1">{title}</h3>
 
-        <div className="flex items-center gap-1">
-          {resizable && (
-            <button
-              onClick={toggleFullscreen}
-              className="rounded p-0.5 hover:bg-brand-100 transition-colors text-brand-950 cursor-pointer"
-              aria-label={isFullscreen ? "Restore" : "Maximize"}
-            >
-              {isFullscreen ? <Minimize2 className="size-3" /> : <Maximize2 className="size-3" />}
-            </button>
-          )}
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="rounded p-0.5 hover:bg-brand-100 transition-colors text-brand-950 cursor-pointer"
-              aria-label="Close"
-            >
-              <X className="size-3" />
-            </button>
-          )}
+          <div className="flex items-center gap-1">
+            {resizable && (
+              <button
+                onClick={toggleFullscreen}
+                className="rounded p-0.5 hover:bg-brand-100 transition-colors text-brand-950 cursor-pointer"
+                aria-label={isFullscreen ? "Restore" : "Maximize"}
+              >
+                {isFullscreen ? <Minimize2 className="size-3" /> : <Maximize2 className="size-3" />}
+              </button>
+            )}
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="rounded p-0.5 hover:bg-brand-100 transition-colors text-brand-950 cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="size-3" />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Content */}
-      <div
-        className="flex-1 min-h-0 overflow-hidden"
-        style={scale > 1 ? {
-          transform: `scale(${scale})`,
-          transformOrigin: "top left",
-          width: `${100 / scale}%`,
-          height: `${100 / scale}%`,
-        } : undefined}
-      >
-        {children}
-      </div>
+        {/* Content */}
+        <div className="flex-1 min-h-0 overflow-hidden">
+          {children}
+        </div>
 
-      {/* Edge and Corner Resize Handles */}
-      {resizable && !isFullscreen && (
-        <>
-          {/* Edges */}
-          <div onMouseDown={startEdgeResize("n")} className="absolute -top-[3px] left-[6px] right-[6px] h-[6px] cursor-ns-resize" />
-          <div onMouseDown={startEdgeResize("s")} className="absolute -bottom-[3px] left-[6px] right-[6px] h-[6px] cursor-ns-resize" />
-          <div onMouseDown={startEdgeResize("e")} className="absolute top-[6px] -right-[3px] bottom-[6px] w-[6px] cursor-ew-resize" />
-          <div onMouseDown={startEdgeResize("w")} className="absolute top-[6px] -left-[3px] bottom-[6px] w-[6px] cursor-ew-resize" />
-          {/* Corners */}
-          <div onMouseDown={startEdgeResize("nw")} className="absolute -top-[3px] -left-[3px] w-[10px] h-[10px] cursor-nwse-resize" />
-          <div onMouseDown={startEdgeResize("ne")} className="absolute -top-[3px] -right-[3px] w-[10px] h-[10px] cursor-nesw-resize" />
-          <div onMouseDown={startEdgeResize("sw")} className="absolute -bottom-[3px] -left-[3px] w-[10px] h-[10px] cursor-nesw-resize" />
-          <div onMouseDown={startEdgeResize("se")} className="absolute -bottom-[3px] -right-[3px] w-[10px] h-[10px] cursor-nwse-resize" />
-        </>
-      )}
-    </div>
+        {/* Edge and Corner Resize Handles */}
+        {resizable && !isFullscreen && !isSnapped && (
+          <>
+            {/* Edges */}
+            <div onMouseDown={startEdgeResize("n")} className="absolute -top-[3px] left-[6px] right-[6px] h-[6px] cursor-ns-resize" />
+            <div onMouseDown={startEdgeResize("s")} className="absolute -bottom-[3px] left-[6px] right-[6px] h-[6px] cursor-ns-resize" />
+            <div onMouseDown={startEdgeResize("e")} className="absolute top-[6px] -right-[3px] bottom-[6px] w-[6px] cursor-ew-resize" />
+            <div onMouseDown={startEdgeResize("w")} className="absolute top-[6px] -left-[3px] bottom-[6px] w-[6px] cursor-ew-resize" />
+            {/* Corners */}
+            <div onMouseDown={startEdgeResize("nw")} className="absolute -top-[3px] -left-[3px] w-[10px] h-[10px] cursor-nwse-resize" />
+            <div onMouseDown={startEdgeResize("ne")} className="absolute -top-[3px] -right-[3px] w-[10px] h-[10px] cursor-nesw-resize" />
+            <div onMouseDown={startEdgeResize("sw")} className="absolute -bottom-[3px] -left-[3px] w-[10px] h-[10px] cursor-nesw-resize" />
+            <div onMouseDown={startEdgeResize("se")} className="absolute -bottom-[3px] -right-[3px] w-[10px] h-[10px] cursor-nwse-resize" />
+          </>
+        )}
+      </div>
+    </>
   );
 
   return createPortal(el, container ?? document.body);

@@ -152,7 +152,7 @@ export default function CalendarApp({ data, groupIds, allGroups }: Props) {
           {weekDays.map((day, i) => (
             <div key={i} className="p-2 text-center border-r border-brand-200 last:border-r-0">
               <div className="text-xs font-semibold text-brand-950">
-                {day.toLocaleDateString("de-DE", { weekday: "short" })}
+                {day.toLocaleDateString("en-US", { weekday: "short" })}
               </div>
               <div className={`text-sm font-medium mt-1 ${
                 day.toDateString() === new Date(2026, 2, 10).toDateString()
@@ -177,7 +177,7 @@ export default function CalendarApp({ data, groupIds, allGroups }: Props) {
                   >
                     <div className="font-medium truncate">{event.title}</div>
                     <div className="text-[10px] opacity-90">
-                      {event.date.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
+                      {event.date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
                     </div>
                     {event.group && (
                       <div className="text-[9px] opacity-75 truncate">{event.group.name}</div>
@@ -201,7 +201,7 @@ export default function CalendarApp({ data, groupIds, allGroups }: Props) {
       <div className="flex-1 flex flex-col">
         <div className="bg-brand-100 border-b border-brand-200 p-3 text-center">
           <div className="text-sm font-semibold text-brand-950">
-            {currentDate.toLocaleDateString("de-DE", { 
+            {currentDate.toLocaleDateString("en-US", { 
               weekday: "long", 
               day: "numeric", 
               month: "long", 
@@ -227,7 +227,7 @@ export default function CalendarApp({ data, groupIds, allGroups }: Props) {
                       >
                         <div className="font-medium">{event.title}</div>
                         <div className="text-[10px] opacity-90">
-                          {event.date.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })}
+                          {event.date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
                         </div>
                         {event.group && (
                           <div className="text-[10px] opacity-75">{event.group.name}</div>
@@ -245,7 +245,7 @@ export default function CalendarApp({ data, groupIds, allGroups }: Props) {
 
   const formatTitle = () => {
     if (viewMode === "month") {
-      return currentDate.toLocaleDateString("de-DE", { month: "long", year: "numeric" });
+      return currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
     } else if (viewMode === "week") {
       const startOfWeek = new Date(currentDate);
       startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
@@ -253,7 +253,7 @@ export default function CalendarApp({ data, groupIds, allGroups }: Props) {
       endOfWeek.setDate(startOfWeek.getDate() + 6);
       return `${startOfWeek.getDate()}.${startOfWeek.getMonth() + 1} - ${endOfWeek.getDate()}.${endOfWeek.getMonth() + 1}.${endOfWeek.getFullYear()}`;
     } else {
-      return currentDate.toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" });
+      return currentDate.toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" });
     }
   };
 

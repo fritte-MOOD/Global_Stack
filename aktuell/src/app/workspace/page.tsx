@@ -34,7 +34,7 @@ export default function WorkspacePage() {
 
   const handleOpenCommunities = () => {
     openWindow("communities", {
-      title: "Server",
+      title: "Servers",
       body: <CommunitiesWindowContent groups={groups} />,
       width: 400,
       height: 350,

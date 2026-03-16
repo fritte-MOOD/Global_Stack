@@ -65,8 +65,8 @@ export default function LoginScreen({ onContinue }: { onContinue: () => void }) 
   useEffect(() => {
     const tick = () => {
       const now = new Date();
-      setCurrentTime(now.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }));
-      setCurrentDate(now.toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" }));
+      setCurrentTime(now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false }));
+      setCurrentDate(now.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" }));
     };
     tick();
     const id = setInterval(tick, 1000);

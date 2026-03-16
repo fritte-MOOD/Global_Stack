@@ -36,7 +36,6 @@ export type WindowContent = {
   height?: number;
   resizable?: boolean;
   centered?: boolean;
-  noScale?: boolean;
 };
 
 type OpenWindow = {
@@ -220,7 +219,6 @@ export function WindowManagerProvider({ children }: { children: ReactNode }) {
           width={w.content.width}
           height={w.content.height}
           resizable={w.content.resizable}
-          noScale={w.content.noScale}
           zIndex={w.zIndex}
           container={containerRef.current}
           bottomInset={bottomInsetRef.current}

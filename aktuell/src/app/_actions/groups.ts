@@ -23,6 +23,7 @@ export type GroupWithMembers = {
   name: string;
   color: string;
   depth: number;
+  parentId: string | null;
   members: { id: string; name: string }[];
 };
 
@@ -47,6 +48,7 @@ export async function loadGroupsWithMembers(): Promise<GroupWithMembers[]> {
     name: g.name,
     color: g.parent?.color ?? g.color,
     depth: g.parentId ? 1 : 0,
+    parentId: g.parentId,
     members: g.memberships.map((m) => ({ id: m.user.id, name: m.user.name })),
   }));
 }

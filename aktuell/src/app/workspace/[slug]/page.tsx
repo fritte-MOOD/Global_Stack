@@ -138,7 +138,7 @@ export default async function CommunityPage({
                     <li key={evt.id} className="text-sm">
                       <span className="font-medium text-brand-950">{evt.title}</span>
                       <span className="text-xs text-brand-950 ml-2">
-                        {evt.startsAt.toLocaleDateString("de-DE")}
+                        {evt.startsAt.toLocaleDateString("en-US")}
                       </span>
                     </li>
                   ))}

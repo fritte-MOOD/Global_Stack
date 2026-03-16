@@ -8,7 +8,7 @@ import { loadDemoData, type DemoData } from "@/app/(site)/open-os/_actions/load-
 import { useGroupFilter } from "@/components/desktop/GroupFilterContext";
 import { searchWindowContent } from "./SearchWindow";
 
-const SERVER_SLUGS = ["park-club", "marin-quarter", "rochefort"];
+const SERVER_SLUGS = ["sportclub", "marin-quarter", "rochefort"];
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   active:    { bg: "bg-brand-100", text: "text-brand-950", label: "Active" },
@@ -80,14 +80,14 @@ export function DebateContent() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Prozesse durchsuchen..."
+              placeholder="Search processes..."
               className="flex-1 text-xs bg-transparent text-brand-950 outline-none placeholder:text-brand-400"
             />
           </div>
           <button
             onClick={() => openNewInstance("search", searchWindowContent("process"))}
             className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer shrink-0"
-            title="Globale Suche (Prozesse)"
+            title="Global search (processes)"
           >
             <Search className="size-3.5 text-brand-950" />
           </button>

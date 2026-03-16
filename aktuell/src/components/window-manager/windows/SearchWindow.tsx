@@ -15,29 +15,29 @@ const TYPE_ICONS: Record<SearchResult["type"], typeof Mail> = {
 };
 
 const TYPE_LABELS: Record<SearchResult["type"], string> = {
-  message: "Nachricht",
-  event: "Termin",
-  task: "Aufgabe",
-  document: "Dokument",
-  process: "Prozess",
+  message: "Message",
+  event: "Event",
+  task: "Task",
+  document: "Document",
+  process: "Process",
 };
 
 const TYPE_FILTER_OPTIONS: { value: SearchResult["type"]; label: string }[] = [
-  { value: "event", label: "Termine" },
-  { value: "message", label: "Nachrichten" },
-  { value: "task", label: "Aufgaben" },
-  { value: "document", label: "Dokumente" },
-  { value: "process", label: "Prozesse" },
+  { value: "event", label: "Events" },
+  { value: "message", label: "Messages" },
+  { value: "task", label: "Tasks" },
+  { value: "document", label: "Documents" },
+  { value: "process", label: "Processes" },
 ];
 
 type DateRangePreset = "all" | "today" | "week" | "month" | "year";
 
 const DATE_PRESETS: { value: DateRangePreset; label: string }[] = [
-  { value: "all", label: "Alle" },
-  { value: "today", label: "Heute" },
-  { value: "week", label: "Diese Woche" },
-  { value: "month", label: "Dieser Monat" },
-  { value: "year", label: "Dieses Jahr" },
+  { value: "all", label: "All" },
+  { value: "today", label: "Today" },
+  { value: "week", label: "This week" },
+  { value: "month", label: "This month" },
+  { value: "year", label: "This year" },
 ];
 
 function getDateFilterStart(preset: DateRangePreset): Date | undefined {
@@ -125,8 +125,8 @@ export function SearchContent({ initialFilter }: { initialFilter?: SearchResult[
   }
 
   const placeholderText = allSelected
-    ? "Suche in allen Gruppen..."
-    : `Suche in ${selectedCount} Gruppe${selectedCount !== 1 ? "n" : ""}...`;
+    ? "Search all groups..."
+    : `Search in ${selectedCount} group${selectedCount !== 1 ? "s" : ""}...`;
 
   return (
     <div className="flex flex-col h-full">
@@ -176,7 +176,7 @@ export function SearchContent({ initialFilter }: { initialFilter?: SearchResult[
                 ? "border-brand-950 bg-brand-950 text-brand-0"
                 : "border-brand-200 text-brand-950 hover:bg-brand-100"
             }`}
-            title={multiSelect ? "Einzelauswahl" : "Mehrfachauswahl"}
+            title={multiSelect ? "Single select" : "Multi select"}
           >
             <SquareCheck className="size-4" />
           </button>
@@ -195,7 +195,7 @@ export function SearchContent({ initialFilter }: { initialFilter?: SearchResult[
         </button>
         {showFilters && (
           <div className="mt-2 pl-4 space-y-2">
-            <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide">Zeitraum</div>
+            <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide">Time range</div>
             <div className="flex gap-1.5 flex-wrap">
               {DATE_PRESETS.map((p) => (
                 <button
@@ -219,7 +219,7 @@ export function SearchContent({ initialFilter }: { initialFilter?: SearchResult[
                   ))}
                 </div>
                 <span className="text-[11px] text-brand-950">
-                  {selectedCount} von {totalGroups} Gruppen ausgewählt
+                  {selectedCount} of {totalGroups} groups selected
                 </span>
               </div>
             )}
@@ -231,13 +231,13 @@ export function SearchContent({ initialFilter }: { initialFilter?: SearchResult[
       <div className="flex-1 overflow-y-auto min-h-0">
         {loading && (
           <div className="flex items-center justify-center py-8">
-            <span className="text-sm text-brand-950">Suche...</span>
+            <span className="text-sm text-brand-950">Searching...</span>
           </div>
         )}
 
         {!loading && query && filtered.length === 0 && (
           <div className="flex items-center justify-center py-8">
-            <span className="text-sm text-brand-950">Keine Ergebnisse für &ldquo;{query}&rdquo;</span>
+            <span className="text-sm text-brand-950">No results for &ldquo;{query}&rdquo;</span>
           </div>
         )}
 
@@ -251,7 +251,7 @@ export function SearchContent({ initialFilter }: { initialFilter?: SearchResult[
         {!loading && filtered.length > 0 && (
           <div className="py-1">
             <div className="px-4 py-1.5 text-[10px] text-brand-950">
-              {filtered.length} Ergebnis{filtered.length !== 1 ? "se" : ""}
+              {filtered.length} result{filtered.length !== 1 ? "s" : ""}
               {activeTypes.size > 0 && ` in ${Array.from(activeTypes).map((t) => TYPE_LABELS[t]).join(", ")}`}
             </div>
             {filtered.map((r) => {
@@ -276,7 +276,7 @@ export function SearchContent({ initialFilter }: { initialFilter?: SearchResult[
                       <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: r.groupColor }} />
                       <span className="text-[10px] text-brand-950">{r.groupName}</span>
                       <span className="text-[10px] text-brand-950 opacity-60">
-                        {new Date(r.date).toLocaleDateString("de-DE")}
+                        {new Date(r.date).toLocaleDateString("en-US")}
                       </span>
                     </div>
                   </div>
@@ -292,7 +292,7 @@ export function SearchContent({ initialFilter }: { initialFilter?: SearchResult[
 
 export function searchWindowContent(initialFilter?: SearchResult["type"]): WindowContent {
   return {
-    title: "Suche",
+    title: "Search",
     body: <SearchContent initialFilter={initialFilter} />,
     width: 480,
     height: 520,

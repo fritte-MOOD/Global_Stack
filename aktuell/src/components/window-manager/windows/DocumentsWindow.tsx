@@ -1,21 +1,22 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { FileText, ArrowLeft, Search } from "lucide-react";
+import { FileText, ArrowLeft, Search, X } from "lucide-react";
 import Tag from "../logic/Tag";
 import { useWindowManager, type WindowContent } from "../logic/WindowManager";
 import { loadDemoData, type DemoData } from "@/app/(site)/open-os/_actions/load-demo-data";
 import { useGroupFilter } from "@/components/desktop/GroupFilterContext";
 import { searchWindowContent } from "./SearchWindow";
 
-const SERVER_SLUGS = ["park-club", "marin-quarter", "rochefort"];
+const SERVER_SLUGS = ["sportclub", "marin-quarter", "rochefort"];
 
-export function DocumentsContent() {
-  const { selectedGroupIds } = useGroupFilter();
+export function DocumentsContent({ focusGroupId }: { focusGroupId?: string } = {}) {
+  const { selectedGroupIds, allGroups: filterGroups } = useGroupFilter();
   const { openNewInstance } = useWindowManager();
   const [data, setData] = useState<DemoData | null>(null);
   const [openDocId, setOpenDocId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [tempGroupFilter, setTempGroupFilter] = useState<string | null>(focusGroupId ?? null);
 
   useEffect(() => {
     loadDemoData(SERVER_SLUGS).then(setData);
@@ -30,7 +31,17 @@ export function DocumentsContent() {
   }
 
   const documents = data.documents;
-  const groupFiltered = documents.filter((d) => selectedGroupIds.has(d.groupId));
+  const effectiveGroupIds = (() => {
+    if (tempGroupFilter) {
+      const ids = new Set<string>();
+      ids.add(tempGroupFilter);
+      filterGroups.filter((g) => g.parentId === tempGroupFilter).forEach((g) => ids.add(g.id));
+      return ids;
+    }
+    return selectedGroupIds;
+  })();
+  const tempGroupName = tempGroupFilter ? filterGroups.find((g) => g.id === tempGroupFilter)?.name : null;
+  const groupFiltered = documents.filter((d) => effectiveGroupIds.has(d.groupId));
   const allGroups = data.groups.flatMap((g) => [
     { ...g, depth: 0 },
     ...g.children.map((c) => ({ ...c, depth: 1 as const, parentId: g.id, children: [] as typeof g.children })),
@@ -45,10 +56,25 @@ export function DocumentsContent() {
       )
     : groupFiltered;
 
+  const focusBanner = tempGroupFilter && tempGroupName && (
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-brand-100 border-b border-brand-150 shrink-0">
+      <span className="text-[10px] text-brand-950">Filtered: <strong>{tempGroupName}</strong></span>
+      <button
+        onClick={() => setTempGroupFilter(null)}
+        className="ml-auto flex items-center gap-1 px-2 py-0.5 text-[10px] rounded border border-brand-200 text-brand-950 hover:bg-brand-200 transition-colors cursor-pointer"
+      >
+        <X className="size-2.5" /> Show all
+      </button>
+    </div>
+  );
+
   if (groupFiltered.length === 0) {
     return (
-      <div className="flex items-center justify-center h-full p-8">
-        <span className="text-xs text-brand-950">No documents.</span>
+      <div className="h-full flex flex-col">
+        {focusBanner}
+        <div className="flex items-center justify-center flex-1 p-8">
+          <span className="text-xs text-brand-950">No documents.</span>
+        </div>
       </div>
     );
   }
@@ -88,6 +114,7 @@ export function DocumentsContent() {
 
   return (
     <div className="h-full flex flex-col">
+      {focusBanner}
       {/* Search bar */}
       <div className="px-3 pt-3 pb-2 border-b border-brand-100 shrink-0">
         <div className="flex items-center gap-2">
@@ -97,14 +124,14 @@ export function DocumentsContent() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Dokumente durchsuchen..."
+              placeholder="Search documents..."
               className="flex-1 text-xs bg-transparent text-brand-950 outline-none placeholder:text-brand-400"
             />
           </div>
           <button
             onClick={() => openNewInstance("search", searchWindowContent("document"))}
             className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer shrink-0"
-            title="Globale Suche (Dokumente)"
+            title="Global search (documents)"
           >
             <Search className="size-3.5 text-brand-950" />
           </button>
@@ -134,7 +161,7 @@ export function DocumentsContent() {
                 </div>
               </div>
               <span className="text-[10px] text-brand-950 shrink-0">
-                {new Date(doc.updatedAt).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" })}
+                {new Date(doc.updatedAt).toLocaleDateString("en-US", { day: "2-digit", month: "2-digit" })}
               </span>
             </button>
           );

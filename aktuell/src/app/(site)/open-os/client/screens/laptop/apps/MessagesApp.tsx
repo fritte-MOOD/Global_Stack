@@ -32,7 +32,7 @@ export default function MessagesApp({ data, groupIds, allGroups }: Props) {
                   <div className="flex items-baseline gap-2">
                     <span className="text-xs font-semibold text-brand-950">{msg.author.name}</span>
                     <span className="text-[10px] text-brand-950">
-                      {new Date(msg.createdAt).toLocaleString("de-DE", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
+                      {new Date(msg.createdAt).toLocaleString("en-US", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}
                     </span>
                   </div>
                   <p className="text-xs text-brand-950 mt-0.5">{msg.content}</p>

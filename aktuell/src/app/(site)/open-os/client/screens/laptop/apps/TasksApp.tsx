@@ -74,7 +74,7 @@ function TaskRow({ task, allGroups }: { task: DemoData["tasks"][number]; allGrou
       </div>
       {task.dueAt && (
         <span className="text-[10px] text-brand-950 shrink-0">
-          {new Date(task.dueAt).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" })}
+          {new Date(task.dueAt).toLocaleDateString("en-US", { day: "2-digit", month: "2-digit" })}
         </span>
       )}
     </div>

@@ -11,6 +11,7 @@ import {
   User,
   Clock,
   ChevronLeft,
+  X,
 } from "lucide-react";
 import Tag from "../logic/Tag";
 import { useWindowManager, type WindowContent } from "../logic/WindowManager";
@@ -30,7 +31,7 @@ import {
 import { loadAvailableUsers } from "@/app/_actions/chats";
 import { ParticipantPicker } from "./ParticipantPicker";
 
-const SERVER_SLUGS = ["park-club", "marin-quarter", "rochefort"];
+const SERVER_SLUGS = ["sportclub", "marin-quarter", "rochefort"];
 
 function formatDueDate(dueAt: string): string {
   const d = new Date(dueAt);
@@ -41,11 +42,11 @@ function formatDueDate(dueAt: string): string {
     (due.getTime() - today.getTime()) / 86400000
   );
 
-  if (diffDays < 0) return `${Math.abs(diffDays)}d überfällig`;
-  if (diffDays === 0) return "Heute";
-  if (diffDays === 1) return "Morgen";
+  if (diffDays < 0) return `${Math.abs(diffDays)}d overdue`;
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Tomorrow";
   if (diffDays <= 7) return `in ${diffDays}d`;
-  return d.toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" });
+  return d.toLocaleDateString("en-US", { day: "2-digit", month: "2-digit" });
 }
 
 function getDueDateColor(dueAt: string, done: boolean): string {
@@ -104,7 +105,7 @@ function TaskDetailContent({ taskId }: { taskId: string }) {
   if (!task) {
     return (
       <div className="flex items-center justify-center h-full p-4">
-        <span className="text-xs text-brand-950">Task nicht gefunden</span>
+        <span className="text-xs text-brand-950">Task not found</span>
       </div>
     );
   }
@@ -159,12 +160,12 @@ function TaskDetailContent({ taskId }: { taskId: string }) {
             <Calendar className="size-4 text-brand-950 mt-0.5 shrink-0" />
             <div>
               <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-0.5">
-                Fällig
+                Due
               </div>
               <div
                 className={`text-sm ${getDueDateColor(task.dueAt, task.done)}`}
               >
-                {new Date(task.dueAt).toLocaleDateString("de-DE", {
+                {new Date(task.dueAt).toLocaleDateString("en-US", {
                   weekday: "short",
                   day: "numeric",
                   month: "long",
@@ -178,7 +179,7 @@ function TaskDetailContent({ taskId }: { taskId: string }) {
             <User className="size-4 text-brand-950 mt-0.5 shrink-0" />
             <div>
               <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-0.5">
-                Zugewiesen
+                Assigned
               </div>
               <div className="text-sm text-brand-950">
                 {task.assignee.name}
@@ -190,11 +191,11 @@ function TaskDetailContent({ taskId }: { taskId: string }) {
           <User className="size-4 text-brand-950 mt-0.5 shrink-0" />
           <div>
             <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-0.5">
-              Erstellt von
+              Created by
             </div>
             <div className="text-sm text-brand-950">{task.creator.name}</div>
             <div className="text-[11px] text-brand-950">
-              {createdDate.toLocaleDateString("de-DE")}
+              {createdDate.toLocaleDateString("en-US")}
             </div>
           </div>
         </div>
@@ -205,7 +206,7 @@ function TaskDetailContent({ taskId }: { taskId: string }) {
               Status
             </div>
             <div className="text-sm text-brand-950">
-              {task.done ? "Erledigt" : "Offen"}
+              {task.done ? "Done" : "Open"}
             </div>
           </div>
         </div>
@@ -257,7 +258,7 @@ function CreateTaskForm({
     if (result.success) {
       onCreated();
     } else {
-      setError(result.error ?? "Fehler");
+      setError(result.error ?? "Error");
     }
     setSaving(false);
   };
@@ -286,7 +287,7 @@ function CreateTaskForm({
         </div>
         <input
           type="text"
-          placeholder="Titel der Aufgabe"
+          placeholder="Task title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="w-full text-lg font-bold text-brand-950 bg-transparent border-b border-brand-200 focus:border-brand-400 outline-none pb-1 placeholder:text-brand-400 placeholder:font-normal"
@@ -294,7 +295,7 @@ function CreateTaskForm({
           required
         />
         <textarea
-          placeholder="Beschreibung (optional)"
+          placeholder="Description (optional)"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={2}
@@ -308,7 +309,7 @@ function CreateTaskForm({
           <Calendar className="size-4 text-brand-950 mt-2.5 shrink-0" />
           <div className="flex-1">
             <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-1">
-              Fällig am
+              Due date
             </div>
             <input
               type="date"
@@ -335,7 +336,7 @@ function CreateTaskForm({
           disabled={saving || !title.trim()}
           className="w-full py-2.5 text-sm font-medium rounded-lg bg-brand-950 text-brand-0 hover:opacity-80 transition-opacity disabled:opacity-40 cursor-pointer"
         >
-          {saving ? "Wird erstellt..." : "Aufgabe erstellen"}
+          {saving ? "Creating..." : "Create task"}
         </button>
       </div>
     </form>
@@ -344,12 +345,13 @@ function CreateTaskForm({
 
 // ─── Tasks Content ──────────────────────────────────────────────
 
-export function TasksContent() {
+export function TasksContent({ focusGroupId }: { focusGroupId?: string } = {}) {
   const { selectedGroupIds, allGroups, currentUserId } = useGroupFilter();
   const { openNewInstance, toggleWindow, closeWindow } = useWindowManager();
   const [data, setData] = useState<DemoData | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [localToggles, setLocalToggles] = useState<Record<string, boolean>>({});
+  const [tempGroupFilter, setTempGroupFilter] = useState<string | null>(focusGroupId ?? null);
 
   const reload = useCallback(() => {
     loadDemoData(SERVER_SLUGS).then((d) => {
@@ -373,7 +375,17 @@ export function TasksContent() {
   const tasks = data.tasks.map((t) =>
     t.id in localToggles ? { ...t, done: localToggles[t.id] } : t
   );
-  const groupFiltered = tasks.filter((t) => selectedGroupIds.has(t.groupId));
+  const effectiveGroupIds = (() => {
+    if (tempGroupFilter) {
+      const ids = new Set<string>();
+      ids.add(tempGroupFilter);
+      allGroups.filter((g) => g.parentId === tempGroupFilter).forEach((g) => ids.add(g.id));
+      return ids;
+    }
+    return selectedGroupIds;
+  })();
+  const groupFiltered = tasks.filter((t) => effectiveGroupIds.has(t.groupId));
+  const tempGroupName = tempGroupFilter ? allGroups.find((g) => g.id === tempGroupFilter)?.name : null;
   const hierarchicalGroups = allGroups.map((g) => ({
     ...g,
     depth: g.depth,
@@ -418,7 +430,7 @@ export function TasksContent() {
 
   const openCreateTask = () => {
     toggleWindow("create-task", {
-      title: "Neue Aufgabe",
+      title: "New task",
       body: (
         <CreateTaskForm
           hierarchicalGroups={
@@ -438,9 +450,22 @@ export function TasksContent() {
     });
   };
 
+  const focusBanner = tempGroupFilter && tempGroupName && (
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-brand-100 border-b border-brand-150 shrink-0">
+      <span className="text-[10px] text-brand-950">Filtered: <strong>{tempGroupName}</strong></span>
+      <button
+        onClick={() => setTempGroupFilter(null)}
+        className="ml-auto flex items-center gap-1 px-2 py-0.5 text-[10px] rounded border border-brand-200 text-brand-950 hover:bg-brand-200 transition-colors cursor-pointer"
+      >
+        <X className="size-2.5" /> Show all
+      </button>
+    </div>
+  );
+
   if (groupFiltered.length === 0) {
     return (
       <div className="h-full flex flex-col">
+        {focusBanner}
         {/* Search + Create bar */}
         <div className="px-3 pt-3 pb-2 border-b border-brand-100 shrink-0">
           <div className="flex items-center gap-2">
@@ -450,7 +475,7 @@ export function TasksContent() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Aufgaben durchsuchen..."
+                placeholder="Search tasks..."
                 className="flex-1 text-xs bg-transparent text-brand-950 outline-none placeholder:text-brand-400"
               />
             </div>
@@ -459,21 +484,21 @@ export function TasksContent() {
                 openNewInstance("search", searchWindowContent("task"))
               }
               className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer shrink-0"
-              title="Globale Suche (Aufgaben)"
+              title="Global search (tasks)"
             >
               <Search className="size-3.5 text-brand-950" />
             </button>
             <button
               onClick={openCreateTask}
               className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer shrink-0"
-              title="Neue Aufgabe"
+              title="New task"
             >
               <Plus className="size-3.5 text-brand-950" />
             </button>
           </div>
         </div>
         <div className="flex items-center justify-center flex-1 p-8">
-          <span className="text-xs text-brand-950">Keine Aufgaben.</span>
+          <span className="text-xs text-brand-950">No tasks.</span>
         </div>
       </div>
     );
@@ -484,6 +509,7 @@ export function TasksContent() {
 
   return (
     <div className="h-full flex flex-col">
+      {focusBanner}
       {/* Search + Create bar */}
       <div className="px-3 pt-3 pb-2 border-b border-brand-100 shrink-0">
         <div className="flex items-center gap-2">
@@ -493,7 +519,7 @@ export function TasksContent() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Aufgaben durchsuchen..."
+              placeholder="Search tasks..."
               className="flex-1 text-xs bg-transparent text-brand-950 outline-none placeholder:text-brand-400"
             />
           </div>
@@ -502,14 +528,14 @@ export function TasksContent() {
               openNewInstance("search", searchWindowContent("task"))
             }
             className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer shrink-0"
-            title="Globale Suche (Aufgaben)"
+            title="Global search (tasks)"
           >
             <Search className="size-3.5 text-brand-950" />
           </button>
           <button
             onClick={openCreateTask}
             className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer shrink-0"
-            title="Neue Aufgabe"
+            title="New task"
           >
             <Plus className="size-3.5 text-brand-950" />
           </button>
@@ -520,28 +546,33 @@ export function TasksContent() {
         {open.length > 0 && (
           <div>
             <div className="text-xs font-semibold text-brand-950 mb-1.5 px-1">
-              Offen ({open.length})
+              Open ({open.length})
             </div>
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               {open.map((task) => {
                 const group = flatGroups.find((g) => g.id === task.groupId);
                 return (
                   <div
                     key={task.id}
                     onClick={() => openTaskDetail(task)}
-                    className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-brand-50 transition-colors cursor-pointer"
+                    className="flex items-start gap-2.5 px-2 py-2 rounded-lg hover:bg-brand-50 transition-colors cursor-pointer"
                   >
                     <button
                       onClick={(e) => { e.stopPropagation(); handleToggleDone(task); }}
-                      className="shrink-0 cursor-pointer hover:scale-110 transition-transform"
+                      className="shrink-0 cursor-pointer hover:scale-110 transition-transform mt-0.5"
                     >
                       <Circle className="size-3.5 text-brand-400" />
                     </button>
                     <div className="flex-1 min-w-0">
-                      <span className="text-xs text-brand-950">
+                      <span className="text-xs font-medium text-brand-950">
                         {task.title}
                       </span>
-                      <div className="flex items-center gap-2 mt-0.5">
+                      {task.description && (
+                        <p className="text-[10px] text-brand-950 opacity-60 mt-0.5 line-clamp-2 leading-relaxed">
+                          {task.description}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-2 mt-1">
                         {group && (
                           <span className="flex items-center gap-1">
                             <span
@@ -558,15 +589,21 @@ export function TasksContent() {
                             &rarr; {task.assignee.name}
                           </span>
                         )}
+                        {task.dueAt && (
+                          <span
+                            className={`text-[10px] ${getDueDateColor(task.dueAt, false)}`}
+                          >
+                            {formatDueDate(task.dueAt)}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    {task.dueAt && (
-                      <span
-                        className={`text-[10px] shrink-0 ${getDueDateColor(task.dueAt, false)}`}
-                      >
-                        {formatDueDate(task.dueAt)}
-                      </span>
-                    )}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleToggleDone(task); }}
+                      className="shrink-0 px-2 py-0.5 text-[10px] rounded border border-brand-200 text-brand-950 hover:bg-brand-100 transition-colors cursor-pointer mt-0.5"
+                    >
+                      Done
+                    </button>
                   </div>
                 );
               })}
@@ -576,20 +613,20 @@ export function TasksContent() {
         {done.length > 0 && (
           <div>
             <div className="text-xs font-semibold text-brand-950 mb-1.5 px-1">
-              Erledigt ({done.length})
+              Done ({done.length})
             </div>
-            <div className="space-y-0.5 opacity-60">
+            <div className="space-y-1 opacity-60">
               {done.map((task) => {
                 const group = flatGroups.find((g) => g.id === task.groupId);
                 return (
                   <div
                     key={task.id}
                     onClick={() => openTaskDetail(task)}
-                    className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-brand-50 transition-colors cursor-pointer"
+                    className="flex items-start gap-2.5 px-2 py-2 rounded-lg hover:bg-brand-50 transition-colors cursor-pointer"
                   >
                     <button
                       onClick={(e) => { e.stopPropagation(); handleToggleDone(task); }}
-                      className="shrink-0 cursor-pointer hover:scale-110 transition-transform"
+                      className="shrink-0 cursor-pointer hover:scale-110 transition-transform mt-0.5"
                     >
                       <CheckCircle2 className="size-3.5 text-brand-400" />
                     </button>
@@ -611,7 +648,7 @@ export function TasksContent() {
                     </div>
                     {task.dueAt && (
                       <span className="text-[10px] text-brand-950 shrink-0">
-                        {new Date(task.dueAt).toLocaleDateString("de-DE", {
+                        {new Date(task.dueAt).toLocaleDateString("en-US", {
                           day: "2-digit",
                           month: "2-digit",
                         })}

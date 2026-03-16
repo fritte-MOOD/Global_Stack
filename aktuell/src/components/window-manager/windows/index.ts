@@ -11,4 +11,6 @@ export { default as MessagesWindow, MessagesContent } from "./MessagesWindow";
 export { default as TasksWindow, TasksContent } from "./TasksWindow";
 export { default as DocumentsWindow, DocumentsContent } from "./DocumentsWindow";
 export { default as DebateWindow, DebateContent } from "./DebateWindow";
+export { default as GroupsWindow, GroupsContent } from "./GroupsWindow";
+export { MembersContent, MemberProfileContent, membersWindowContent } from "./MembersWindow";
 export { SearchContent, searchWindowContent } from "./SearchWindow";

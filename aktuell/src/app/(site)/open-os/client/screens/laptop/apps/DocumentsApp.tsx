@@ -79,7 +79,7 @@ export default function DocumentsApp({ data, groupIds, allGroups }: Props) {
               </div>
             </div>
             <span className="text-[10px] text-brand-950 shrink-0">
-              {new Date(doc.updatedAt).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit" })}
+              {new Date(doc.updatedAt).toLocaleDateString("en-US", { day: "2-digit", month: "2-digit" })}
             </span>
           </button>
         );
