@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Search, Mail, Calendar, CheckSquare, FileText, MessageSquare, SlidersHorizontal, ListChecks } from "lucide-react";
+import { Search, Mail, Calendar, CheckSquare, FileText, MessageSquare, ChevronRight, SquareCheck } from "lucide-react";
 import type { WindowContent } from "../logic/WindowManager";
 import { globalSearch, type SearchResult } from "@/app/_actions/search";
 import { useGroupFilter } from "@/components/desktop/GroupFilterContext";
@@ -142,13 +142,6 @@ export function SearchContent({ initialFilter }: { initialFilter?: SearchResult[
             placeholder={placeholderText}
             className="flex-1 text-sm bg-transparent text-brand-950 outline-none placeholder:text-brand-400"
           />
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`p-1 rounded transition-colors cursor-pointer ${showFilters ? "bg-brand-200" : "hover:bg-brand-100"}`}
-            title="Erweiterte Filter"
-          >
-            <SlidersHorizontal className="size-3.5 text-brand-950" />
-          </button>
         </div>
 
         {/* Type Filter Pills */}
@@ -178,20 +171,30 @@ export function SearchContent({ initialFilter }: { initialFilter?: SearchResult[
                 setActiveTypes(new Set());
               }
             }}
-            className={`p-1 rounded-full transition-colors cursor-pointer border ${
+            className={`p-1.5 rounded transition-colors cursor-pointer border ${
               multiSelect
                 ? "border-brand-950 bg-brand-950 text-brand-0"
                 : "border-brand-200 text-brand-950 hover:bg-brand-100"
             }`}
             title={multiSelect ? "Einzelauswahl" : "Mehrfachauswahl"}
           >
-            <ListChecks className="size-3.5" />
+            <SquareCheck className="size-4" />
           </button>
         </div>
 
-        {/* Extended Filters */}
+        {/* Collapsible Filters */}
+        <button
+          onClick={() => setShowFilters(!showFilters)}
+          className="flex items-center gap-1 mt-3 text-[11px] font-medium text-brand-950 cursor-pointer hover:opacity-70 transition-opacity"
+        >
+          <ChevronRight className={`size-3 transition-transform ${showFilters ? "rotate-90" : ""}`} />
+          Filter
+          {(dateRange !== "all" || !allSelected) && (
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-950 ml-0.5" />
+          )}
+        </button>
         {showFilters && (
-          <div className="mt-3 pt-3 border-t border-brand-100 space-y-2">
+          <div className="mt-2 pl-4 space-y-2">
             <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide">Zeitraum</div>
             <div className="flex gap-1.5 flex-wrap">
               {DATE_PRESETS.map((p) => (

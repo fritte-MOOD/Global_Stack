@@ -10,12 +10,12 @@ import {
   sendChatMessage,
   createChat,
   deleteChat,
-  loadAvailableUsers,
   type ChatInfo,
   type ChatMessage,
 } from "@/app/_actions/chats";
 import { useGroupFilter } from "@/components/desktop/GroupFilterContext";
 import { searchWindowContent } from "./SearchWindow";
+import { ParticipantPicker } from "./ParticipantPicker";
 
 // ─── Helpers ─────────────────────────────────────────────────────
 
@@ -68,24 +68,15 @@ function NewChatForm({
   const { allGroups } = useGroupFilter();
   const [subject, setSubject] = useState("");
   const [groupId, setGroupId] = useState(allGroups[0]?.id ?? "");
-  const [availableUsers, setAvailableUsers] = useState<{ id: string; name: string; nickname: string | null }[]>([]);
   const [selectedUserIds, setSelectedUserIds] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    loadAvailableUsers().then(setAvailableUsers);
-  }, []);
-
-  const otherUsers = availableUsers.filter((u) => u.id !== currentUserId);
-
   const handleCreate = async () => {
     if (chatType === "group" && !subject.trim()) return;
-    if (chatType === "direct" && selectedUserIds.size === 0) return;
+    if (selectedUserIds.size === 0) return;
     setSaving(true);
 
-    const participantIds = chatType === "group"
-      ? [currentUserId, ...selectedUserIds]
-      : [currentUserId, ...selectedUserIds];
+    const participantIds = [currentUserId, ...selectedUserIds];
 
     const chat = await createChat({
       type: chatType,
@@ -143,36 +134,12 @@ function NewChatForm({
         )}
 
         {/* Participant Selection */}
-        <div>
-          <label className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-1 block">
-            {chatType === "direct" ? "Teilnehmer" : "Teilnehmer hinzufügen"}
-          </label>
-          <div className="space-y-1 max-h-40 overflow-y-auto border border-brand-200 rounded-lg bg-brand-0 p-2">
-            {otherUsers.map((u) => (
-              <label key={u.id} className="flex items-center gap-2.5 px-2 py-1.5 rounded hover:bg-brand-50 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={selectedUserIds.has(u.id)}
-                  onChange={() => {
-                    setSelectedUserIds((prev) => {
-                      const next = new Set(prev);
-                      if (chatType === "direct") {
-                        if (next.has(u.id)) next.delete(u.id);
-                        else { next.clear(); next.add(u.id); }
-                      } else {
-                        if (next.has(u.id)) next.delete(u.id);
-                        else next.add(u.id);
-                      }
-                      return next;
-                    });
-                  }}
-                  className="accent-brand-950"
-                />
-                <span className="text-sm text-brand-950">{u.name}</span>
-              </label>
-            ))}
-          </div>
-        </div>
+        <ParticipantPicker
+          selectedIds={selectedUserIds}
+          onChange={setSelectedUserIds}
+          currentUserId={currentUserId}
+          singleSelect={chatType === "direct"}
+        />
       </div>
 
       <div className="px-4 py-3 border-t border-brand-150 shrink-0">
@@ -206,6 +173,16 @@ function ChatListView({
   onSearch: () => void;
 }) {
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const sq = searchQuery.toLowerCase();
+  const filteredChats = sq
+    ? chats.filter((c) => {
+        const name = getChatDisplayName(c, currentUserId).toLowerCase();
+        const lastMsg = c.lastMessage?.content.toLowerCase() ?? "";
+        return name.includes(sq) || lastMsg.includes(sq);
+      })
+    : chats;
 
   return (
     <div className="flex flex-col h-full">
@@ -213,13 +190,6 @@ function ChatListView({
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-brand-150 bg-brand-50 shrink-0">
         <span className="text-xs font-semibold text-brand-950">Chats</span>
         <div className="flex items-center gap-1">
-          <button
-            onClick={onSearch}
-            className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer"
-            title="Nachrichten suchen"
-          >
-            <Search className="size-3.5 text-brand-950" />
-          </button>
           <button
             onClick={onNewChat}
             className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer"
@@ -230,21 +200,46 @@ function ChatListView({
         </div>
       </div>
 
+      {/* Inline search */}
+      <div className="px-3 py-2 border-b border-brand-100 shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-brand-200 bg-brand-0 flex-1">
+            <Search className="size-3.5 text-brand-400 shrink-0" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Chats durchsuchen..."
+              className="flex-1 text-xs bg-transparent text-brand-950 outline-none placeholder:text-brand-400"
+            />
+          </div>
+          <button
+            onClick={onSearch}
+            className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer shrink-0"
+            title="Globale Suche (Nachrichten)"
+          >
+            <Search className="size-3.5 text-brand-950" />
+          </button>
+        </div>
+      </div>
+
       {/* Chat Items */}
       <div className="flex-1 overflow-y-auto min-h-0">
-        {chats.length === 0 ? (
+        {filteredChats.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-8 text-brand-950">
             <Mail className="size-8 mb-2 opacity-40" />
-            <span className="text-sm">Keine Chats</span>
-            <button
-              onClick={onNewChat}
-              className="mt-3 px-3 py-1.5 text-xs font-medium rounded-lg bg-brand-950 text-brand-0 hover:opacity-80 cursor-pointer"
-            >
-              Chat erstellen
-            </button>
+            <span className="text-sm">{chats.length === 0 ? "Keine Chats" : "Keine Treffer"}</span>
+            {chats.length === 0 && (
+              <button
+                onClick={onNewChat}
+                className="mt-3 px-3 py-1.5 text-xs font-medium rounded-lg bg-brand-950 text-brand-0 hover:opacity-80 cursor-pointer"
+              >
+                Chat erstellen
+              </button>
+            )}
           </div>
         ) : (
-          chats.map((chat) => {
+          filteredChats.map((chat) => {
             const displayName = getChatDisplayName(chat, currentUserId);
             const avatar = getChatAvatar(chat, currentUserId);
             return (

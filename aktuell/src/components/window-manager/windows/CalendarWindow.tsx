@@ -34,6 +34,7 @@ import {
 import { loadGroups, type GroupOption } from "@/app/_actions/groups";
 import { useGroupFilter } from "@/components/desktop/GroupFilterContext";
 import { searchWindowContent } from "./SearchWindow";
+import { ParticipantPicker } from "./ParticipantPicker";
 
 type ViewMode = "month" | "week" | "day" | "list";
 type HierarchicalGroup = GroupOption & { depth: number };
@@ -608,9 +609,11 @@ function GroupSelect({
 function CreateEventForm({
   hierarchicalGroups,
   onCreated,
+  currentUserId,
 }: {
   hierarchicalGroups: HierarchicalGroup[];
   onCreated: (ev: CalendarEvent) => void;
+  currentUserId: string;
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -618,6 +621,7 @@ function CreateEventForm({
   const [time, setTime] = useState("12:00");
   const [location, setLocation] = useState("");
   const [groupId, setGroupId] = useState(hierarchicalGroups[0]?.id ?? "");
+  const [inviteeIds, setInviteeIds] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -713,6 +717,15 @@ function CreateEventForm({
         </div>
       </div>
 
+      {/* Participants */}
+      <div className="px-5 py-4 border-b border-brand-150">
+        <ParticipantPicker
+          selectedIds={inviteeIds}
+          onChange={setInviteeIds}
+          currentUserId={currentUserId}
+        />
+      </div>
+
       {/* Footer with Submit */}
       <div className="px-5 py-4 mt-auto">
         {error && <div className="text-xs text-red-600 mb-3">{error}</div>}
@@ -736,6 +749,8 @@ export function CalendarContent() {
   const [allEvents, setAllEvents] = useState<CalendarEvent[]>([]);
   const [dbGroups, setDbGroups] = useState<GroupOption[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
   const { toggleWindow, closeWindow, openNewInstance } = useWindowManager();
   const { selectedGroupIds, allGroups: filterGroups, currentUserId } = useGroupFilter();
 
@@ -750,7 +765,16 @@ export function CalendarContent() {
     reload();
   }, [reload]);
 
-  const events = allEvents.filter((e) => selectedGroupIds.has(e.groupId));
+  const groupFilteredEvents = allEvents.filter((e) => selectedGroupIds.has(e.groupId));
+  const sq = searchQuery.toLowerCase();
+  const events = sq
+    ? groupFilteredEvents.filter(
+        (e) =>
+          e.title.toLowerCase().includes(sq) ||
+          e.location?.toLowerCase().includes(sq) ||
+          e.groupPath?.toLowerCase().includes(sq)
+      )
+    : groupFilteredEvents;
 
   const hierarchicalGroups: HierarchicalGroup[] = filterGroups.map((fg) => ({
     id: fg.id,
@@ -765,6 +789,7 @@ export function CalendarContent() {
       body: (
         <CreateEventForm
           hierarchicalGroups={hierarchicalGroups.length > 0 ? hierarchicalGroups : dbGroups.map((g) => ({ ...g, depth: 0 }))}
+          currentUserId={currentUserId}
           onCreated={(ev) => {
             setAllEvents((prev) => [...prev, ev].sort((a, b) => a.startsAt.localeCompare(b.startsAt)));
             closeWindow("create-event");
@@ -1093,9 +1118,12 @@ export function CalendarContent() {
 
         <div className="flex items-center gap-1 shrink-0">
           <button
-            onClick={() => openNewInstance("search", searchWindowContent("event"))}
-            className="p-1 rounded hover:bg-brand-50 transition-colors cursor-pointer"
-            title="Termine suchen"
+            onClick={() => {
+              setShowSearch(!showSearch);
+              if (showSearch) setSearchQuery("");
+            }}
+            className={`p-1 rounded transition-colors cursor-pointer ${showSearch ? "bg-brand-200" : "hover:bg-brand-50"}`}
+            title="Termine filtern"
           >
             <Search className="size-3.5 text-brand-950" />
           </button>
@@ -1107,6 +1135,32 @@ export function CalendarContent() {
           </button>
         </div>
       </div>
+
+      {/* Inline Search Bar */}
+      {showSearch && (
+        <div className="px-2 py-1.5 border-b border-brand-100 bg-brand-0 shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-brand-200 bg-brand-0 flex-1">
+              <Search className="size-3.5 text-brand-400 shrink-0" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Termine filtern..."
+                className="flex-1 text-xs bg-transparent text-brand-950 outline-none placeholder:text-brand-400"
+                autoFocus
+              />
+            </div>
+            <button
+              onClick={() => openNewInstance("search", searchWindowContent("event"))}
+              className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer shrink-0"
+              title="Globale Suche (Termine)"
+            >
+              <Search className="size-3.5 text-brand-950" />
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         {viewMode === "month" && renderMonthView()}
