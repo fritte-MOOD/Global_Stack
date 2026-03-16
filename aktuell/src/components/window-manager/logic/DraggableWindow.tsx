@@ -32,6 +32,7 @@ const EDGE_CURSORS: Record<Edge, string> = {
 
 const MIN_W = 200;
 const MIN_H = 120;
+const TITLE_BAR_H = 32;
 const EDGE_SIZE = 6;
 
 export default function DraggableWindow({
@@ -95,18 +96,23 @@ export default function DraggableWindow({
 
       if (!dragState.current) return;
 
+      let newX: number;
+      let newY: number;
+
       if (container) {
         const rect = container.getBoundingClientRect();
-        setPosition({
-          x: e.clientX - dragState.current.offsetX - rect.left,
-          y: e.clientY - dragState.current.offsetY - rect.top,
-        });
+        newX = e.clientX - dragState.current.offsetX - rect.left;
+        newY = e.clientY - dragState.current.offsetY - rect.top;
+        const maxY = rect.height - bottomInset - TITLE_BAR_H;
+        newY = Math.max(0, Math.min(newY, maxY));
       } else {
-        setPosition({
-          x: e.clientX - dragState.current.offsetX + window.scrollX,
-          y: e.clientY - dragState.current.offsetY + window.scrollY,
-        });
+        newX = e.clientX - dragState.current.offsetX + window.scrollX;
+        newY = e.clientY - dragState.current.offsetY + window.scrollY;
+        const maxY = window.innerHeight - bottomInset - TITLE_BAR_H;
+        newY = Math.max(0, Math.min(newY, maxY));
       }
+
+      setPosition({ x: newX, y: newY });
     };
 
     const onUp = () => {

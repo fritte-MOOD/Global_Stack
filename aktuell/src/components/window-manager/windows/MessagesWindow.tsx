@@ -374,7 +374,7 @@ function ChatDetailView({
   let lastDateStr = "";
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full overflow-hidden">
       {/* Chat Header */}
       <div className="flex items-center gap-3 px-3 py-2.5 border-b border-brand-150 bg-brand-50 shrink-0">
         {showBackButton && (
@@ -620,11 +620,11 @@ export function MessagesContent() {
 
   if (isSplit) {
     return (
-      <div ref={containerRef} className="flex h-full">
-        <div className="w-[220px] shrink-0 border-r border-brand-150 h-full">
+      <div ref={containerRef} className="flex h-full overflow-hidden">
+        <div className="w-[220px] shrink-0 border-r border-brand-150 overflow-hidden">
           {chatListWithDropdown}
         </div>
-        <div className="flex-1 min-w-0 h-full">
+        <div className="flex-1 min-w-0 overflow-hidden">
           {openChat ? (
             <ChatDetailView
               chat={openChat}
@@ -642,7 +642,7 @@ export function MessagesContent() {
 
   if (openChat) {
     return (
-      <div ref={containerRef} className="h-full">
+      <div ref={containerRef} className="h-full overflow-hidden">
         <ChatDetailView
           chat={openChat}
           currentUserId={currentUserId}
@@ -653,7 +653,7 @@ export function MessagesContent() {
     );
   }
 
-  return <div ref={containerRef} className="h-full">{chatListWithDropdown}</div>;
+  return <div ref={containerRef} className="h-full overflow-hidden">{chatListWithDropdown}</div>;
 }
 
 // ─── Window Wrapper ─────────────────────────────────────────────

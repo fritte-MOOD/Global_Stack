@@ -397,8 +397,13 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
   const selectedGroups = allGroups.filter((g) => selectedGroupIds.has(g.id));
 
   // Sync local group/user data to global context so windows can access it
+  // On first load, select all groups by default
   useEffect(() => {
     setGlobalGroups(allGroups.map((g) => ({ id: g.id, name: g.name, color: g.color, depth: g.depth, parentId: g.parentId })));
+    setSelectedGroupIds((prev) => {
+      if (prev.size === 0) return new Set(allGroups.map((g) => g.id));
+      return prev;
+    });
   }, [groups, setGlobalGroups]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -605,8 +610,8 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
         />
       )}
 
-      {/* Footer/Taskbar */}
-      <div className="absolute bottom-0 left-0 right-0 h-12 bg-brand-50 border-t border-brand-550 flex items-center px-4 z-30">
+      {/* Footer/Taskbar — z-index above all windows (windows start at z-100+) */}
+      <div className="absolute bottom-0 left-0 right-0 h-12 bg-brand-50 border-t border-brand-550 flex items-center px-4 z-[20000]">
         {/* Left: Menu Button */}
         <div className="flex-1 flex justify-start">
           <button

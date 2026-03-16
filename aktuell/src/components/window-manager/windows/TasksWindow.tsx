@@ -349,9 +349,13 @@ export function TasksContent() {
   const { openNewInstance, toggleWindow, closeWindow } = useWindowManager();
   const [data, setData] = useState<DemoData | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [localToggles, setLocalToggles] = useState<Record<string, boolean>>({});
 
   const reload = useCallback(() => {
-    loadDemoData(SERVER_SLUGS).then(setData);
+    loadDemoData(SERVER_SLUGS).then((d) => {
+      setData(d);
+      setLocalToggles({});
+    });
   }, []);
 
   useEffect(() => {
@@ -366,7 +370,9 @@ export function TasksContent() {
     );
   }
 
-  const tasks = data.tasks;
+  const tasks = data.tasks.map((t) =>
+    t.id in localToggles ? { ...t, done: localToggles[t.id] } : t
+  );
   const groupFiltered = tasks.filter((t) => selectedGroupIds.has(t.groupId));
   const hierarchicalGroups = allGroups.map((g) => ({
     ...g,
@@ -392,6 +398,12 @@ export function TasksContent() {
           t.assignee?.name.toLowerCase().includes(q)
       )
     : groupFiltered;
+
+  const handleToggleDone = async (task: DemoTask) => {
+    const newDone = !task.done;
+    setLocalToggles((prev) => ({ ...prev, [task.id]: newDone }));
+    await toggleTaskDone(task.id);
+  };
 
   const openTaskDetail = (task: DemoTask) => {
     openNewInstance("task-detail", {
@@ -519,7 +531,12 @@ export function TasksContent() {
                     onClick={() => openTaskDetail(task)}
                     className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-brand-50 transition-colors cursor-pointer"
                   >
-                    <Circle className="size-3.5 text-brand-400 shrink-0" />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleToggleDone(task); }}
+                      className="shrink-0 cursor-pointer hover:scale-110 transition-transform"
+                    >
+                      <Circle className="size-3.5 text-brand-400" />
+                    </button>
                     <div className="flex-1 min-w-0">
                       <span className="text-xs text-brand-950">
                         {task.title}
@@ -570,7 +587,12 @@ export function TasksContent() {
                     onClick={() => openTaskDetail(task)}
                     className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-brand-50 transition-colors cursor-pointer"
                   >
-                    <CheckCircle2 className="size-3.5 text-brand-400 shrink-0" />
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleToggleDone(task); }}
+                      className="shrink-0 cursor-pointer hover:scale-110 transition-transform"
+                    >
+                      <CheckCircle2 className="size-3.5 text-brand-400" />
+                    </button>
                     <div className="flex-1 min-w-0">
                       <span className="text-xs line-through text-brand-950">
                         {task.title}

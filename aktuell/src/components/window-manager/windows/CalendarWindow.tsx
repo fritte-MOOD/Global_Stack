@@ -891,11 +891,11 @@ export function CalendarContent() {
                   return (
                     <div
                       key={di}
-                      className={`p-0.5 border-r border-brand-100 last:border-r-0 overflow-hidden flex flex-col ${isCurrentMonth ? "bg-brand-0" : "bg-brand-25"} ${isToday ? "ring-1 ring-brand-950 ring-inset" : ""}`}
+                      className={`border-r border-brand-100 last:border-r-0 overflow-hidden flex flex-col ${isCurrentMonth ? "bg-brand-0" : "bg-brand-25"} ${isToday ? "ring-1 ring-brand-950 ring-inset" : ""}`}
                     >
                       <button
                         onClick={() => goToDay(day)}
-                        className={`text-[10px] font-medium w-4 h-4 rounded-full flex items-center justify-center cursor-pointer transition-colors shrink-0 ${isCurrentMonth ? "text-brand-950 hover:bg-brand-100" : "text-brand-400 hover:bg-brand-50"}`}
+                        className={`w-full h-4 px-1 text-[10px] font-medium text-left cursor-pointer transition-colors shrink-0 ${isCurrentMonth ? "text-brand-950 hover:bg-brand-100" : "text-brand-400 hover:bg-brand-50"}`}
                       >
                         {day.getDate()}
                       </button>
