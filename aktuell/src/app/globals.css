@@ -30,6 +30,11 @@
   --color-brand-300: var(--color-brand-300);  /* Orange accent */
   --color-brand-600: var(--color-brand-600);  /* Icons */
   
+  /* Alternative accent colors (used in due dates) */
+  --color-accent-urgent: var(--color-accent-urgent);   /* Overdue / critical */
+  --color-accent-warning: var(--color-accent-warning); /* Due today */
+  --color-accent-soon: var(--color-accent-soon);       /* Due in 1-2 days */
+  
   /* Special navbar colors */
   --color-brand-901: var(--color-brand-901);  /* MOOD text */
   --color-brand-902: var(--color-brand-902);  /* Slash */
@@ -79,6 +84,11 @@
   --color-device-frame: #273e4f;     /* Dark blue frames */
   --color-device-trackpad: #426a86;  /* Medium blue trackpad */
   
+  /* Alternative accent colors */
+  --color-accent-urgent: #dc2626;   /* red-600 — overdue */
+  --color-accent-warning: #ea580c;  /* orange-600 — due today */
+  --color-accent-soon: #f97316;     /* orange-500 — due in 1-2 days */
+  
   /* Group / Server colors */
   --color-group-park-club: #704c93;
   --color-group-marin-quarter: #337835;
@@ -119,6 +129,11 @@ html.dark {
   /* Device frames */
   --color-device-frame: #9ca3af;     /* Silver/gray frames */
   --color-device-trackpad: #6b7280;  /* Darker gray trackpad */
+  
+  /* Alternative accent colors */
+  --color-accent-urgent: #ef4444;   /* red-500 — overdue (brighter in dark) */
+  --color-accent-warning: #f97316;  /* orange-500 — due today */
+  --color-accent-soon: #fb923c;     /* orange-400 — due in 1-2 days */
   
   /* Group / Server colors */
   --color-group-park-club: #8026d6;

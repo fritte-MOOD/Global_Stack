@@ -169,13 +169,13 @@ function SettingsContent() {
 
 // ─── Profile Edit Window Content ────────────────────────────────
 
-function ProfileEditContent({ userId }: { userId: string }) {
+function ProfileEditContent({ userId, windowId }: { userId: string; windowId: string }) {
   const [name, setName] = useState("");
   const [nickname, setNickname] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const { closeWindow } = useWindowManager();
 
   useEffect(() => {
     import("@/app/_actions/members").then(({ loadOwnProfile }) =>
@@ -199,8 +199,7 @@ function ProfileEditContent({ userId }: { userId: string }) {
       description: description.trim() || undefined,
     });
     setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    closeWindow(windowId);
   };
 
   if (loading) {
@@ -262,7 +261,7 @@ function ProfileEditContent({ userId }: { userId: string }) {
           disabled={saving || !name.trim()}
           className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg bg-brand-950 text-brand-0 hover:opacity-80 transition-opacity disabled:opacity-40 cursor-pointer"
         >
-          {saving ? "Saving..." : saved ? "Saved!" : <><Save className="size-3.5" /> Save profile</>}
+          {saving ? "Saving..." : <><Save className="size-3.5" /> Save profile</>}
         </button>
       </div>
     </div>
@@ -474,7 +473,7 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
   const [showApps, setShowApps] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
 
-  const { setBottomInset, openNewInstance } = useWindowManager();
+  const { setBottomInset, openNewInstance, openWindow } = useWindowManager();
   const {
     selectedGroupIds,
     setSelectedGroupIds,
@@ -483,6 +482,7 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
   } = useGroupFilter();
 
   const [showGroupPicker, setShowGroupPicker] = useState(false);
+  const [comingSoonTip, setComingSoonTip] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     setBottomInset(FOOTER_HEIGHT);
@@ -618,18 +618,23 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
                     openNewInstance(app.id, factory!());
                     setShowApps(false);
                   }}
+                  onMouseMove={app.comingSoon ? (e) => setComingSoonTip({ x: e.clientX, y: e.clientY }) : undefined}
+                  onMouseLeave={app.comingSoon ? () => setComingSoonTip(null) : undefined}
                 >
                   <Icon className={`size-11 text-brand-950 ${disabled ? "" : "hover:scale-90"} transition-transform`} />
                   <span className="text-sm text-brand-950">{app.name}</span>
-                  {app.comingSoon && (
-                    <span className="absolute inset-x-0 bottom-1 text-center text-[9px] text-brand-950 opacity-0 group-hover:opacity-70 transition-opacity">
-                      Coming soon
-                    </span>
-                  )}
                 </div>
               );
             })}
           </div>
+          {comingSoonTip && (
+            <div
+              className="fixed pointer-events-none z-[10001] px-3.5 py-2 bg-brand-950 text-brand-0 text-sm font-medium rounded-lg shadow-lg whitespace-nowrap"
+              style={{ left: comingSoonTip.x + 14, top: comingSoonTip.y - 16 }}
+            >
+              Coming soon
+            </div>
+          )}
         </div>
       )}
 
@@ -642,9 +647,9 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
                 className="px-4 py-3 border-b border-brand-150 hover:bg-brand-50 transition-colors cursor-pointer"
                 onClick={() => {
                   setShowMenu(false);
-                  openNewInstance("profile-edit", {
+                  openWindow("profile-edit", {
                     title: "Edit Profile",
-                    body: <ProfileEditContent userId={user.id} />,
+                    body: <ProfileEditContent userId={user.id} windowId="profile-edit" />,
                     width: 380,
                     height: 520,
                     resizable: true,

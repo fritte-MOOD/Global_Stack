@@ -240,12 +240,22 @@ The entire application uses exclusively the `brand-*` color scale (defined in `g
 | `brand-400` | `#9ca3af` | `#6b7280` | Muted text, placeholder |
 | `brand-950` | `#3f3f46` | `#d8d8dc` | **Body text** (default color) |
 
-### Rule: No Accent Colors
+### Alternative Accent Colors (Due Date Palette)
+Reserved for semantic status indicators (e.g. task due dates):
+
+| Token | Light | Dark | Usage |
+|-------|-------|------|-------|
+| `accent-urgent` | `#dc2626` (red-600) | `#ef4444` (red-500) | Overdue / critical |
+| `accent-warning` | `#ea580c` (orange-600) | `#f97316` (orange-500) | Due today |
+| `accent-soon` | `#f97316` (orange-500) | `#fb923c` (orange-400) | Due in 1-2 days |
+
+### Rule: No Accent Colors (General)
 - **ALL text, icons, buttons** use `text-brand-950` (normal text color)
 - **No** `text-brand-500/600/700/800/900` in code
 - **Focus rings**: `ring-brand-200` (neutral)
 - **Window buttons** (close, fullscreen) in `text-brand-950`
-- Accent colors will be introduced later in a dedicated design phase
+- The `accent-*` tokens above are the **only** exception, used strictly for semantic urgency
+- General accent colors will be introduced later in a dedicated design phase
 
 ---
 
