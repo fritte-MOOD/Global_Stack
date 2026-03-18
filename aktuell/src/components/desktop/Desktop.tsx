@@ -24,6 +24,8 @@ import {
   Maximize,
   Minimize,
   Search,
+  Save,
+  Pencil,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -75,18 +77,19 @@ type AppDef = {
   name: string;
   icon: typeof MessageSquare;
   windowComponent: "calendar" | "messages" | "tasks" | "documents" | "debate" | "groups" | "members" | "settings" | null;
+  comingSoon?: boolean;
 };
 
 const APPS: AppDef[] = [
-  { id: "debate", name: "Debate", icon: MessageSquare, windowComponent: "debate" },
   { id: "calendar", name: "Calendar", icon: Calendar, windowComponent: "calendar" },
   { id: "messages", name: "Messages", icon: Mail, windowComponent: "messages" },
   { id: "tasks", name: "Tasks", icon: CheckSquare, windowComponent: "tasks" },
-  { id: "documents", name: "Documents", icon: FileText, windowComponent: "documents" },
   { id: "groups", name: "Groups", icon: Users, windowComponent: "groups" },
   { id: "members", name: "Members", icon: Contact, windowComponent: "members" },
-  { id: "wiki", name: "Wiki", icon: BookOpen, windowComponent: null },
-  { id: "analytics", name: "Analytics", icon: BarChart3, windowComponent: null },
+  { id: "documents", name: "Documents", icon: FileText, windowComponent: "documents", comingSoon: true },
+  { id: "debate", name: "Debate", icon: MessageSquare, windowComponent: "debate", comingSoon: true },
+  { id: "wiki", name: "Wiki", icon: BookOpen, windowComponent: null, comingSoon: true },
+  { id: "analytics", name: "Analytics", icon: BarChart3, windowComponent: null, comingSoon: true },
   { id: "settings", name: "Settings", icon: Settings, windowComponent: "settings" },
 ];
 
@@ -163,6 +166,108 @@ function SettingsContent() {
   );
 }
 
+
+// ─── Profile Edit Window Content ────────────────────────────────
+
+function ProfileEditContent({ userId }: { userId: string }) {
+  const [name, setName] = useState("");
+  const [nickname, setNickname] = useState("");
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    import("@/app/_actions/members").then(({ loadOwnProfile }) =>
+      loadOwnProfile(userId).then((p) => {
+        if (p) {
+          setName(p.name);
+          setNickname(p.nickname ?? "");
+          setDescription(p.description ?? "");
+        }
+        setLoading(false);
+      })
+    );
+  }, [userId]);
+
+  const handleSave = async () => {
+    setSaving(true);
+    const { updateOwnProfile } = await import("@/app/_actions/members");
+    await updateOwnProfile(userId, {
+      name: name.trim(),
+      nickname: nickname.trim() || undefined,
+      description: description.trim() || undefined,
+    });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <span className="text-xs text-brand-950">Loading...</span>
+      </div>
+    );
+  }
+
+  const initial = nickname?.[0]?.toUpperCase() || name?.[0]?.toUpperCase() || "?";
+
+  return (
+    <div className="flex flex-col h-full overflow-y-auto">
+      <div className="px-5 pt-6 pb-4 bg-brand-50 border-b border-brand-150 flex flex-col items-center">
+        <div className="w-20 h-20 rounded-full bg-brand-200 flex items-center justify-center text-2xl font-bold text-brand-950 mb-3">
+          {initial}
+        </div>
+        <div className="text-xs text-brand-950 opacity-50">Click fields below to edit</div>
+      </div>
+
+      <div className="px-5 py-4 space-y-4 flex-1">
+        <div>
+          <label className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-1 block">Name</label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full px-3 py-2 text-sm border border-brand-200 rounded-lg bg-brand-0 text-brand-950 focus:outline-none focus:ring-1 focus:ring-brand-200"
+          />
+        </div>
+
+        <div>
+          <label className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-1 block">Nickname</label>
+          <input
+            type="text"
+            value={nickname}
+            onChange={(e) => setNickname(e.target.value)}
+            placeholder="Optional display name"
+            className="w-full px-3 py-2 text-sm border border-brand-200 rounded-lg bg-brand-0 text-brand-950 focus:outline-none focus:ring-1 focus:ring-brand-200 placeholder:text-brand-400"
+          />
+        </div>
+
+        <div>
+          <label className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-1 block">About me</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Tell others about yourself..."
+            rows={4}
+            className="w-full px-3 py-2 text-sm border border-brand-200 rounded-lg bg-brand-0 text-brand-950 focus:outline-none focus:ring-1 focus:ring-brand-200 placeholder:text-brand-400 resize-none"
+          />
+        </div>
+      </div>
+
+      <div className="px-5 py-4 border-t border-brand-150 shrink-0">
+        <button
+          onClick={handleSave}
+          disabled={saving || !name.trim()}
+          className="w-full flex items-center justify-center gap-2 py-2.5 text-sm font-medium rounded-lg bg-brand-950 text-brand-0 hover:opacity-80 transition-opacity disabled:opacity-40 cursor-pointer"
+        >
+          {saving ? "Saving..." : saved ? "Saved!" : <><Save className="size-3.5" /> Save profile</>}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 // ─── Window Content Factories ──────────────────────────────────
 
@@ -268,7 +373,7 @@ function GroupPickerMenu({
 
   return (
     <PortalOverlay onClose={onClose}>
-      <div className="fixed left-1/2 -translate-x-1/2 bottom-14 w-80 bg-brand-0 border border-brand-150 rounded-lg shadow-lg z-[10000]">
+      <div className="fixed left-1/2 -translate-x-1/2 bottom-14 w-80 bg-brand-0 border border-brand-150 rounded-lg shadow-lg z-[10000] flex flex-col" style={{ maxHeight: "calc(100vh - 4rem)" }}>
         {/* Header */}
         <div className="flex items-center justify-end px-3 py-2 border-b border-brand-150">
           <button
@@ -283,7 +388,7 @@ function GroupPickerMenu({
         </div>
 
         {/* Main Groups */}
-        <div className="max-h-80 overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto">
           {groups.map((mainGroup, idx) => {
             const isExpanded = expandedGroups.has(mainGroup.id);
             const isFullySelected = isMainGroupFullySelected(mainGroup);
@@ -499,22 +604,28 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
           >
             {APPS.map((app) => {
               const Icon = app.icon;
-              const factory = app.windowComponent ? WINDOW_DEFS[app.windowComponent] : null;
+              const factory = app.windowComponent && !app.comingSoon ? WINDOW_DEFS[app.windowComponent] : null;
+              const disabled = app.comingSoon || !factory;
 
               return (
                 <div
                   key={app.id}
-                  className={`flex flex-col items-center justify-center gap-3 w-32 h-32 ${
-                    factory ? "cursor-pointer" : "opacity-40 cursor-not-allowed"
+                  className={`relative group flex flex-col items-center justify-center gap-3 w-32 h-32 ${
+                    disabled ? "opacity-35 cursor-not-allowed" : "cursor-pointer"
                   }`}
                   onClick={() => {
-                    if (!factory) return;
-                    openNewInstance(app.id, factory());
+                    if (disabled) return;
+                    openNewInstance(app.id, factory!());
                     setShowApps(false);
                   }}
                 >
-                  <Icon className="size-11 text-brand-950 hover:scale-90 transition-transform" />
+                  <Icon className={`size-11 text-brand-950 ${disabled ? "" : "hover:scale-90"} transition-transform`} />
                   <span className="text-sm text-brand-950">{app.name}</span>
+                  {app.comingSoon && (
+                    <span className="absolute inset-x-0 bottom-1 text-center text-[9px] text-brand-950 opacity-0 group-hover:opacity-70 transition-opacity">
+                      Coming soon
+                    </span>
+                  )}
                 </div>
               );
             })}
@@ -527,7 +638,20 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
         <PortalOverlay onClose={() => setShowMenu(false)}>
           <div className="fixed left-4 bottom-14 w-56 bg-brand-0 border border-brand-150 rounded-lg shadow-lg overflow-hidden z-[10000]">
             {user ? (
-              <div className="px-4 py-3 border-b border-brand-150">
+              <div
+                className="px-4 py-3 border-b border-brand-150 hover:bg-brand-50 transition-colors cursor-pointer"
+                onClick={() => {
+                  setShowMenu(false);
+                  openNewInstance("profile-edit", {
+                    title: "Edit Profile",
+                    body: <ProfileEditContent userId={user.id} />,
+                    width: 380,
+                    height: 520,
+                    resizable: true,
+                    centered: true,
+                  });
+                }}
+              >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-brand-200 flex items-center justify-center">
                     <User className="size-5 text-brand-950" />
@@ -536,6 +660,7 @@ export default function Desktop({ mode, groups, user, onLogout, onOpenCommunitie
                     <div className="font-medium text-brand-950 truncate">{user.name}</div>
                     <div className="text-xs text-brand-950">@{user.username}</div>
                   </div>
+                  <Pencil className="size-3.5 text-brand-950 opacity-0 group-hover:opacity-50 shrink-0" />
                   {user.isDemo && (
                     <span className="text-xs bg-brand-200 text-brand-950 px-1.5 py-0.5 rounded shrink-0">
                       Demo

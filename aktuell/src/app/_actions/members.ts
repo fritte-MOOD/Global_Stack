@@ -295,3 +295,39 @@ export async function loadMemberProfile(userId: string, currentUserId: string): 
     })),
   };
 }
+
+// ─── Own Profile ─────────────────────────────────────────────────
+
+export type OwnProfile = {
+  id: string;
+  name: string;
+  username: string;
+  nickname: string | null;
+  email: string | null;
+  description: string | null;
+  avatarUrl: string | null;
+};
+
+export async function loadOwnProfile(userId: string): Promise<OwnProfile | null> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, name: true, username: true, nickname: true, email: true, description: true, avatarUrl: true },
+  });
+  return user;
+}
+
+export async function updateOwnProfile(
+  userId: string,
+  data: { name?: string; nickname?: string; description?: string }
+): Promise<OwnProfile | null> {
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      name: data.name,
+      nickname: data.nickname,
+      description: data.description,
+    },
+    select: { id: true, name: true, username: true, nickname: true, email: true, description: true, avatarUrl: true },
+  });
+  return user;
+}
