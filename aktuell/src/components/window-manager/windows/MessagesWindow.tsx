@@ -204,7 +204,7 @@ function ChatListView({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-3 py-2 border-b border-brand-100 shrink-0 space-y-2 bg-brand-50">
+      <div className="px-3 py-2 border-b border-brand-100 shrink-0 bg-brand-50">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-brand-200 bg-brand-0 flex-1 min-w-0">
             <Search className="size-3.5 text-brand-400 shrink-0" />
@@ -223,26 +223,26 @@ function ChatListView({
           >
             <Search className="size-3.5 text-brand-950" />
           </button>
-        </div>
-        <div className="flex justify-end relative">
-          <button
-            onClick={onNewChat}
-            className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer shrink-0"
-            title="New chat"
-          >
-            <Plus className="size-3.5 text-brand-950" />
-          </button>
-          {showNewDropdown && (
-            <div className="absolute right-0 top-full mt-1 z-30">
-              <NewChatDropdown
-                onSelect={(type) => {
-                  onPickNewChatType(type);
-                  onCloseNewDropdown();
-                }}
-                onClose={onCloseNewDropdown}
-              />
-            </div>
-          )}
+          <div className="relative shrink-0">
+            <button
+              onClick={onNewChat}
+              className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer"
+              title="New chat"
+            >
+              <Plus className="size-3.5 text-brand-950" />
+            </button>
+            {showNewDropdown && (
+              <div className="absolute right-0 top-full mt-1 z-30">
+                <NewChatDropdown
+                  onSelect={(type) => {
+                    onPickNewChatType(type);
+                    onCloseNewDropdown();
+                  }}
+                  onClose={onCloseNewDropdown}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

@@ -219,7 +219,7 @@ Group-first selection flow:
 - **Group chats**: Optional group assignment, subject required
 - **Direct chats**: No group context, subject optional, multiple chats with same person possible
 - **Resizable split-view**: Above ≥520px width, draggable divider between chat list and chat detail
-- **List toolbar**: Search row, then a second row with global search + **New chat** (`+`) aligned to the right
+- **List toolbar**: Single row — chat search, global search (magnifier), **New chat** (`+`) on the right
 - **In-pane header (split view)**: Only a slim clickable **chat title** (opens participants); main chrome is the window title bar
 - **Messages**: Bubble layout (bordered); **own messages right-aligned**, others left; author name opens member profile
 - **Participants**: Click chat title → list + search to **add** people (`addChatParticipants` upsert)
@@ -315,7 +315,7 @@ All user-facing text is in **English**. Date/time formatting uses `en-US` locale
 15. **First-person bios**: User profile descriptions written in first person, expandable on click
 16. **Focus group filter**: Apps opened from group detail show temporary filter, dismissible with "Show all"
 17. **Resizable chat columns**: Messages split-view divider is user-draggable
-18. **Calendar agenda view**: Month grid with day rows, **Monday** week separator (thick top border), columns Morning / Midday / Evening, rotated month label
+18. **Calendar agenda view**: Continuous scroll (~900 days), **month bands** with full month name (vertical, centered) and thick separators between months; subtle **Sat/Sun** row tint; light **Monday** week divider; Morning / Midday / Evening columns
 19. **Messages bubbles & filter**: WhatsApp-style bubbles; group filter respects workspace selection
 20. **Participant bulk UI**: ≥30 selected → “Manage…” modal with search instead of chip wall
 

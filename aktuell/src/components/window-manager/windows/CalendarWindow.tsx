@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type ReactElement } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   ChevronLeft,
@@ -48,6 +48,21 @@ function agendaSlotForTime(d: Date): "morning" | "midday" | "evening" {
   if (h < 12) return "morning";
   if (h < 17) return "midday";
   return "evening";
+}
+
+const AGENDA_TOTAL_DAYS = 900;
+const AGENDA_SCROLL_OFFSET_DAYS = 450;
+
+function startOfLocalDay(d: Date): Date {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function addCalendarDays(d: Date, n: number): Date {
+  const x = new Date(d);
+  x.setDate(x.getDate() + n);
+  return x;
 }
 
 function getISOWeekNumber(date: Date): number {
@@ -770,7 +785,12 @@ function CreateEventForm({
         </div>
       </div>
 
-      {/* Participants (group picker is below so layout matches “people first, then group”) */}
+      {/* Group directly above participants (drives participant auto-selection) */}
+      <div className="px-5 py-4 border-b border-brand-150">
+        <label className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-2 block">Group</label>
+        <GroupSelect groups={hierarchicalGroups} value={groupId} onChange={setGroupId} />
+      </div>
+
       <div className="px-5 py-4 border-b border-brand-150">
         <ParticipantPicker
           selectedIds={inviteeIds}
@@ -778,12 +798,6 @@ function CreateEventForm({
           currentUserId={currentUserId}
           groupId={groupId}
         />
-      </div>
-
-      {/* Group for this event */}
-      <div className="px-5 py-4 border-b border-brand-150">
-        <label className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-2 block">Group</label>
-        <GroupSelect groups={hierarchicalGroups} value={groupId} onChange={setGroupId} />
       </div>
 
       {/* Footer with Submit */}
@@ -814,6 +828,46 @@ export function CalendarContent({ focusGroupId }: { focusGroupId?: string } = {}
   const [tempGroupFilter, setTempGroupFilter] = useState<string | null>(focusGroupId ?? null);
   const { toggleWindow, closeWindow, openNewInstance } = useWindowManager();
   const { selectedGroupIds, allGroups: filterGroups, currentUserId } = useGroupFilter();
+
+  const agendaScrollRef = useRef<HTMLDivElement>(null);
+  const agendaRangeStartRef = useRef<Date | null>(null);
+  if (agendaRangeStartRef.current === null) {
+    agendaRangeStartRef.current = addCalendarDays(startOfLocalDay(new Date()), -AGENDA_SCROLL_OFFSET_DAYS);
+  }
+
+  const agendaDays = useMemo(() => {
+    const start = agendaRangeStartRef.current!;
+    const out: Date[] = [];
+    for (let i = 0; i < AGENDA_TOTAL_DAYS; i++) {
+      out.push(addCalendarDays(start, i));
+    }
+    return out;
+  }, []);
+
+  const agendaMonthBlocks = useMemo(() => {
+    type Block = { key: string; monthLabel: string; days: Date[] };
+    const blocks: Block[] = [];
+    for (const d of agendaDays) {
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      const prev = blocks[blocks.length - 1];
+      if (!prev || prev.key !== key) {
+        blocks.push({
+          key,
+          monthLabel: d.toLocaleDateString("en-US", { month: "long", year: "numeric" }),
+          days: [d],
+        });
+      } else {
+        prev.days.push(d);
+      }
+    }
+    return blocks;
+  }, [agendaDays]);
+
+  useEffect(() => {
+    if (viewMode !== "agenda") return;
+    const el = agendaScrollRef.current?.querySelector<HTMLElement>("[data-agenda-today='1']");
+    el?.scrollIntoView({ block: "center", behavior: "auto" });
+  }, [viewMode]);
 
   const reload = useCallback(async () => {
     const [evts, grps] = await Promise.all([loadEvents(), loadGroups()]);
@@ -886,8 +940,9 @@ export function CalendarContent({ focusGroupId }: { focusGroupId?: string } = {}
   };
 
   const navigateDate = (direction: "prev" | "next") => {
+    if (viewMode === "agenda") return;
     const d = new Date(currentDate);
-    if (viewMode === "month" || viewMode === "agenda") d.setMonth(d.getMonth() + (direction === "next" ? 1 : -1));
+    if (viewMode === "month") d.setMonth(d.getMonth() + (direction === "next" ? 1 : -1));
     else if (viewMode === "week") d.setDate(d.getDate() + (direction === "next" ? 7 : -7));
     else d.setDate(d.getDate() + (direction === "next" ? 1 : -1));
     setCurrentDate(d);
@@ -1094,85 +1149,90 @@ export function CalendarContent({ focusGroupId }: { focusGroupId?: string } = {}
     );
   };
 
-  // ─── Agenda view (day rows, week separators Mon, 3 time columns) ─
+  // ─── Agenda view (continuous scroll, month bands, week / weekend styling) ─
 
   const renderAgendaView = () => {
-    const y = currentDate.getFullYear();
-    const m = currentDate.getMonth();
-    const lastDay = new Date(y, m + 1, 0).getDate();
-    let prevMonthIdx = -1;
-
-    const rows: ReactElement[] = [];
-    for (let day = 1; day <= lastDay; day++) {
-      const d = new Date(y, m, day);
-      const dayEvents = getEventsForDate(d);
-      const morning = dayEvents.filter((e) => agendaSlotForTime(new Date(e.startsAt)) === "morning");
-      const midday = dayEvents.filter((e) => agendaSlotForTime(new Date(e.startsAt)) === "midday");
-      const evening = dayEvents.filter((e) => agendaSlotForTime(new Date(e.startsAt)) === "evening");
-      const isMonday = d.getDay() === 1;
-      const showMonthLabel = d.getMonth() !== prevMonthIdx;
-      prevMonthIdx = d.getMonth();
-
-      rows.push(
-        <div
-          key={day}
-          className={`grid grid-cols-[1.6rem_4.5rem_1fr_1fr_1fr] gap-x-1 border-b border-brand-100 bg-brand-0 ${
-            isMonday ? "border-t-[5px] border-t-brand-950" : ""
-          }`}
-          style={{ minHeight: 52 }}
-        >
-          <div className="flex items-stretch justify-center border-r border-brand-150 bg-brand-25 min-h-[52px]">
-            {showMonthLabel ? (
-              <span
-                className="text-[9px] font-bold text-brand-950 uppercase tracking-widest py-2"
-                style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-              >
-                {d.toLocaleDateString("en-US", { month: "short" })}
-              </span>
-            ) : null}
-          </div>
-          <button
-            type="button"
-            onClick={() => goToDay(d)}
-            className="flex flex-col items-start justify-center px-1.5 py-1 border-r border-brand-100 hover:bg-brand-50 cursor-pointer text-left min-w-0"
-          >
-            <span className="text-sm font-semibold text-brand-950 leading-none">{day}</span>
-            <span className="text-[9px] text-brand-950 opacity-60 mt-0.5">
-              {d.toLocaleDateString("en-US", { weekday: "short" })}
-            </span>
-          </button>
-          <div className="p-1 border-r border-brand-50 min-w-0 flex flex-col gap-0.5">
-            <div className="text-[8px] font-semibold text-brand-950 uppercase opacity-50 mb-0.5">Morning</div>
-            {morning.map((ev) => (
-              <EventChip key={ev.id} ev={ev} showTime onOpenDetail={openEventDetail} />
-            ))}
-          </div>
-          <div className="p-1 border-r border-brand-50 min-w-0 flex flex-col gap-0.5">
-            <div className="text-[8px] font-semibold text-brand-950 uppercase opacity-50 mb-0.5">Midday</div>
-            {midday.map((ev) => (
-              <EventChip key={ev.id} ev={ev} showTime onOpenDetail={openEventDetail} />
-            ))}
-          </div>
-          <div className="p-1 min-w-0 flex flex-col gap-0.5">
-            <div className="text-[8px] font-semibold text-brand-950 uppercase opacity-50 mb-0.5">Evening</div>
-            {evening.map((ev) => (
-              <EventChip key={ev.id} ev={ev} showTime onOpenDetail={openEventDetail} />
-            ))}
-          </div>
-        </div>
-      );
-    }
+    const today = startOfLocalDay(new Date()).getTime();
 
     return (
-      <div className="flex-1 min-h-0 overflow-y-auto">
-        <div className="sticky top-0 z-10 grid grid-cols-[1.6rem_4.5rem_1fr_1fr_1fr] gap-x-1 border-b border-brand-200 bg-brand-50 text-[9px] font-semibold text-brand-950 uppercase">
-          <div className="border-r border-brand-200" aria-hidden />
+      <div ref={agendaScrollRef} className="flex-1 min-h-0 overflow-y-auto">
+        <div className="sticky top-0 z-10 grid grid-cols-[5.5rem_4rem_1fr_1fr_1fr] gap-x-0 border-b border-brand-200 bg-brand-50 text-[9px] font-semibold text-brand-950 uppercase">
+          <div className="py-1 border-r border-transparent" aria-hidden />
           <div className="border-r border-brand-200 py-1 pl-1">Day</div>
           <div className="border-r border-brand-200 py-1 text-center">Morning</div>
           <div className="border-r border-brand-200 py-1 text-center">Midday</div>
           <div className="py-1 text-center">Evening</div>
         </div>
-        {rows}
+
+        {agendaMonthBlocks.map((block, bi) => (
+          <div
+            key={block.key}
+            className={`flex ${bi > 0 ? "border-t-[3px] border-t-brand-950" : ""}`}
+          >
+            {/* Month column: no per-row lines; full name centered in band */}
+            <div className="w-[5.5rem] shrink-0 bg-brand-25 flex items-center justify-center px-1 py-6 border-r border-brand-200">
+              <span
+                className="text-base font-semibold text-brand-950 text-center leading-snug tracking-tight"
+                style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+              >
+                {block.monthLabel}
+              </span>
+            </div>
+
+            <div className="flex-1 min-w-0 flex flex-col">
+              {block.days.map((d) => {
+                const dayEvents = getEventsForDate(d);
+                const morning = dayEvents.filter((e) => agendaSlotForTime(new Date(e.startsAt)) === "morning");
+                const midday = dayEvents.filter((e) => agendaSlotForTime(new Date(e.startsAt)) === "midday");
+                const evening = dayEvents.filter((e) => agendaSlotForTime(new Date(e.startsAt)) === "evening");
+                const dow = d.getDay();
+                const isMonday = dow === 1;
+                const isWeekend = dow === 0 || dow === 6;
+                const isToday = startOfLocalDay(d).getTime() === today;
+
+                return (
+                  <div
+                    key={d.getTime()}
+                    data-agenda-today={isToday ? "1" : undefined}
+                    className={`grid grid-cols-[4rem_1fr_1fr_1fr] gap-x-1 border-b border-brand-100 ${
+                      isMonday ? "border-t border-brand-300" : ""
+                    } ${isWeekend ? "bg-brand-100/45" : "bg-brand-0"}`}
+                    style={{ minHeight: 52 }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => goToDay(d)}
+                      className="flex flex-col items-start justify-center px-1.5 py-1 border-r border-brand-100/80 hover:bg-brand-50/80 cursor-pointer text-left min-w-0"
+                    >
+                      <span className="text-sm font-semibold text-brand-950 leading-none">{d.getDate()}</span>
+                      <span className="text-[9px] text-brand-950 opacity-60 mt-0.5">
+                        {d.toLocaleDateString("en-US", { weekday: "short" })}
+                      </span>
+                    </button>
+                    <div className="p-1 border-r border-brand-100/60 min-w-0 flex flex-col gap-0.5">
+                      <div className="text-[8px] font-semibold text-brand-950 uppercase opacity-50 mb-0.5">Morning</div>
+                      {morning.map((ev) => (
+                        <EventChip key={ev.id} ev={ev} showTime onOpenDetail={openEventDetail} />
+                      ))}
+                    </div>
+                    <div className="p-1 border-r border-brand-100/60 min-w-0 flex flex-col gap-0.5">
+                      <div className="text-[8px] font-semibold text-brand-950 uppercase opacity-50 mb-0.5">Midday</div>
+                      {midday.map((ev) => (
+                        <EventChip key={ev.id} ev={ev} showTime onOpenDetail={openEventDetail} />
+                      ))}
+                    </div>
+                    <div className="p-1 min-w-0 flex flex-col gap-0.5">
+                      <div className="text-[8px] font-semibold text-brand-950 uppercase opacity-50 mb-0.5">Evening</div>
+                      {evening.map((ev) => (
+                        <EventChip key={ev.id} ev={ev} showTime onOpenDetail={openEventDetail} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
     );
   };
@@ -1218,8 +1278,8 @@ export function CalendarContent({ focusGroupId }: { focusGroupId?: string } = {}
 
   const formatTitle = () => {
     if (viewMode === "list") return "Upcoming";
-    if (viewMode === "month" || viewMode === "agenda")
-      return currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    if (viewMode === "agenda") return "Agenda";
+    if (viewMode === "month") return currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
     if (viewMode === "week") {
       const monday = getMondayOfWeek(currentDate);
       const sunday = new Date(monday);
@@ -1277,19 +1337,25 @@ export function CalendarContent({ focusGroupId }: { focusGroupId?: string } = {}
         </div>
 
         <div className="flex items-center gap-1 flex-1 justify-center min-w-0">
-          <button
-            onClick={() => navigateDate("prev")}
-            className="p-1 rounded hover:bg-brand-50 transition-colors cursor-pointer shrink-0"
-          >
-            <ChevronLeft className="size-3.5 text-brand-950" />
-          </button>
-          <div className="px-1 py-0.5 text-[11px] font-medium text-brand-950 text-center truncate">{formatTitle()}</div>
-          <button
-            onClick={() => navigateDate("next")}
-            className="p-1 rounded hover:bg-brand-50 transition-colors cursor-pointer shrink-0"
-          >
-            <ChevronRight className="size-3.5 text-brand-950" />
-          </button>
+          {viewMode === "agenda" ? (
+            <div className="px-1 py-0.5 text-[11px] font-medium text-brand-950 text-center truncate">{formatTitle()}</div>
+          ) : (
+            <>
+              <button
+                onClick={() => navigateDate("prev")}
+                className="p-1 rounded hover:bg-brand-50 transition-colors cursor-pointer shrink-0"
+              >
+                <ChevronLeft className="size-3.5 text-brand-950" />
+              </button>
+              <div className="px-1 py-0.5 text-[11px] font-medium text-brand-950 text-center truncate">{formatTitle()}</div>
+              <button
+                onClick={() => navigateDate("next")}
+                className="p-1 rounded hover:bg-brand-50 transition-colors cursor-pointer shrink-0"
+              >
+                <ChevronRight className="size-3.5 text-brand-950" />
+              </button>
+            </>
+          )}
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
