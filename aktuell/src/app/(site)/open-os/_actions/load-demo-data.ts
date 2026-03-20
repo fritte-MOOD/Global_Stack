@@ -26,8 +26,8 @@ export type DemoTask = {
   done: boolean;
   dueAt: string | null;
   groupId: string;
-  assignee: { name: string } | null;
-  creator: { name: string };
+  assignee: { id: string; name: string } | null;
+  creator: { id: string; name: string };
 };
 
 export type DemoDocument = {
@@ -102,8 +102,8 @@ export async function loadDemoData(serverSlugs: string[]): Promise<DemoData> {
     prisma.task.findMany({
       where: { groupId: { in: allGroupIds } },
       include: {
-        assignee: { select: { name: true } },
-        creator: { select: { name: true } },
+        assignee: { select: { id: true, name: true } },
+        creator: { select: { id: true, name: true } },
       },
       orderBy: { createdAt: "desc" },
     }),

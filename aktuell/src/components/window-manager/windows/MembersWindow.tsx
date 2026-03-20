@@ -270,7 +270,10 @@ export function MembersContent({ initialGroupId }: { initialGroupId?: string }) 
   const [members, setMembers] = useState<MemberWithGroups[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterGroupId, setFilterGroupId] = useState<string | null>(initialGroupId ?? null);
+  /** Single main group filter (exclusive); null = “All” using global group picker */
+  const [mainGroupFilterId, setMainGroupFilterId] = useState<string | null>(initialGroupId ?? null);
+  /** When a main group is selected, optional refinement to specific subgroups (multi) */
+  const [subgroupSelection, setSubgroupSelection] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     loadAllMembers().then((m) => { setMembers(m); setLoading(false); });
@@ -297,18 +300,35 @@ export function MembersContent({ initialGroupId }: { initialGroupId?: string }) 
 
   const q = searchQuery.toLowerCase();
 
-  const filterGroupIds = new Set<string>();
-  if (filterGroupId) {
-    filterGroupIds.add(filterGroupId);
-    allGroups.filter((g) => g.parentId === filterGroupId).forEach((g) => filterGroupIds.add(g.id));
-  }
+  const subgroupIdsUnderMain = mainGroupFilterId
+    ? allGroups.filter((g) => g.parentId === mainGroupFilterId).map((g) => g.id)
+    : [];
 
   const filtered = members.filter((m) => {
-    if (filterGroupId && !m.groups.some((g) => filterGroupIds.has(g.id))) return false;
-    if (!filterGroupId && !m.groups.some((g) => selectedGroupIds.has(g.id))) return false;
+    if (mainGroupFilterId) {
+      const inMainTree = m.groups.some(
+        (g) => g.id === mainGroupFilterId || subgroupIdsUnderMain.includes(g.id)
+      );
+      if (!inMainTree) return false;
+      if (subgroupSelection.size > 0 && !m.groups.some((g) => subgroupSelection.has(g.id))) return false;
+    } else if (!m.groups.some((g) => selectedGroupIds.has(g.id))) return false;
     if (q && !m.name.toLowerCase().includes(q) && !m.username.toLowerCase().includes(q)) return false;
     return true;
   });
+
+  const toggleSubgroup = (id: string) => {
+    setSubgroupSelection((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const mainGroups = allGroups.filter((g) => g.depth === 0);
+  const subgroupsForMain = mainGroupFilterId
+    ? allGroups.filter((g) => g.parentId === mainGroupFilterId)
+    : [];
 
   return (
     <div className="flex flex-col h-full">
@@ -327,21 +347,32 @@ export function MembersContent({ initialGroupId }: { initialGroupId?: string }) 
 
         <div className="flex gap-1 flex-wrap">
           <button
-            onClick={() => setFilterGroupId(null)}
+            onClick={() => {
+              setMainGroupFilterId(null);
+              setSubgroupSelection(new Set());
+            }}
             className={`px-2 py-0.5 text-[10px] rounded-full border transition-colors cursor-pointer ${
-              !filterGroupId
+              !mainGroupFilterId
                 ? "border-brand-950 bg-brand-950 text-brand-0"
                 : "border-brand-200 text-brand-950 hover:bg-brand-50"
             }`}
           >
             All
           </button>
-          {allGroups.filter((g) => g.depth === 0).map((g) => (
+          {mainGroups.map((g) => (
             <button
               key={g.id}
-              onClick={() => setFilterGroupId(filterGroupId === g.id ? null : g.id)}
+              onClick={() => {
+                if (mainGroupFilterId === g.id) {
+                  setMainGroupFilterId(null);
+                  setSubgroupSelection(new Set());
+                } else {
+                  setMainGroupFilterId(g.id);
+                  setSubgroupSelection(new Set());
+                }
+              }}
               className={`flex items-center gap-1 px-2 py-0.5 text-[10px] rounded-full border transition-colors cursor-pointer ${
-                filterGroupIds.has(g.id)
+                mainGroupFilterId === g.id
                   ? "border-brand-950 bg-brand-950 text-brand-0"
                   : "border-brand-200 text-brand-950 hover:bg-brand-50"
               }`}
@@ -350,20 +381,30 @@ export function MembersContent({ initialGroupId }: { initialGroupId?: string }) 
               {g.name}
             </button>
           ))}
-          {filterGroupId && allGroups.filter((g) => g.parentId === filterGroupId).map((g) => (
-            <button
-              key={g.id}
-              onClick={() => setFilterGroupId(filterGroupId === g.id ? filterGroupId : g.id)}
-              className={`flex items-center gap-1 px-1.5 py-0.5 text-[9px] rounded-full border transition-colors cursor-pointer ${
-                filterGroupId === g.id
-                  ? "border-brand-950 bg-brand-950 text-brand-0"
-                  : "border-brand-150 text-brand-950 hover:bg-brand-50"
-              }`}
-            >
-              {g.name}
-            </button>
-          ))}
         </div>
+
+        {subgroupsForMain.length > 0 && (
+          <div className="pl-1 pt-1 border-t border-brand-100">
+            <div className="text-[9px] text-brand-950 opacity-50 mb-1 uppercase tracking-wide">Subgroups (multi)</div>
+            <div className="flex gap-1 flex-wrap">
+              {subgroupsForMain.map((g) => (
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => toggleSubgroup(g.id)}
+                  className={`flex items-center gap-1 px-2 py-0.5 text-[10px] rounded-full border transition-colors cursor-pointer ${
+                    subgroupSelection.has(g.id)
+                      ? "border-brand-950 bg-brand-100 text-brand-950"
+                      : "border-brand-150 text-brand-950 hover:bg-brand-50 opacity-80"
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: g.color }} />
+                  {g.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Member count */}

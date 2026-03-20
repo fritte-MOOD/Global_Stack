@@ -219,8 +219,28 @@ Group-first selection flow:
 - **Group chats**: Optional group assignment, subject required
 - **Direct chats**: No group context, subject optional, multiple chats with same person possible
 - **Resizable split-view**: Above ≥520px width, draggable divider between chat list and chat detail
-- **Creation**: "+" button with dropdown (Group chat / Direct chat)
-- **Deletion**: Via context menu or right-click on chat
+- **List toolbar**: Search row, then a second row with global search + **New chat** (`+`) aligned to the right
+- **In-pane header (split view)**: Only a slim clickable **chat title** (opens participants); main chrome is the window title bar
+- **Messages**: Bubble layout (bordered); **own messages right-aligned**, others left; author name opens member profile
+- **Participants**: Click chat title → list + search to **add** people (`addChatParticipants` upsert)
+- **Group filter**: Same rule as other apps — pick groups in the workspace bar; **direct chats** stay visible when any group is selected; **group chats** must match `groupId ∈ selectedGroupIds`
+- **Creation**: "+" → dropdown (Group chat / Direct chat)
+- **Deletion**: Three-dot menu on a chat row
+
+---
+
+## General Design Guidelines
+
+These rules keep the workspace coherent as new apps (especially **Debate**) are added:
+
+1. **Typography**: Window titles use the **same sans stack as body text** (`text-xs font-normal`, centered in the title bar). No separate “heading font” in window chrome.
+2. **Window chrome**: **One** primary header per window (the draggable title bar). Avoid duplicating app titles inside the content area when the window is split or embedded.
+3. **People & names**: Any visible **person name** that refers to a user should be **clickable** and open **`MemberProfileContent`** via `useOpenMemberProfile()` (Messages, Tasks, Calendar event detail, etc.).
+4. **Neutral UI**: Prefer `text-brand-950`, `border-brand-200`, `bg-brand-0/50`; avoid blue/orange brand accents except documented `accent-*` tokens for semantics (e.g. due dates).
+5. **Group filter**: Global group picker is authoritative. Per-app “focus filters” (e.g. from group detail) are **temporary** and dismissible.
+6. **Density & lists**: Long multi-select lists (e.g. event participants) switch to a **searchable manager** when count ≥ **30**; below that, inline chips are OK.
+7. **Forms**: Order fields from **general → specific**; put **group** selection where it matches the mental model (e.g. event: people first, then hosting **group**).
+8. **Future Debate app**: Plan for **threaded or motion-based** content tied to **groups**, with neutral chrome, reusable **participant picker**, and the same **profile** and **notification** patterns as Messages/Calendar.
 
 ---
 
@@ -295,6 +315,9 @@ All user-facing text is in **English**. Date/time formatting uses `en-US` locale
 15. **First-person bios**: User profile descriptions written in first person, expandable on click
 16. **Focus group filter**: Apps opened from group detail show temporary filter, dismissible with "Show all"
 17. **Resizable chat columns**: Messages split-view divider is user-draggable
+18. **Calendar agenda view**: Month grid with day rows, **Monday** week separator (thick top border), columns Morning / Midday / Evening, rotated month label
+19. **Messages bubbles & filter**: WhatsApp-style bubbles; group filter respects workspace selection
+20. **Participant bulk UI**: ≥30 selected → “Manage…” modal with search instead of chip wall
 
 ---
 
@@ -306,7 +329,7 @@ All user-facing text is in **English**. Date/time formatting uses `en-US` locale
 - **M4**: ✅ Auth & Persistence (Prisma, SQLite, Auth, Session, Middleware, Templates)
 - **M4b**: ✅ Desktop Redesign (Shared Desktop, Footer menus, Settings, Group filter)
 - **M5**: ✅ Enhanced Apps (Chat system, Global search, Calendar views, Event details, Window resize, Context menu, Accent color cleanup)
-- **M6**: ✅ Groups & Members (Groups app with tree view, Members app, Member profiles, Focus group filter, Participant picker redesign)
+- **M6**: ✅ Groups & Members (Groups list/hierarchy, Members app, Member profiles, Focus group filter, Participant picker redesign)
 - **M6b**: ✅ Polish (i18n to English, seed data overhaul with 8 users, snap-to-edge, resizable chat columns, 24h time, expandable bios)
 
-**Next steps**: Server View (M7), Tablet/Mobile Screens (M8), Accent Color System (M9), Notifications (M10)
+**Next steps**: **Debate** (structured threads/motions, group-scoped, design per General Design Guidelines), Server View (M7), Tablet/Mobile Screens (M8), Accent Color System (M9), Notifications (M10)

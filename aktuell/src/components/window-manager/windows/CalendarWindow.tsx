@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactElement } from "react";
 import { createPortal } from "react-dom";
 import {
   ChevronLeft,
@@ -18,6 +18,7 @@ import {
   Send,
   Smile,
   Search,
+  Rows3,
 } from "lucide-react";
 import Tag from "../logic/Tag";
 import { useWindowManager, type WindowContent } from "../logic/WindowManager";
@@ -35,11 +36,19 @@ import { loadGroups, type GroupOption } from "@/app/_actions/groups";
 import { useGroupFilter } from "@/components/desktop/GroupFilterContext";
 import { searchWindowContent } from "./SearchWindow";
 import { ParticipantPicker } from "./ParticipantPicker";
+import { useOpenMemberProfile } from "../useOpenMemberProfile";
 
-type ViewMode = "month" | "week" | "day" | "list";
+type ViewMode = "month" | "week" | "day" | "list" | "agenda";
 type HierarchicalGroup = GroupOption & { depth: number };
 
 // ─── Helpers ────────────────────────────────────────────────────
+
+function agendaSlotForTime(d: Date): "morning" | "midday" | "evening" {
+  const h = d.getHours();
+  if (h < 12) return "morning";
+  if (h < 17) return "midday";
+  return "evening";
+}
 
 function getISOWeekNumber(date: Date): number {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
@@ -198,12 +207,14 @@ function CommentItem({
   userId,
   onReact,
   onReply,
+  onOpenAuthorProfile,
   depth = 0,
 }: {
   comment: EventComment;
   userId: string;
   onReact: (commentId: string, emoji: string) => void;
   onReply: (parentId: string, content: string) => void;
+  onOpenAuthorProfile?: (authorId: string, authorName: string) => void;
   depth?: number;
 }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -222,7 +233,17 @@ function CommentItem({
     <div className={`${depth > 0 ? "ml-4 border-l-2 border-brand-150 pl-3" : ""}`}>
       <div className="bg-brand-25 rounded-lg p-3">
         <div className="flex items-center gap-2 text-xs mb-1.5">
-          <span className="font-semibold text-brand-950">{comment.authorName}</span>
+          {onOpenAuthorProfile ? (
+            <button
+              type="button"
+              onClick={() => onOpenAuthorProfile(comment.authorId, comment.authorName)}
+              className="font-semibold text-brand-950 hover:underline cursor-pointer text-left"
+            >
+              {comment.authorName}
+            </button>
+          ) : (
+            <span className="font-semibold text-brand-950">{comment.authorName}</span>
+          )}
           <span className="text-brand-950">{new Date(comment.createdAt).toLocaleDateString("en-US")}</span>
         </div>
         <p className="text-sm text-brand-950 whitespace-pre-wrap leading-relaxed">{comment.content}</p>
@@ -317,7 +338,15 @@ function CommentItem({
           {!repliesCollapsed && (
             <div className="space-y-2">
               {comment.replies.map((reply) => (
-                <CommentItem key={reply.id} comment={reply} userId={userId} onReact={onReact} onReply={onReply} depth={depth + 1} />
+                <CommentItem
+                  key={reply.id}
+                  comment={reply}
+                  userId={userId}
+                  onReact={onReact}
+                  onReply={onReply}
+                  onOpenAuthorProfile={onOpenAuthorProfile}
+                  depth={depth + 1}
+                />
               ))}
             </div>
           )}
@@ -334,6 +363,7 @@ function EventDetailContent({ eventId, currentUserId }: { eventId: string; curre
   const [loading, setLoading] = useState(true);
   const [newComment, setNewComment] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const openMemberProfile = useOpenMemberProfile();
 
   const reload = useCallback(async () => {
     const e = await loadEventDetails(eventId);
@@ -441,7 +471,13 @@ function EventDetailContent({ eventId, currentUserId }: { eventId: string; curre
           <User className="size-4 text-brand-950 mt-0.5 shrink-0" />
           <div>
             <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-0.5">Created by</div>
-            <div className="text-sm text-brand-950">{event.creatorName}</div>
+            <button
+              type="button"
+              onClick={() => openMemberProfile(event.creatorId, event.creatorName)}
+              className="text-sm text-brand-950 hover:underline text-left cursor-pointer"
+            >
+              {event.creatorName}
+            </button>
             <div className="text-[11px] text-brand-950">{createdDate.toLocaleDateString("en-US")}</div>
           </div>
         </div>
@@ -510,8 +546,19 @@ function EventDetailContent({ eventId, currentUserId }: { eventId: string; curre
         )}
 
         {totalInvited > 0 && (
-          <div className="mt-2 text-xs text-brand-950">
-            {[...accepted, ...maybe, ...declined].map((i) => i.userName).join(", ")}
+          <div className="mt-2 text-xs text-brand-950 flex flex-wrap gap-x-1 gap-y-0.5">
+            {[...accepted, ...maybe, ...declined].map((i, idx) => (
+              <span key={i.userId}>
+                {idx > 0 && <span className="text-brand-400">·</span>}
+                <button
+                  type="button"
+                  onClick={() => openMemberProfile(i.userId, i.userName)}
+                  className="hover:underline cursor-pointer"
+                >
+                  {i.userName}
+                </button>
+              </span>
+            ))}
           </div>
         )}
       </div>
@@ -526,7 +573,14 @@ function EventDetailContent({ eventId, currentUserId }: { eventId: string; curre
         {event.comments && event.comments.length > 0 && (
           <div className="space-y-3 mb-3 flex-1 overflow-y-auto">
             {event.comments.map((c) => (
-              <CommentItem key={c.id} comment={c} userId={currentUserId} onReact={handleReaction} onReply={handleReplyComment} />
+              <CommentItem
+                key={c.id}
+                comment={c}
+                userId={currentUserId}
+                onReact={handleReaction}
+                onReply={handleReplyComment}
+                onOpenAuthorProfile={openMemberProfile}
+              />
             ))}
           </div>
         )}
@@ -639,6 +693,8 @@ function CreateEventForm({
       startsAt,
       groupId,
       location: location || undefined,
+      creatorId: currentUserId,
+      inviteeUserIds: Array.from(inviteeIds),
     });
     if (result.success && result.event) {
       onCreated(result.event);
@@ -652,11 +708,8 @@ function CreateEventForm({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col h-full overflow-y-auto">
-      {/* Hero Header — Title + Description + Group */}
+      {/* Hero — Title + Description */}
       <div className="px-5 pt-5 pb-4 bg-brand-50 border-b border-brand-150">
-        <div className="mb-3">
-          <GroupSelect groups={hierarchicalGroups} value={groupId} onChange={setGroupId} />
-        </div>
         <input
           type="text"
           placeholder="Event title"
@@ -717,7 +770,7 @@ function CreateEventForm({
         </div>
       </div>
 
-      {/* Participants */}
+      {/* Participants (group picker is below so layout matches “people first, then group”) */}
       <div className="px-5 py-4 border-b border-brand-150">
         <ParticipantPicker
           selectedIds={inviteeIds}
@@ -725,6 +778,12 @@ function CreateEventForm({
           currentUserId={currentUserId}
           groupId={groupId}
         />
+      </div>
+
+      {/* Group for this event */}
+      <div className="px-5 py-4 border-b border-brand-150">
+        <label className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-2 block">Group</label>
+        <GroupSelect groups={hierarchicalGroups} value={groupId} onChange={setGroupId} />
       </div>
 
       {/* Footer with Submit */}
@@ -828,7 +887,7 @@ export function CalendarContent({ focusGroupId }: { focusGroupId?: string } = {}
 
   const navigateDate = (direction: "prev" | "next") => {
     const d = new Date(currentDate);
-    if (viewMode === "month") d.setMonth(d.getMonth() + (direction === "next" ? 1 : -1));
+    if (viewMode === "month" || viewMode === "agenda") d.setMonth(d.getMonth() + (direction === "next" ? 1 : -1));
     else if (viewMode === "week") d.setDate(d.getDate() + (direction === "next" ? 7 : -7));
     else d.setDate(d.getDate() + (direction === "next" ? 1 : -1));
     setCurrentDate(d);
@@ -1035,6 +1094,89 @@ export function CalendarContent({ focusGroupId }: { focusGroupId?: string } = {}
     );
   };
 
+  // ─── Agenda view (day rows, week separators Mon, 3 time columns) ─
+
+  const renderAgendaView = () => {
+    const y = currentDate.getFullYear();
+    const m = currentDate.getMonth();
+    const lastDay = new Date(y, m + 1, 0).getDate();
+    let prevMonthIdx = -1;
+
+    const rows: ReactElement[] = [];
+    for (let day = 1; day <= lastDay; day++) {
+      const d = new Date(y, m, day);
+      const dayEvents = getEventsForDate(d);
+      const morning = dayEvents.filter((e) => agendaSlotForTime(new Date(e.startsAt)) === "morning");
+      const midday = dayEvents.filter((e) => agendaSlotForTime(new Date(e.startsAt)) === "midday");
+      const evening = dayEvents.filter((e) => agendaSlotForTime(new Date(e.startsAt)) === "evening");
+      const isMonday = d.getDay() === 1;
+      const showMonthLabel = d.getMonth() !== prevMonthIdx;
+      prevMonthIdx = d.getMonth();
+
+      rows.push(
+        <div
+          key={day}
+          className={`grid grid-cols-[1.6rem_4.5rem_1fr_1fr_1fr] gap-x-1 border-b border-brand-100 bg-brand-0 ${
+            isMonday ? "border-t-[5px] border-t-brand-950" : ""
+          }`}
+          style={{ minHeight: 52 }}
+        >
+          <div className="flex items-stretch justify-center border-r border-brand-150 bg-brand-25 min-h-[52px]">
+            {showMonthLabel ? (
+              <span
+                className="text-[9px] font-bold text-brand-950 uppercase tracking-widest py-2"
+                style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+              >
+                {d.toLocaleDateString("en-US", { month: "short" })}
+              </span>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            onClick={() => goToDay(d)}
+            className="flex flex-col items-start justify-center px-1.5 py-1 border-r border-brand-100 hover:bg-brand-50 cursor-pointer text-left min-w-0"
+          >
+            <span className="text-sm font-semibold text-brand-950 leading-none">{day}</span>
+            <span className="text-[9px] text-brand-950 opacity-60 mt-0.5">
+              {d.toLocaleDateString("en-US", { weekday: "short" })}
+            </span>
+          </button>
+          <div className="p-1 border-r border-brand-50 min-w-0 flex flex-col gap-0.5">
+            <div className="text-[8px] font-semibold text-brand-950 uppercase opacity-50 mb-0.5">Morning</div>
+            {morning.map((ev) => (
+              <EventChip key={ev.id} ev={ev} showTime onOpenDetail={openEventDetail} />
+            ))}
+          </div>
+          <div className="p-1 border-r border-brand-50 min-w-0 flex flex-col gap-0.5">
+            <div className="text-[8px] font-semibold text-brand-950 uppercase opacity-50 mb-0.5">Midday</div>
+            {midday.map((ev) => (
+              <EventChip key={ev.id} ev={ev} showTime onOpenDetail={openEventDetail} />
+            ))}
+          </div>
+          <div className="p-1 min-w-0 flex flex-col gap-0.5">
+            <div className="text-[8px] font-semibold text-brand-950 uppercase opacity-50 mb-0.5">Evening</div>
+            {evening.map((ev) => (
+              <EventChip key={ev.id} ev={ev} showTime onOpenDetail={openEventDetail} />
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="sticky top-0 z-10 grid grid-cols-[1.6rem_4.5rem_1fr_1fr_1fr] gap-x-1 border-b border-brand-200 bg-brand-50 text-[9px] font-semibold text-brand-950 uppercase">
+          <div className="border-r border-brand-200" aria-hidden />
+          <div className="border-r border-brand-200 py-1 pl-1">Day</div>
+          <div className="border-r border-brand-200 py-1 text-center">Morning</div>
+          <div className="border-r border-brand-200 py-1 text-center">Midday</div>
+          <div className="py-1 text-center">Evening</div>
+        </div>
+        {rows}
+      </div>
+    );
+  };
+
   // ─── List View ──────────────────────────────────────────────
 
   const renderListView = () => {
@@ -1076,7 +1218,7 @@ export function CalendarContent({ focusGroupId }: { focusGroupId?: string } = {}
 
   const formatTitle = () => {
     if (viewMode === "list") return "Upcoming";
-    if (viewMode === "month")
+    if (viewMode === "month" || viewMode === "agenda")
       return currentDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
     if (viewMode === "week") {
       const monday = getMondayOfWeek(currentDate);
@@ -1111,13 +1253,24 @@ export function CalendarContent({ focusGroupId }: { focusGroupId?: string } = {}
       <div className="flex items-center justify-between p-2 border-b border-brand-200 bg-brand-50 shrink-0 gap-2">
         <div className="flex items-center gap-1 shrink-0">
           <div className="flex rounded-md border border-brand-200 bg-brand-0 p-0.5">
-            {(["list", "month", "week", "day"] as ViewMode[]).map((m) => (
+            {(["list", "month", "week", "day", "agenda"] as ViewMode[]).map((m) => (
               <button
                 key={m}
                 onClick={() => setViewMode(m)}
+                title={m === "agenda" ? "Agenda (by day)" : m}
                 className={`px-2 py-1 text-xs rounded transition-colors cursor-pointer ${viewMode === m ? "bg-brand-950 text-brand-0 font-medium" : "text-brand-950 hover:bg-brand-50"}`}
               >
-                {m === "list" ? <List className="size-3" /> : m === "month" ? "M" : m === "week" ? "W" : "D"}
+                {m === "list" ? (
+                  <List className="size-3" />
+                ) : m === "agenda" ? (
+                  <Rows3 className="size-3" />
+                ) : m === "month" ? (
+                  "M"
+                ) : m === "week" ? (
+                  "W"
+                ) : (
+                  "D"
+                )}
               </button>
             ))}
           </div>
@@ -1190,6 +1343,7 @@ export function CalendarContent({ focusGroupId }: { focusGroupId?: string } = {}
         {viewMode === "week" && renderWeekView()}
         {viewMode === "day" && renderDayView()}
         {viewMode === "list" && renderListView()}
+        {viewMode === "agenda" && renderAgendaView()}
       </div>
     </div>
   );

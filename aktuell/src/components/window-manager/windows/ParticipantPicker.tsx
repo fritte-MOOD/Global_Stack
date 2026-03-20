@@ -1,11 +1,147 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { X, Search, ChevronDown, ChevronRight, UserPlus } from "lucide-react";
 import { loadGroupsWithMembers, type GroupWithMembers } from "@/app/_actions/groups";
 import { loadAvailableUsers } from "@/app/_actions/chats";
 
 type Participant = { id: string; name: string };
+
+const LARGE_LIST_THRESHOLD = 30;
+
+function BulkParticipantPickerModal({
+  selectedIds,
+  onChange,
+  users,
+  onClose,
+}: {
+  selectedIds: Set<string>;
+  onChange: (ids: Set<string>) => void;
+  users: Participant[];
+  onClose: () => void;
+}) {
+  const [searchSelected, setSearchSelected] = useState("");
+  const [searchAdd, setSearchAdd] = useState("");
+  const qs = searchSelected.toLowerCase();
+  const qa = searchAdd.toLowerCase();
+
+  const selectedList = useMemo(
+    () => users.filter((u) => selectedIds.has(u.id)),
+    [users, selectedIds]
+  );
+  const filteredSelected = qs
+    ? selectedList.filter((u) => u.name.toLowerCase().includes(qs))
+    : selectedList;
+
+  const addCandidates = useMemo(() => {
+    if (!qa) return [];
+    return users.filter((u) => !selectedIds.has(u.id) && u.name.toLowerCase().includes(qa));
+  }, [users, selectedIds, qa]);
+
+  const remove = (id: string) => {
+    const next = new Set(selectedIds);
+    next.delete(id);
+    onChange(next);
+  };
+  const add = (id: string) => {
+    const next = new Set(selectedIds);
+    next.add(id);
+    onChange(next);
+    setSearchAdd("");
+  };
+
+  return createPortal(
+    <>
+      <div className="fixed inset-0 bg-black/25 z-[20000]" onClick={onClose} aria-hidden />
+      <div
+        className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(100vw-2rem,440px)] max-h-[min(85vh,560px)] bg-brand-0 border border-brand-150 rounded-xl shadow-xl z-[20001] flex flex-col overflow-hidden"
+        role="dialog"
+        aria-labelledby="bulk-participant-title"
+      >
+        <div className="px-4 py-3 border-b border-brand-150 flex justify-between items-center shrink-0">
+          <span id="bulk-participant-title" className="text-sm font-medium text-brand-950">
+            Manage participants
+          </span>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-xs font-medium text-brand-950 px-2 py-1 rounded-md hover:bg-brand-100 cursor-pointer"
+          >
+            Done
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-5 min-h-0">
+          <div>
+            <div className="text-[10px] font-medium text-brand-950 uppercase tracking-wide mb-1.5">
+              Selected ({selectedList.length})
+            </div>
+            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-brand-200 bg-brand-0 mb-2">
+              <Search className="size-3.5 text-brand-400 shrink-0" />
+              <input
+                type="text"
+                value={searchSelected}
+                onChange={(e) => setSearchSelected(e.target.value)}
+                placeholder="Filter by name..."
+                className="flex-1 text-xs bg-transparent text-brand-950 outline-none placeholder:text-brand-400"
+              />
+            </div>
+            <div className="max-h-[220px] overflow-y-auto rounded-lg border border-brand-100 divide-y divide-brand-100">
+              {filteredSelected.length === 0 ? (
+                <div className="px-3 py-4 text-[11px] text-brand-950 opacity-50 text-center">No matches</div>
+              ) : (
+                filteredSelected.map((u) => (
+                  <div key={u.id} className="flex items-center justify-between gap-2 px-3 py-2">
+                    <span className="text-xs text-brand-950 truncate">{u.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => remove(u.id)}
+                      className="text-[10px] text-brand-950 px-2 py-0.5 rounded border border-brand-200 hover:bg-brand-50 shrink-0 cursor-pointer"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          <div>
+            <div className="text-[10px] font-medium text-brand-950 uppercase tracking-wide mb-1.5">Add person</div>
+            <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-brand-200 bg-brand-0 mb-2">
+              <Search className="size-3.5 text-brand-400 shrink-0" />
+              <input
+                type="text"
+                value={searchAdd}
+                onChange={(e) => setSearchAdd(e.target.value)}
+                placeholder="Search name to add..."
+                className="flex-1 text-xs bg-transparent text-brand-950 outline-none placeholder:text-brand-400"
+              />
+            </div>
+            <div className="max-h-[160px] overflow-y-auto rounded-lg border border-brand-100">
+              {addCandidates.length === 0 ? (
+                <div className="px-3 py-3 text-[11px] text-brand-950 opacity-50 text-center">
+                  {qa ? "No people found" : "Type to search"}
+                </div>
+              ) : (
+                addCandidates.map((u) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    onClick={() => add(u.id)}
+                    className="w-full text-left px-3 py-2 text-xs text-brand-950 hover:bg-brand-50 cursor-pointer border-b border-brand-50 last:border-0"
+                  >
+                    {u.name}
+                  </button>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>,
+    document.body
+  );
+}
 
 /**
  * ParticipantPicker — Group-first participant selection.
@@ -37,6 +173,7 @@ export function ParticipantPicker({
   const [showExternal, setShowExternal] = useState(false);
   const [externalSearch, setExternalSearch] = useState("");
   const [deselectedSubgroups, setDeselectedSubgroups] = useState<Set<string>>(new Set());
+  const [bulkPickerOpen, setBulkPickerOpen] = useState(false);
 
   useEffect(() => {
     Promise.all([loadGroupsWithMembers(), loadAvailableUsers()]).then(
@@ -161,26 +298,50 @@ export function ParticipantPicker({
         </div>
       )}
 
-      {/* Selected chips */}
-      {selected.length > 0 && (
-        <div className="flex flex-wrap gap-1">
-          {selected.map((u) => (
-            <span
-              key={u.id}
-              className="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full bg-brand-100 text-[10px] text-brand-950"
-            >
-              {u.name}
+      {/* Selected: chips (<30) or summary + searchable manager (≥30) */}
+      {selected.length > 0 &&
+        (selected.length >= LARGE_LIST_THRESHOLD ? (
+          <>
+            <div className="flex items-center justify-between gap-2 rounded-lg border border-brand-200 bg-brand-50 px-3 py-2.5">
+              <span className="text-xs text-brand-950">
+                <strong>{selected.length}</strong> participants selected
+              </span>
               <button
                 type="button"
-                onClick={() => removeUser(u.id)}
-                className="p-0.5 rounded-full hover:bg-brand-200 transition-colors cursor-pointer"
+                onClick={() => setBulkPickerOpen(true)}
+                className="text-xs font-medium text-brand-950 px-2.5 py-1 rounded-md border border-brand-200 bg-brand-0 hover:bg-brand-100 cursor-pointer shrink-0"
               >
-                <X className="size-2" />
+                Manage…
               </button>
-            </span>
-          ))}
-        </div>
-      )}
+            </div>
+            {bulkPickerOpen && (
+              <BulkParticipantPickerModal
+                selectedIds={selectedIds}
+                onChange={onChange}
+                users={otherUsers}
+                onClose={() => setBulkPickerOpen(false)}
+              />
+            )}
+          </>
+        ) : (
+          <div className="flex flex-wrap gap-1">
+            {selected.map((u) => (
+              <span
+                key={u.id}
+                className="inline-flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-full bg-brand-100 text-[10px] text-brand-950"
+              >
+                {u.name}
+                <button
+                  type="button"
+                  onClick={() => removeUser(u.id)}
+                  className="p-0.5 rounded-full hover:bg-brand-200 transition-colors cursor-pointer"
+                >
+                  <X className="size-2" />
+                </button>
+              </span>
+            ))}
+          </div>
+        ))}
 
       {/* Add external person */}
       <div>

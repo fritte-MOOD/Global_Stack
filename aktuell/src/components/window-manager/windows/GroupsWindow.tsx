@@ -9,8 +9,6 @@ import {
   Calendar,
   CheckSquare,
   FileText,
-  List,
-  GitFork,
   Contact,
 } from "lucide-react";
 import Tag from "../logic/Tag";
@@ -144,116 +142,6 @@ function ListTreeNode({
   );
 }
 
-// ─── Visual Tree Diagram ────────────────────────────────────────
-
-function VisualTreeGroup({
-  group,
-  onOpenInfo,
-}: {
-  group: GroupTree;
-  onOpenInfo: (g: GroupTree) => void;
-}) {
-  const [hover, setHover] = useState(false);
-  const [rect, setRect] = useState<DOMRect | null>(null);
-  const nodeRef = useRef<HTMLDivElement>(null);
-
-  return (
-    <div className="mb-6">
-      {/* Main group node */}
-      <div
-        ref={nodeRef}
-        className="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-brand-200 bg-brand-0 cursor-pointer hover:bg-brand-50 transition-colors"
-        onClick={() => onOpenInfo(group)}
-        onMouseEnter={() => { setHover(true); if (nodeRef.current) setRect(nodeRef.current.getBoundingClientRect()); }}
-        onMouseLeave={() => setHover(false)}
-      >
-        <span className="w-4 h-4 rounded-full shrink-0" style={{ backgroundColor: group.color }} />
-        <div className="flex-1 min-w-0">
-          <div className="text-xs font-semibold text-brand-950 truncate">{group.name}</div>
-          <div className="text-[10px] text-brand-950 opacity-50">{group.memberCount} Members</div>
-        </div>
-      </div>
-
-      {hover && rect && <GroupInfoTooltip group={group} anchorRect={rect} />}
-
-      {/* Children with connecting lines */}
-      {group.children.length > 0 && (
-        <div className="ml-5 mt-0 relative">
-          {/* Vertical connector */}
-          <div className="absolute left-0 top-0 bottom-3 w-px bg-brand-200" />
-
-          {group.children.map((child, i) => (
-            <VisualTreeChild
-              key={child.id}
-              group={child}
-              parentColor={group.color}
-              isLast={i === group.children.length - 1}
-              onOpenInfo={onOpenInfo}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function VisualTreeChild({
-  group,
-  parentColor,
-  isLast,
-  onOpenInfo,
-}: {
-  group: GroupTree;
-  parentColor: string;
-  isLast: boolean;
-  onOpenInfo: (g: GroupTree) => void;
-}) {
-  const [hover, setHover] = useState(false);
-  const [rect, setRect] = useState<DOMRect | null>(null);
-  const nodeRef = useRef<HTMLDivElement>(null);
-
-  return (
-    <div className={`relative ${isLast ? "" : ""}`}>
-      {/* Horizontal connector */}
-      <div className="absolute left-0 top-4 w-4 h-px bg-brand-200" />
-      {/* Trim vertical line at last child */}
-      {isLast && <div className="absolute left-0 top-4 bottom-0 w-px bg-brand-50" />}
-
-      <div
-        ref={nodeRef}
-        className="ml-5 mt-1 flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-brand-150 bg-brand-0 cursor-pointer hover:bg-brand-50 transition-colors"
-        onClick={() => onOpenInfo(group)}
-        onMouseEnter={() => { setHover(true); if (nodeRef.current) setRect(nodeRef.current.getBoundingClientRect()); }}
-        onMouseLeave={() => setHover(false)}
-      >
-        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: parentColor }} />
-        <div className="flex-1 min-w-0">
-          <div className="text-[11px] text-brand-950 truncate">{group.name}</div>
-        </div>
-        <span className="text-[9px] text-brand-950 opacity-40 shrink-0">{group.memberCount}</span>
-      </div>
-
-      {hover && rect && <GroupInfoTooltip group={group} anchorRect={rect} />}
-
-      {/* Sub-children */}
-      {group.children.length > 0 && (
-        <div className="ml-5 relative">
-          <div className="absolute left-0 top-0 bottom-3 w-px bg-brand-150" />
-          {group.children.map((child, i) => (
-            <VisualTreeChild
-              key={child.id}
-              group={child}
-              parentColor={parentColor}
-              isLast={i === group.children.length - 1}
-              onOpenInfo={onOpenInfo}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── Group Detail Content ───────────────────────────────────────
 
 function GroupDetailContent({ groupId }: { groupId: string }) {
@@ -347,8 +235,6 @@ export function GroupsContent() {
   const { openNewInstance } = useWindowManager();
   const [tree, setTree] = useState<GroupTree[]>([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<"list" | "tree">("list");
-
   useEffect(() => {
     loadGroupTree().then((t) => { setTree(t); setLoading(false); });
   }, []);
@@ -378,31 +264,13 @@ export function GroupsContent() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header with view toggle + members button */}
+      {/* Header + members button */}
       <div className="px-3 py-2.5 border-b border-brand-150 bg-brand-50 shrink-0 flex items-center gap-2">
         <div className="flex-1 min-w-0">
           <span className="text-xs font-semibold text-brand-950">Groups</span>
           <span className="text-[10px] text-brand-950 opacity-50 ml-2">
             {tree.length} Servers · {tree.reduce((a, g) => a + g.children.length, 0)} Subgroups
           </span>
-        </div>
-
-        {/* View toggle */}
-        <div className="flex rounded-md border border-brand-200 overflow-hidden shrink-0">
-          <button
-            onClick={() => setView("list")}
-            className={`p-1 transition-colors cursor-pointer ${view === "list" ? "bg-brand-950 text-brand-0" : "text-brand-950 hover:bg-brand-100"}`}
-            title="List view"
-          >
-            <List className="size-3" />
-          </button>
-          <button
-            onClick={() => setView("tree")}
-            className={`p-1 transition-colors cursor-pointer ${view === "tree" ? "bg-brand-950 text-brand-0" : "text-brand-950 hover:bg-brand-100"}`}
-            title="Tree diagram"
-          >
-            <GitFork className="size-3" />
-          </button>
         </div>
 
         {/* Members button */}
@@ -417,17 +285,9 @@ export function GroupsContent() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto min-h-0 py-1">
-        {view === "list" ? (
-          tree.map((group) => (
-            <ListTreeNode key={group.id} group={group} depth={0} onOpenInfo={openGroupInfo} />
-          ))
-        ) : (
-          <div className="px-3 py-2">
-            {tree.map((group) => (
-              <VisualTreeGroup key={group.id} group={group} onOpenInfo={openGroupInfo} />
-            ))}
-          </div>
-        )}
+        {tree.map((group) => (
+          <ListTreeNode key={group.id} group={group} depth={0} onOpenInfo={openGroupInfo} />
+        ))}
       </div>
     </div>
   );

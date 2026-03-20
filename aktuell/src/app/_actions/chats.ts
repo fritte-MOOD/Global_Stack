@@ -173,6 +173,25 @@ export async function deleteChat({ chatId }: { chatId: string }): Promise<void> 
   await prisma.chat.delete({ where: { id: chatId } });
 }
 
+export async function addChatParticipants({
+  chatId,
+  userIds,
+}: {
+  chatId: string;
+  userIds: string[];
+}): Promise<void> {
+  const unique = [...new Set(userIds)].filter(Boolean);
+  if (unique.length === 0) return;
+  for (const userId of unique) {
+    await prisma.chatParticipant.upsert({
+      where: { chatId_userId: { chatId, userId } },
+      create: { chatId, userId },
+      update: {},
+    });
+  }
+  await prisma.chat.update({ where: { id: chatId }, data: { updatedAt: new Date() } });
+}
+
 export async function loadAvailableUsers(): Promise<{ id: string; name: string; nickname: string | null }[]> {
   const users = await prisma.user.findMany({
     select: { id: true, name: true, nickname: true },

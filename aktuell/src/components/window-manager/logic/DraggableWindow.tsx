@@ -355,7 +355,7 @@ export default function DraggableWindow({
 
   const el = (
     <>
-      <SnapPreview zone={snapPreview} areaW={area.w} areaH={area.h} container={container} />
+      <SnapPreview zone={snapPreview} areaW={area.w} areaH={area.h} container={container ?? null} />
       <div
         ref={windowRef}
         className={`flex flex-col rounded-lg border border-brand-200 bg-brand-50 shadow-lg shadow-brand-200/60 box-border ${isSnapped ? "rounded-none" : ""} ${className}`}
@@ -364,13 +364,16 @@ export default function DraggableWindow({
       >
         {/* Title Bar */}
         <div
-          className="flex items-center px-3 h-8 border-b border-brand-200 select-none shrink-0 cursor-grab active:cursor-grabbing"
+          className="grid grid-cols-[minmax(4rem,1fr)_minmax(0,12rem)_minmax(4rem,1fr)] items-center px-2 h-8 border-b border-brand-200 select-none shrink-0 cursor-grab active:cursor-grabbing"
           onMouseDown={startDrag}
           onDoubleClick={handleDoubleClickTitle}
         >
-          <h3 className="font-heading text-xs font-medium text-brand-950 flex-1">{title}</h3>
+          <div className="min-w-0" />
+          <h3 className="text-xs font-normal text-brand-950 truncate text-center min-w-0 pointer-events-none">
+            {title}
+          </h3>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 justify-end min-w-0">
             {resizable && (
               <button
                 onClick={toggleFullscreen}

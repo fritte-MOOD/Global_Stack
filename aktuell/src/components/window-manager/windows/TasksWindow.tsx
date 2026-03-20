@@ -30,6 +30,7 @@ import {
 } from "@/app/_actions/tasks";
 import { loadAvailableUsers } from "@/app/_actions/chats";
 import { ParticipantPicker } from "./ParticipantPicker";
+import { useOpenMemberProfile } from "../useOpenMemberProfile";
 
 const SERVER_SLUGS = ["sportclub", "marin-quarter", "rochefort"];
 
@@ -78,6 +79,7 @@ function sortByDueDate(tasks: DemoTask[]): DemoTask[] {
 function TaskDetailContent({ taskId }: { taskId: string }) {
   const [task, setTask] = useState<TaskDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const openMemberProfile = useOpenMemberProfile();
 
   const reload = useCallback(async () => {
     const t = await loadTaskDetails(taskId);
@@ -181,9 +183,13 @@ function TaskDetailContent({ taskId }: { taskId: string }) {
               <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-0.5">
                 Assigned
               </div>
-              <div className="text-sm text-brand-950">
+              <button
+                type="button"
+                onClick={() => openMemberProfile(task.assignee!.id, task.assignee!.name)}
+                className="text-sm text-brand-950 hover:underline text-left cursor-pointer"
+              >
                 {task.assignee.name}
-              </div>
+              </button>
             </div>
           </div>
         )}
@@ -193,7 +199,13 @@ function TaskDetailContent({ taskId }: { taskId: string }) {
             <div className="text-[11px] font-medium text-brand-950 uppercase tracking-wide mb-0.5">
               Created by
             </div>
-            <div className="text-sm text-brand-950">{task.creator.name}</div>
+            <button
+              type="button"
+              onClick={() => openMemberProfile(task.creator.id, task.creator.name)}
+              className="text-sm text-brand-950 hover:underline text-left cursor-pointer"
+            >
+              {task.creator.name}
+            </button>
             <div className="text-[11px] text-brand-950">
               {createdDate.toLocaleDateString("en-US")}
             </div>
@@ -210,6 +222,16 @@ function TaskDetailContent({ taskId }: { taskId: string }) {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="px-5 py-3 border-t border-brand-150 shrink-0">
+        <button
+          type="button"
+          onClick={handleToggle}
+          className="w-full py-2.5 text-sm font-medium rounded-lg border border-brand-200 bg-brand-0 text-brand-950 hover:bg-brand-100 transition-colors cursor-pointer"
+        >
+          {task.done ? "Mark as not done" : "Mark as done"}
+        </button>
       </div>
     </div>
   );
@@ -348,6 +370,7 @@ function CreateTaskForm({
 export function TasksContent({ focusGroupId }: { focusGroupId?: string } = {}) {
   const { selectedGroupIds, allGroups, currentUserId } = useGroupFilter();
   const { openNewInstance, toggleWindow, closeWindow } = useWindowManager();
+  const openMemberProfile = useOpenMemberProfile();
   const [data, setData] = useState<DemoData | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [localToggles, setLocalToggles] = useState<Record<string, boolean>>({});
@@ -585,9 +608,16 @@ export function TasksContent({ focusGroupId }: { focusGroupId?: string } = {}) {
                           </span>
                         )}
                         {task.assignee && (
-                          <span className="text-[10px] text-brand-950">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openMemberProfile(task.assignee!.id, task.assignee!.name);
+                            }}
+                            className="text-[10px] text-brand-950 hover:underline cursor-pointer"
+                          >
                             &rarr; {task.assignee.name}
-                          </span>
+                          </button>
                         )}
                         {task.dueAt && (
                           <span

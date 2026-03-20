@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback, type ReactNode } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo, type ReactNode } from "react";
 import { Mail, Send, ChevronLeft, MoreVertical, Trash2, Search, Plus, Users, UserIcon } from "lucide-react";
 import Tag from "../logic/Tag";
 import { useWindowManager, type WindowContent } from "../logic/WindowManager";
@@ -10,12 +10,21 @@ import {
   sendChatMessage,
   createChat,
   deleteChat,
+  addChatParticipants,
+  loadAvailableUsers,
   type ChatInfo,
   type ChatMessage,
 } from "@/app/_actions/chats";
 import { useGroupFilter } from "@/components/desktop/GroupFilterContext";
 import { searchWindowContent } from "./SearchWindow";
 import { ParticipantPicker } from "./ParticipantPicker";
+import { useOpenMemberProfile } from "../useOpenMemberProfile";
+
+function chatMatchesGroupFilter(chat: ChatInfo, selectedGroupIds: Set<string>): boolean {
+  if (selectedGroupIds.size === 0) return false;
+  if (!chat.groupId) return true;
+  return selectedGroupIds.has(chat.groupId);
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────
 
@@ -165,13 +174,21 @@ function ChatListView({
   onDeleteChat,
   onNewChat,
   onSearch,
+  showNewDropdown,
+  onCloseNewDropdown,
+  onPickNewChatType,
+  needsGroupSelection,
 }: {
   chats: ChatInfo[];
+  needsGroupSelection: boolean;
   currentUserId: string;
   onOpenChat: (chat: ChatInfo) => void;
   onDeleteChat: (chat: ChatInfo) => void;
   onNewChat: () => void;
   onSearch: () => void;
+  showNewDropdown: boolean;
+  onCloseNewDropdown: () => void;
+  onPickNewChatType: (type: "group" | "direct") => void;
 }) {
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -187,31 +204,16 @@ function ChatListView({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2.5 border-b border-brand-150 bg-brand-50 shrink-0">
-        <span className="text-xs font-semibold text-brand-950">Chats</span>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={onNewChat}
-            className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer"
-            title="New chat"
-          >
-            <Plus className="size-3.5 text-brand-950" />
-          </button>
-        </div>
-      </div>
-
-      {/* Inline search */}
-      <div className="px-3 py-2 border-b border-brand-100 shrink-0">
+      <div className="px-3 py-2 border-b border-brand-100 shrink-0 space-y-2 bg-brand-50">
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-brand-200 bg-brand-0 flex-1">
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-brand-200 bg-brand-0 flex-1 min-w-0">
             <Search className="size-3.5 text-brand-400 shrink-0" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search chats..."
-              className="flex-1 text-xs bg-transparent text-brand-950 outline-none placeholder:text-brand-400"
+              className="flex-1 text-xs bg-transparent text-brand-950 outline-none placeholder:text-brand-400 min-w-0"
             />
           </div>
           <button
@@ -222,6 +224,26 @@ function ChatListView({
             <Search className="size-3.5 text-brand-950" />
           </button>
         </div>
+        <div className="flex justify-end relative">
+          <button
+            onClick={onNewChat}
+            className="p-1.5 rounded-md hover:bg-brand-100 transition-colors cursor-pointer shrink-0"
+            title="New chat"
+          >
+            <Plus className="size-3.5 text-brand-950" />
+          </button>
+          {showNewDropdown && (
+            <div className="absolute right-0 top-full mt-1 z-30">
+              <NewChatDropdown
+                onSelect={(type) => {
+                  onPickNewChatType(type);
+                  onCloseNewDropdown();
+                }}
+                onClose={onCloseNewDropdown}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Chat Items */}
@@ -229,14 +251,22 @@ function ChatListView({
         {filteredChats.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-8 text-brand-950">
             <Mail className="size-8 mb-2 opacity-40" />
-            <span className="text-sm">{chats.length === 0 ? "No chats" : "No results"}</span>
-            {chats.length === 0 && (
-              <button
-                onClick={onNewChat}
-                className="mt-3 px-3 py-1.5 text-xs font-medium rounded-lg bg-brand-950 text-brand-0 hover:opacity-80 cursor-pointer"
-              >
-                Create chat
-              </button>
+            {needsGroupSelection ? (
+              <span className="text-xs text-center max-w-[220px] leading-relaxed">
+                Select one or more groups in the workspace bar to see chats.
+              </span>
+            ) : (
+              <>
+                <span className="text-sm">{chats.length === 0 ? "No chats" : "No results"}</span>
+                {chats.length === 0 && (
+                  <button
+                    onClick={onNewChat}
+                    className="mt-3 px-3 py-1.5 text-xs font-medium rounded-lg bg-brand-950 text-brand-0 hover:opacity-80 cursor-pointer"
+                  >
+                    Create chat
+                  </button>
+                )}
+              </>
             )}
           </div>
         ) : (
@@ -324,22 +354,127 @@ function ChatListView({
 
 // ─── Chat View ──────────────────────────────────────────────────
 
+function ChatParticipantsPanel({
+  chat,
+  currentUserId,
+  onClose,
+  onAdded,
+}: {
+  chat: ChatInfo;
+  currentUserId: string;
+  onClose: () => void;
+  onAdded: () => void;
+}) {
+  const openMemberProfile = useOpenMemberProfile();
+  const [allUsers, setAllUsers] = useState<{ id: string; name: string; nickname: string | null }[]>([]);
+  const [addSearch, setAddSearch] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  useEffect(() => {
+    loadAvailableUsers().then(setAllUsers);
+  }, []);
+
+  const existing = new Set(chat.participants.map((p) => p.id));
+  const q = addSearch.toLowerCase();
+  const candidates = q
+    ? allUsers.filter((u) => !existing.has(u.id) && u.name.toLowerCase().includes(q))
+    : [];
+
+  const addOne = async (userId: string) => {
+    if (adding) return;
+    setAdding(true);
+    try {
+      await addChatParticipants({ chatId: chat.id, userIds: [userId] });
+      onAdded();
+      setAddSearch("");
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/20 z-[25000]" onClick={onClose} aria-hidden />
+      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(100vw-2rem,360px)] max-h-[min(80vh,480px)] bg-brand-0 border border-brand-150 rounded-xl shadow-xl z-[25001] flex flex-col overflow-hidden">
+        <div className="px-4 py-3 border-b border-brand-150 flex justify-between items-center shrink-0">
+          <span className="text-sm font-medium text-brand-950">Participants</span>
+          <button type="button" onClick={onClose} className="text-xs text-brand-950 hover:underline cursor-pointer">
+            Close
+          </button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0">
+          {chat.participants.map((p) => (
+            <div key={p.id} className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => openMemberProfile(p.id, p.name)}
+                className="text-xs text-brand-950 hover:underline text-left cursor-pointer flex-1 min-w-0 truncate"
+              >
+                {p.name}
+                {p.id === currentUserId && (
+                  <span className="text-[10px] opacity-50 ml-1">(you)</span>
+                )}
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="p-3 border-t border-brand-150 shrink-0 space-y-2">
+          <div className="text-[10px] font-medium text-brand-950 uppercase tracking-wide">Add someone</div>
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-brand-200 bg-brand-0">
+            <Search className="size-3.5 text-brand-400 shrink-0" />
+            <input
+              type="text"
+              value={addSearch}
+              onChange={(e) => setAddSearch(e.target.value)}
+              placeholder="Search by name..."
+              className="flex-1 text-xs bg-transparent text-brand-950 outline-none placeholder:text-brand-400"
+            />
+          </div>
+          <div className="max-h-28 overflow-y-auto rounded-lg border border-brand-100">
+            {candidates.slice(0, 40).map((u) => (
+              <button
+                key={u.id}
+                type="button"
+                disabled={adding}
+                onClick={() => addOne(u.id)}
+                className="w-full text-left px-3 py-2 text-xs text-brand-950 hover:bg-brand-50 cursor-pointer disabled:opacity-40 border-b border-brand-50 last:border-0"
+              >
+                {u.name}
+              </button>
+            ))}
+            {q && candidates.length === 0 && (
+              <div className="px-3 py-2 text-[11px] text-brand-950 opacity-50">No matches</div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function ChatDetailView({
   chat,
   currentUserId,
   onBack,
   showBackButton,
+  splitEmbed,
+  onRefreshChats,
 }: {
   chat: ChatInfo;
   currentUserId: string;
   onBack: () => void;
   showBackButton: boolean;
+  /** When true, hide large in-pane header (window title is enough) */
+  splitEmbed?: boolean;
+  onRefreshChats: () => void;
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [participantsOpen, setParticipantsOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const openMemberProfile = useOpenMemberProfile();
 
   useEffect(() => {
     loadChatMessages({ chatId: chat.id }).then((msgs) => {
@@ -370,35 +505,50 @@ function ChatDetailView({
   }, [newMessage, sending, currentUserId, chat.id]);
 
   const displayName = getChatDisplayName(chat, currentUserId);
-  const avatar = getChatAvatar(chat, currentUserId);
 
   let lastDateStr = "";
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* Chat Header */}
-      <div className="flex items-center gap-3 px-3 py-2.5 border-b border-brand-150 bg-brand-50 shrink-0">
-        {showBackButton && (
-          <button onClick={onBack} className="p-1 rounded hover:bg-brand-100 transition-colors cursor-pointer shrink-0">
-            <ChevronLeft className="size-4 text-brand-950" />
+      {splitEmbed ? (
+        <div className="flex items-center justify-center px-2 py-2 border-b border-brand-150 bg-brand-50 shrink-0">
+          <button
+            type="button"
+            onClick={() => setParticipantsOpen(true)}
+            className="text-sm font-medium text-brand-950 truncate max-w-full hover:underline cursor-pointer text-center"
+          >
+            {displayName}
           </button>
-        )}
-        <div
-          className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold text-white"
-          style={{ backgroundColor: avatar.color }}
-        >
-          {chat.type === "group" ? <Users className="size-3.5" /> : avatar.letter}
         </div>
-        <div className="min-w-0 flex-1">
-          <span className="text-sm font-semibold text-brand-950 truncate block">{displayName}</span>
-          <span className="text-[10px] text-brand-950">
-            {chat.participants.length} Participants
-          </span>
+      ) : (
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-brand-150 bg-brand-50 shrink-0">
+          {showBackButton && (
+            <button onClick={onBack} className="p-1 rounded hover:bg-brand-100 transition-colors cursor-pointer shrink-0">
+              <ChevronLeft className="size-4 text-brand-950" />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setParticipantsOpen(true)}
+            className="min-w-0 flex-1 text-left text-sm font-medium text-brand-950 truncate hover:underline cursor-pointer"
+          >
+            {displayName}
+          </button>
         </div>
-      </div>
+      )}
 
-      {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-1 min-h-0">
+      {participantsOpen && (
+        <ChatParticipantsPanel
+          chat={chat}
+          currentUserId={currentUserId}
+          onClose={() => setParticipantsOpen(false)}
+          onAdded={() => {
+            onRefreshChats();
+          }}
+        />
+      )}
+
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 space-y-2 min-h-0 bg-brand-25">
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <span className="text-xs text-brand-950">Loading...</span>
@@ -417,28 +567,38 @@ function ChatDetailView({
             });
             const showDate = dateStr !== lastDateStr;
             lastDateStr = dateStr;
+            const mine = msg.author.id === currentUserId;
 
             return (
               <div key={msg.id}>
                 {showDate && (
                   <div className="flex justify-center my-2">
-                    <span className="text-[10px] text-brand-950 bg-brand-50 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] text-brand-950 bg-brand-50 px-2 py-0.5 rounded-full border border-brand-150">
                       {dateStr}
                     </span>
                   </div>
                 )}
-                <div className="flex gap-2.5 py-1.5">
-                  <div className="w-7 h-7 rounded-full bg-brand-200 flex items-center justify-center shrink-0 text-[10px] font-bold text-brand-950">
-                    {msg.author.nickname?.[0]?.toUpperCase() ?? msg.author.name[0]}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-xs font-semibold text-brand-950">{msg.author.name}</span>
-                      <span className="text-[10px] text-brand-950">
-                        {msgDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
-                      </span>
+                <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+                  <div
+                    className={`max-w-[88%] rounded-2xl border border-brand-200 px-3 py-2 shadow-sm ${
+                      mine
+                        ? "bg-brand-100 rounded-br-sm"
+                        : "bg-brand-0 rounded-bl-sm"
+                    }`}
+                  >
+                    {!mine && (
+                      <button
+                        type="button"
+                        onClick={() => openMemberProfile(msg.author.id, msg.author.name)}
+                        className="text-[10px] font-semibold text-brand-950 hover:underline mb-0.5 block text-left w-full truncate"
+                      >
+                        {msg.author.name}
+                      </button>
+                    )}
+                    <p className="text-sm text-brand-950 leading-relaxed whitespace-pre-wrap break-words">{msg.content}</p>
+                    <div className={`text-[9px] text-brand-950 opacity-50 mt-1 ${mine ? "text-right" : ""}`}>
+                      {msgDate.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false })}
                     </div>
-                    <p className="text-sm text-brand-950 mt-0.5 leading-relaxed">{msg.content}</p>
                   </div>
                 </div>
               </div>
@@ -447,7 +607,6 @@ function ChatDetailView({
         )}
       </div>
 
-      {/* Input */}
       <div className="shrink-0 p-3 border-t border-brand-150 bg-brand-50">
         <div className="flex gap-2">
           <input
@@ -564,7 +723,7 @@ function ResizableSplitView({
 }
 
 export function MessagesContent() {
-  const { currentUserId } = useGroupFilter();
+  const { currentUserId, selectedGroupIds } = useGroupFilter();
   const { openNewInstance } = useWindowManager();
   const [chats, setChats] = useState<ChatInfo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -574,6 +733,16 @@ export function MessagesContent() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
+  const refreshChats = useCallback(async () => {
+    if (!currentUserId) return;
+    const next = await loadChats({ userId: currentUserId });
+    setChats(next);
+    setOpenChat((prev) => {
+      if (!prev) return null;
+      return next.find((c) => c.id === prev.id) ?? prev;
+    });
+  }, [currentUserId]);
+
   useEffect(() => {
     if (!currentUserId) return;
     loadChats({ userId: currentUserId }).then((c) => {
@@ -581,6 +750,11 @@ export function MessagesContent() {
       setLoading(false);
     });
   }, [currentUserId]);
+
+  const visibleChats = useMemo(
+    () => chats.filter((c) => chatMatchesGroupFilter(c, selectedGroupIds)),
+    [chats, selectedGroupIds]
+  );
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -640,24 +814,20 @@ export function MessagesContent() {
   const chatListWithDropdown = (
     <div className="relative h-full">
       <ChatListView
-        chats={chats}
+        chats={visibleChats}
+        needsGroupSelection={selectedGroupIds.size === 0}
         currentUserId={currentUserId}
         onOpenChat={setOpenChat}
         onDeleteChat={handleDeleteChat}
         onNewChat={handleNewChat}
         onSearch={handleSearch}
+        showNewDropdown={showNewDropdown}
+        onCloseNewDropdown={() => setShowNewDropdown(false)}
+        onPickNewChatType={(type) => {
+          setShowNewDropdown(false);
+          setNewChatType(type);
+        }}
       />
-      {showNewDropdown && (
-        <div className="absolute right-3 top-10">
-          <NewChatDropdown
-            onSelect={(type) => {
-              setShowNewDropdown(false);
-              setNewChatType(type);
-            }}
-            onClose={() => setShowNewDropdown(false)}
-          />
-        </div>
-      )}
     </div>
   );
 
@@ -673,6 +843,8 @@ export function MessagesContent() {
                 currentUserId={currentUserId}
                 onBack={() => setOpenChat(null)}
                 showBackButton={false}
+                splitEmbed
+                onRefreshChats={refreshChats}
               />
             ) : (
               <EmptyChatPanel />
@@ -692,6 +864,8 @@ export function MessagesContent() {
           currentUserId={currentUserId}
           onBack={() => setOpenChat(null)}
           showBackButton={true}
+          splitEmbed={false}
+          onRefreshChats={refreshChats}
         />
       </div>
     );

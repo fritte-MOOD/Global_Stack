@@ -165,6 +165,8 @@ export async function createEvent(data: {
   endsAt?: string;
   groupId: string;
   creatorId?: string;
+  /** Invited users (excluding creator); creates pending invitations */
+  inviteeUserIds?: string[];
 }): Promise<{ success: boolean; error?: string; event?: CalendarEvent }> {
   if (!data.title.trim()) {
     return { success: false, error: "Title is required" };
@@ -202,6 +204,8 @@ export async function createEvent(data: {
     select: { name: true },
   });
 
+  const inviteeIds = (data.inviteeUserIds ?? []).filter((id) => id && id !== creatorId);
+
   const event = await prisma.event.create({
     data: {
       title: data.title.trim(),
@@ -211,6 +215,12 @@ export async function createEvent(data: {
       endsAt: data.endsAt ? new Date(data.endsAt) : null,
       groupId: data.groupId,
       creatorId,
+      invitations:
+        inviteeIds.length > 0
+          ? {
+              create: inviteeIds.map((userId) => ({ userId, status: "pending" })),
+            }
+          : undefined,
     },
   });
 
